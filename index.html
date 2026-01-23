@@ -608,6 +608,26 @@
             document.getElementById('addOfferPanel').style.display = 'none';
             currentNick = null;
         }
+
+        // Ta funkcja musi znaleźć się w Twoim kodzie przed renderOffers
+function isValidImageUrl(url) {
+    if (!url) return false;
+    // Sprawdza czy link zaczyna się od http i czy nie zawiera niebezpiecznych znaków < >
+    const pattern = /^https?:\/\/[^<>]+$/i;
+    return pattern.test(url);
+}
+
+// Wewnątrz funkcji renderOffers podmień logikę generowania obrazka:
+let safeImg = escapeHtml(data.img);
+let imgHtml = "";
+
+if (isValidImageUrl(safeImg)) {
+    imgHtml = `<img src="${safeImg}" class="item-img" onerror="this.style.display='none'">`;
+} else {
+    // Jeśli link jest podejrzany (np. zawiera iframe), nie wyświetlamy nic lub dajemy ikonkę ostrzeżenia
+    imgHtml = `<span style="float:right; font-size: 20px;" title="Nieprawidłowy link do obrazka">⚠️</span>`;
+}
+        
         renderOffers();
     });
 
@@ -766,3 +786,4 @@
 
 </body>
 </html>
+
