@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Targowisko Klanowe</title>
+    <title>Targowisko Klanowe - Ultra Secure</title>
     <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -20,7 +20,6 @@
             color: #eee;
             margin: 0;
             padding: 20px;
-            padding-bottom: 80px;
         }
 
         .container { max-width: 1200px; margin: 0 auto; }
@@ -91,7 +90,7 @@
 
         .offer-card {
             background: var(--card); border: 1px solid #333; border-radius: 8px; padding: 15px; position: relative; transition: transform 0.2s;
-            overflow: hidden; /* Zabezpieczenie przed wylewaniem */
+            overflow: hidden;
         }
         .offer-card:hover { transform: translateY(-3px); border-color: #555; }
 
@@ -174,10 +173,7 @@
         }
         .delete-btn:hover { background: red; }
         
-        /* Styl dla Admina */
-        .admin-delete-btn {
-            background: #800000; border-color: red; color: white;
-        }
+        .admin-delete-btn { background: #800000; border-color: red; color: white; }
         .admin-delete-btn:hover { background: red; }
 
         .char-counter { font-size: 0.7em; color: #666; text-align: right; margin-top: -10px; margin-bottom: 10px; }
@@ -187,7 +183,7 @@
 
 <div class="container">
     <header>
-        <h1>⚔️ Targowisko (Legendy)</h1>
+        <h1>⚔️ Targowisko (Secure)</h1>
         <button id="googleLoginBtn" class="login-btn">
             <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
             Zaloguj
@@ -211,7 +207,6 @@
 
     <div id="addOfferPanel" class="panel">
         <h3 style="margin-top:0; color:#ffd700;">Dodaj Legendarne Ogłoszenie</h3>
-
         <div class="form-grid">
             <select id="offerType">
                 <option value="sprzedam">Sprzedam</option>
@@ -221,7 +216,7 @@
             <input type="text" id="itemPrice" placeholder="Cena (np. 50m)" maxlength="30">
             
             <select id="itemSource" class="full-width" onchange="updateLootList()">
-                <option value="">-- Wybierz Herosa/Tytana (Pełna Baza Legend) --</option>
+                <option value="">-- Wybierz Herosa --</option>
             </select>
 
             <select id="itemSelect" class="full-width" onchange="fillItemDetails()">
@@ -259,9 +254,8 @@
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
     import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
-    import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, deleteDoc, doc, getDoc, setDoc, serverTimestamp, where } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, deleteDoc, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
     
-    // --- ⚠️ WKLEJ TU SWOJĄ KONFIGURACJĘ ⚠️ ---
     const firebaseConfig = {
       apiKey: "AIzaSyApFYFkAghXreeX_xptg-PTCSxtPdiXYdA",
       authDomain: "targowisko-klanu.firebaseapp.com",
@@ -270,7 +264,6 @@
       messagingSenderId: "1002027435908",
       appId: "1:1002027435908:web:56419c7bc38e148cf0ffd1"
     };
-    // ------------------------------------------
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
@@ -281,23 +274,23 @@
     let currentNick = null;
     let allOffers = [];
     let currentFilter = 'all';
-    
-    // --- ADMIN CONFIG ---
     const ADMIN_NICK = "Stachu Drzymała"; 
 
-    // --- SANITYZACJA (BEZPIECZEŃSTWO) ---
     function escapeHtml(text) {
         if (!text) return "";
-        return text
-            .replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;")
-            .replace(/"/g, "&quot;")
-            .replace(/'/g, "&#039;");
+        return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
     }
 
-    // --- BAZA HEROSÓW ---
+    function isValidImageUrl(url) {
+        if (!url) return false;
+        // Akceptuje tylko linki http/https i blokuje iframe/tagi HTML
+        const safePattern = /^https?:\/\/[^<>"]+\.(jpeg|jpg|gif|png|webp|bmp)$/i;
+        return safePattern.test(url);
+    }
+
     const monstersList = [
+        { name: "Domina Ecclesiae (21 lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/her/domina.gif" },
+        { name: "Mietek Żul (25 lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/mas/mietek_zul.gif" },
         { name: "Mroczny Patryk (35 lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/her/bardzozlypatryk.gif" },
         { name: "Karmazynowy Mściciel (45 lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/klanowe/heros_karm_msc.gif" },
         { name: "Złodziej (51 lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/her/zlodziej.gif" },
@@ -325,7 +318,6 @@
         { name: "Młody Smok (282 lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/her/smokbarb.gif" }
     ];
 
-    // --- PEŁNA BAZA LEGEND ---
     const lootTable = {
         "Mroczny Patryk (35 lvl)": [
             {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm749.gif", stats: "Kapelusz wiecznej udręki||rarity=legendary;opis=Chociaż poprzednia właścicielka tego kapelusza powiązana była z ciemną stroną mocy..."},
@@ -480,310 +472,138 @@
         ]
     };
 
-    // Ładowanie listy herosów do selecta
     const sourceSelect = document.getElementById('itemSource');
     monstersList.forEach(mob => {
         let opt = document.createElement('option');
-        opt.value = mob.name; 
-        opt.dataset.img = mob.img; 
-        opt.innerText = mob.name;
+        opt.value = mob.name; opt.dataset.img = mob.img; opt.innerText = mob.name;
         sourceSelect.appendChild(opt);
     });
 
-    // Parser kodu
-    window.parseItemCode = function() {
-        const raw = document.getElementById('pasteCode').value;
-        if (!raw) return alert("Wklej kod!");
-        const imgMatch = raw.match(/src="([^"]+)"/);
-        if (imgMatch) document.getElementById('itemImg').value = imgMatch[1];
-        const statsMatch = raw.match(/stats="([^"|]+)/);
-        if (statsMatch) document.getElementById('itemName').value = statsMatch[1];
-        const opisMatch = raw.match(/opis=([^;"]+)/);
-        if (opisMatch) {
-            document.getElementById('itemDesc').value = opisMatch[1].replace(/\[br\]/g, "\n");
-        } else {
-            document.getElementById('itemDesc').value = "Brak opisu.";
-        }
-    }
-
-    // Wybór herosa - ładowanie listy przedmiotów
     window.updateLootList = function() {
         const heroName = document.getElementById('itemSource').value;
         const itemSelect = document.getElementById('itemSelect');
-        itemSelect.innerHTML = '<option value="">-- Wybierz przedmiot legendarny --</option>'; 
-         
-        if (heroName && lootTable[heroName] && lootTable[heroName].length > 0) {
-            itemSelect.style.display = 'block'; 
+        itemSelect.innerHTML = '<option value="">-- Wybierz przedmiot legendarny --</option>'; 
+        if (heroName && lootTable[heroName]) {
+            itemSelect.style.display = 'block'; 
             lootTable[heroName].forEach(item => {
-                const realName = item.stats.split('||')[0];
                 let opt = document.createElement('option');
-                opt.value = JSON.stringify(item); 
-                opt.innerText = realName;
+                opt.value = JSON.stringify(item); 
+                opt.innerText = item.stats.split('||')[0];
                 itemSelect.appendChild(opt);
             });
-        } else {
-            itemSelect.style.display = 'none'; 
-            if(heroName) alert("Wybrany heros nie posiada przedmiotów legendarnych w bazie.");
-        }
+        } else { itemSelect.style.display = 'none'; }
     }
 
-    // Uzupełnienie formularza po wyborze przedmiotu
     window.fillItemDetails = function() {
         const selectedValue = document.getElementById('itemSelect').value;
         if (!selectedValue) return;
-
         const itemData = JSON.parse(selectedValue);
         const namePart = itemData.stats.split('||')[0];
-        const statsPart = itemData.stats.split('||')[1] || "";
-
         document.getElementById('itemName').value = namePart;
         document.getElementById('itemImg').value = itemData.img;
-
-        // --- AKTUALIZACJA LIVE PREVIEW ---
-        const previewBox = document.getElementById('livePreview');
-        const previewImg = document.getElementById('previewIcon');
-        const previewTxt = document.getElementById('previewName');
-
-        if (itemData.img) {
-            previewBox.style.display = 'flex';
-            previewImg.src = itemData.img;
-            previewTxt.innerText = namePart;
-        }
-        // ---------------------------------
-
-        let description = "";
-        if (statsPart.includes('opis=')) {
-            const parts = statsPart.split(';');
-            for (let p of parts) {
-                if (p.startsWith('opis=')) {
-                    description = p.replace('opis=', '').replaceAll('[br]', '\n');
-                    break;
-                }
-            }
-        }
-        document.getElementById('itemDesc').value = description;
-        updateCharCount(); // Aktualizacja licznika znaków
+        document.getElementById('livePreview').style.display = 'flex';
+        document.getElementById('previewIcon').src = itemData.img;
+        document.getElementById('previewName').innerText = namePart;
+        document.getElementById('itemDesc').value = itemData.stats.includes('opis=') ? itemData.stats.split('opis=')[1].split(';')[0].replaceAll('[br]', '\n') : "";
+        updateCharCount();
     }
 
-    // Licznik znaków
     window.updateCharCount = function() {
-        const val = document.getElementById('itemDesc').value.length;
-        document.getElementById('charCount').innerText = val + "/150";
+        document.getElementById('charCount').innerText = document.getElementById('itemDesc').value.length + "/150";
     }
-
-    document.getElementById('googleLoginBtn').addEventListener('click', () => {
-        signInWithPopup(auth, provider).catch(e => alert(e.message));
-    });
-
-    window.logout = () => signOut(auth);
 
     onAuthStateChanged(auth, async (user) => {
         currentUser = user;
         if (user) {
             const userRef = doc(db, "users", user.uid);
             const userSnap = await getDoc(userRef);
-
-            if (userSnap.exists()) {
-                currentNick = userSnap.data().nick;
-            } else {
-                let nick = prompt("Podaj swój nick z Margonem:");
-                if(nick && nick.trim()) {
-                    currentNick = nick.trim();
-                    await setDoc(userRef, { nick: currentNick, email: user.email, photo: user.photoURL });
-                } else {
-                    logout(); return;
-                }
+            if (userSnap.exists()) { currentNick = userSnap.data().nick; }
+            else {
+                let nick = prompt("Podaj nick z gry:");
+                if(nick && nick.trim()) { currentNick = nick.trim(); await setDoc(userRef, { nick: currentNick }); }
+                else { logout(); return; }
             }
             document.getElementById('googleLoginBtn').style.display = 'none';
             document.getElementById('userProfile').style.display = 'flex';
             document.getElementById('addOfferPanel').style.display = 'block';
             document.getElementById('userNickDisplay').innerText = currentNick;
             document.getElementById('userAvatar').src = user.photoURL;
-
-            updatePresence();
-            setInterval(updatePresence, 60000);
         } else {
             document.getElementById('googleLoginBtn').style.display = 'flex';
             document.getElementById('userProfile').style.display = 'none';
             document.getElementById('addOfferPanel').style.display = 'none';
-            currentNick = null;
         }
-
-        // Ta funkcja musi znaleźć się w Twoim kodzie przed renderOffers
-function isValidImageUrl(url) {
-    if (!url) return false;
-    // Sprawdza czy link zaczyna się od http i czy nie zawiera niebezpiecznych znaków < >
-    const pattern = /^https?:\/\/[^<>]+$/i;
-    return pattern.test(url);
-}
-
-// Wewnątrz funkcji renderOffers podmień logikę generowania obrazka:
-let safeImg = escapeHtml(data.img);
-let imgHtml = "";
-
-if (isValidImageUrl(safeImg)) {
-    imgHtml = `<img src="${safeImg}" class="item-img" onerror="this.style.display='none'">`;
-} else {
-    // Jeśli link jest podejrzany (np. zawiera iframe), nie wyświetlamy nic lub dajemy ikonkę ostrzeżenia
-    imgHtml = `<span style="float:right; font-size: 20px;" title="Nieprawidłowy link do obrazka">⚠️</span>`;
-}
-        
-        renderOffers();
     });
-
-    // ONLINE QUERY
-    const fifteenMinutesAgo = new Date(Date.now() - 15 * 60 * 1000);
-    const qOnline = query(collection(db, "users"), where("lastSeen", ">", fifteenMinutesAgo));
-    onSnapshot(qOnline, (snapshot) => { renderOnlineUsers(snapshot); });
-
-    window.searchMargo = () => {
-        const name = document.getElementById('itemName').value;
-        window.open(`https://margoworld.pl/item?name=${encodeURIComponent(name)}&minLvl=&maxLvl=&cl=`, '_blank');
-    };
 
     window.addOffer = async () => {
-        if (!currentUser || !currentNick) return alert("Zaloguj się!");
-        
+        if (!currentUser) return;
         const type = document.getElementById('offerType').value;
-        const name = document.getElementById('itemName').value;
-        const price = document.getElementById('itemPrice').value;
-        const margoLink = document.getElementById('itemMargoLink').value;
-        const desc = document.getElementById('itemDesc').value;
-        const img = document.getElementById('itemImg').value;
+        const name = escapeHtml(document.getElementById('itemName').value);
+        const price = escapeHtml(document.getElementById('itemPrice').value);
+        const desc = escapeHtml(document.getElementById('itemDesc').value);
+        const img = escapeHtml(document.getElementById('itemImg').value);
+        const sourceName = document.getElementById('itemSource').value;
+        const sourceImg = document.getElementById('itemSource').selectedIndex > 0 ? document.getElementById('itemSource').options[document.getElementById('itemSource').selectedIndex].dataset.img : "";
 
-        const sel = document.getElementById('itemSource');
-        const sourceName = sel.value; 
-        const sourceImg = sel.selectedIndex > 0 ? sel.options[sel.selectedIndex].dataset.img : "";
+        if(!name || !price) return alert("Błąd!");
 
-        if(!name || !price) return alert("Brakuje nazwy lub ceny!");
-
-        try {
-            await addDoc(collection(db, "oferty"), {
-                userId: currentUser.uid, nick: currentNick, avatar: currentUser.photoURL,
-                type, name, price, source: sourceName, sourceImg: sourceImg, margoLink, desc, img,
-                date: new Date().toISOString()
-            });
-            // Reset formularza
-            document.getElementById('itemName').value = "";
-            document.getElementById('itemPrice').value = "";
-            document.getElementById('itemSource').value = "";
-            document.getElementById('itemSelect').style.display = 'none';
-            document.getElementById('livePreview').style.display = 'none';
-            document.getElementById('itemMargoLink').value = "";
-            document.getElementById('itemDesc').value = "";
-            document.getElementById('itemImg').value = "";
-            updateCharCount();
-        } catch(e) { alert("Błąd: " + e.message); }
-    };
-
-    window.deleteOffer = async (id) => {
-        if(confirm("Usunąć?")) await deleteDoc(doc(db, "oferty", id));
-    };
-
-    window.copyNick = (nick) => {
-        navigator.clipboard.writeText(`/t ${nick} `).then(() => alert(`Skopiowano: /t ${nick} `));
-    };
-
-    function timeSince(dateString) {
-        if(!dateString) return "";
-        const date = new Date(dateString);
-        const seconds = Math.floor((new Date() - date) / 1000);
-        let interval = seconds / 86400;
-        if (interval > 1) return Math.floor(interval) + " dni temu";
-        interval = seconds / 3600;
-        if (interval > 1) return Math.floor(interval) + " godz. temu";
-        interval = seconds / 60;
-        if (interval > 1) return Math.floor(interval) + " min. temu";
-        return "teraz";
-    }
-
-    window.filterOffers = (filterType) => {
-        currentFilter = filterType;
-        document.querySelectorAll('.filter-btn').forEach(btn => {
-            btn.classList.remove('active');
-            if(btn.innerText.toLowerCase() === filterType || (filterType === 'all' && btn.innerText === 'Wszystkie')) {
-                btn.classList.add('active');
-            }
+        await addDoc(collection(db, "oferty"), {
+            userId: currentUser.uid, nick: currentNick, avatar: currentUser.photoURL,
+            type, name, price, source: sourceName, sourceImg: sourceImg, desc, img,
+            date: new Date().toISOString()
         });
-        renderOffers();
+        location.reload();
     };
 
-    const q = query(collection(db, "oferty"), orderBy("date", "desc"));
-    
-    onSnapshot(q, (snapshot) => {
-        allOffers = [];
-        snapshot.forEach(docSnap => {
-            allOffers.push({ id: docSnap.id, ...docSnap.data() });
-        });
-        renderOffers();
-    });
+    window.deleteOffer = async (id) => { if(confirm("Usunąć?")) await deleteDoc(doc(db, "oferty", id)); };
+    window.copyNick = (nick) => { navigator.clipboard.writeText(`/t ${nick} `).then(() => alert("Skopiowano!")); };
+    window.logout = () => signOut(auth);
+    window.searchMargo = () => { window.open(`https://margoworld.pl/item?name=${encodeURIComponent(document.getElementById('itemName').value)}&minLvl=&maxLvl=&cl=`, '_blank'); };
 
-    function renderOffers() {
+    onSnapshot(query(collection(db, "oferty"), orderBy("date", "desc")), (snapshot) => {
         const list = document.getElementById('offersList');
         list.innerHTML = "";
-        
-        const filtered = currentFilter === 'all' ? allOffers : allOffers.filter(o => o.type === currentFilter);
+        snapshot.forEach(docSnap => {
+            const data = docSnap.data();
+            if (currentFilter !== 'all' && data.type !== currentFilter) return;
 
-        if(filtered.length === 0) {
-            list.innerHTML = `<div style="text-align:center; grid-column:1/-1; color:#555;">Brak ofert.</div>`;
-            return;
-        }
-
-        filtered.forEach(data => {
-            let tagClass = data.type; 
-            let typeLabel = data.type.toUpperCase();
-            
-            // --- LOGIKA ADMINA ---
             let deleteBtn = "";
-            const isOwner = currentUser && data.userId === currentUser.uid;
             const isAdmin = currentNick === ADMIN_NICK;
-
-            if (isOwner || isAdmin) {
-                let btnClass = (isAdmin && !isOwner) ? "delete-btn admin-delete-btn" : "delete-btn";
-                let label = (isAdmin && !isOwner) ? "USUŃ (Admin)" : "✕";
-                deleteBtn = `<button class="${btnClass}" onclick="deleteOffer('${data.id}')">${label}</button>`;
-            }
-            // ---------------------
-            
-            let imgHtml = data.img ? `<img src="${data.img}" class="item-img" onerror="this.style.display='none'">` : "";
-            
-            let sourceHtml = "";
-            let cardClass = "offer-card legendary-item";
-
-            if (data.source) {
-                let mobIcon = data.sourceImg ? `<img src="${data.sourceImg}">` : "🕷️ ";
-                sourceHtml = `<div class="item-source">${mobIcon} <span>${data.source}</span></div>`;
+            if (currentUser && (data.userId === currentUser.uid || isAdmin)) {
+                deleteBtn = `<button class="delete-btn ${isAdmin && data.userId !== currentUser.uid ? 'admin-delete-btn' : ''}" onclick="deleteOffer('${docSnap.id}')">${isAdmin && data.userId !== currentUser.uid ? 'USUŃ (Admin)' : '✕'}</button>`;
             }
             
-            let linkHtml = data.margoLink ? `<a href="${data.margoLink}" target="_blank" class="margo-link">📊 Statystyki</a>` : "";
-            let timeAgo = timeSince(data.date);
+            // SECURITY: Sprawdzanie obrazka
+            let imgHtml = "";
+            const safeImgUrl = escapeHtml(data.img);
+            if (isValidImageUrl(safeImgUrl)) {
+                imgHtml = `<img src="${safeImgUrl}" class="item-img" onerror="this.style.display='none'">`;
+            } else if (data.img) {
+                imgHtml = `<span style="float:right; font-size:20px;" title="Niebezpieczny link">⚠️</span>`;
+            }
 
-            const html = `
-                <div class="${cardClass}">
+            list.innerHTML += `
+                <div class="offer-card legendary-item">
                     ${deleteBtn}
-                    <div class="tag ${tagClass}">${typeLabel}</div>
+                    <div class="tag ${data.type}">${data.type.toUpperCase()}</div>
                     ${imgHtml}
-                    <div style="font-size:1.1em; font-weight:bold; margin-bottom:5px;">${data.name}</div>
-                    ${sourceHtml}
-                    ${linkHtml}
-                    <div style="color:var(--gold); margin-bottom:10px;">Cena: ${data.price}</div>
-                    <div style="color:#aaa; font-size:0.9em; margin-bottom:15px; font-style:italic;">${data.desc}</div>
-                    
+                    <div style="font-size:1.1em; font-weight:bold; margin-bottom:5px;">${escapeHtml(data.name)}</div>
+                    <div class="item-source"><img src="${data.sourceImg}"> <span>${escapeHtml(data.source)}</span></div>
+                    <div style="color:var(--gold); margin-bottom:10px;">Cena: ${escapeHtml(data.price)}</div>
+                    <div style="color:#aaa; font-size:0.9em; margin-bottom:15px;">${escapeHtml(data.desc)}</div>
                     <div class="seller-info">
-                        <div class="seller-left">
-                            <img src="${data.avatar}" class="tiny-avatar">
-                            <span style="color:#fff; font-weight:bold;">${data.nick}</span>
-                            <button class="copy-nick-btn" onclick="copyNick('${data.nick}')">✉️</button>
-                        </div>
-                        <div class="time-ago">${timeAgo}</div>
+                        <div class="seller-left"><img src="${data.avatar}" class="tiny-avatar"> <b>${escapeHtml(data.nick)}</b>
+                        <button class="copy-nick-btn" onclick="copyNick('${data.nick}')">✉️</button></div>
                     </div>
-                </div>
-            `;
-            list.innerHTML += html;
+                </div>`;
         });
-    }
-</script>
+    });
 
+    window.filterOffers = (type) => {
+        currentFilter = type;
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.toggle('active', b.innerText.toLowerCase() === type || (type === 'all' && b.innerText === 'Wszystkie')));
+        renderOffers(); // Logika odświeżania jest w onSnapshot
+    };
+</script>
 </body>
 </html>
-
