@@ -196,13 +196,13 @@
 <div id="editModal" style="display: none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.95); align-items: center; justify-content: center; backdrop-filter: blur(5px);">
     <div class="modal-content-full" style="background: #1a1a1a; padding: 30px; border: 2px solid #ffd700; border-radius: 15px; width: 95%; max-width: 600px;">
         <h3 style="color:#ffd700; font-family:'MedievalSharp'; margin-top:0;">Modyfikuj Ogłoszenie</h3>
-        <input type="text" id="fullEditName" placeholder="Nazwa" style="margin-bottom:10px;">
-        <input type="text" id="fullEditPrice" placeholder="Cena" style="margin-bottom:10px;">
-        <input type="text" id="fullEditImg" placeholder="Link do obrazka" style="margin-bottom:10px;">
-        <textarea id="fullEditDesc" rows="4" placeholder="Opis"></textarea>
+        <input type="text" id="fullEditName" placeholder="Nazwa" style="margin-bottom:10px; width:100%; background:#000; color:white; border:1px solid #444; padding:10px;">
+        <input type="text" id="fullEditPrice" placeholder="Cena" style="margin-bottom:10px; width:100%; background:#000; color:white; border:1px solid #444; padding:10px;">
+        <input type="text" id="fullEditImg" placeholder="Link do obrazka" style="margin-bottom:10px; width:100%; background:#000; color:white; border:1px solid #444; padding:10px;">
+        <textarea id="fullEditDesc" rows="4" placeholder="Opis" style="width:100%; background:#000; color:white; border:1px solid #444; padding:10px;"></textarea>
         <div style="display:flex; gap:15px; margin-top: 15px;">
-            <button onclick="confirmFullEdit()" style="flex:2; background:#ffd700; padding:10px; cursor:pointer; font-weight:bold;">ZATWIERDŹ</button>
-            <button onclick="closeFullEdit()" style="flex:1; background:#333; color:white; padding:10px; cursor:pointer;">ANULUJ</button>
+            <button onclick="confirmFullEdit()" style="flex:2; background:#ffd700; padding:10px; cursor:pointer; font-weight:bold; border:none;">ZATWIERDŹ</button>
+            <button onclick="closeFullEdit()" style="flex:1; background:#333; color:white; padding:10px; cursor:pointer; border:none;">ANULUJ</button>
         </div>
     </div>
 </div>
@@ -226,9 +226,9 @@
     const db = getFirestore(app);
     const provider = new GoogleAuthProvider();
 
-    // GLOBALNE FUNKCJE
     window.isValidImageUrl = (url) => url && /^https?:\/\/[^<>"]+\.(jpeg|jpg|gif|png|webp|bmp)$/i.test(url);
     
+    const ADMIN_NICK = "Stachu Drzymała";
     let currentUser = null;
     let currentNick = null;
     let allOffers = [];
@@ -421,12 +421,17 @@
         "Artenius": [{ img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_02.gif.gif", stats: "Ciężka skrytka ognistej mocy||rarity=legendary" }]
     };
 
-// LOGIKA FILTRÓW
+function escapeHtml(text) {
+        if (!text) return "";
+        return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+    }
+
+    // LOGIKA FILTRÓW
     window.setFilter = (type, val) => {
         currentFilters[type] = val;
         document.querySelectorAll(`.filters .filter-btn`).forEach(b => {
-            if(b.onclick.toString().includes(type) && b.onclick.toString().includes(val)) b.classList.add('active');
-            else if(b.onclick.toString().includes(type)) b.classList.remove('active');
+            if(b.id === 'f-'+val) b.classList.add('active');
+            else if(b.id.startsWith('f-') && ((type === 'type' && !['h','e2'].includes(b.id.slice(2))) || (type === 'cat' && ['h','e2'].includes(b.id.slice(2))))) b.classList.remove('active');
         });
         renderOffers();
     };
@@ -467,6 +472,7 @@
         document.getElementById('livePreview').style.display = 'flex';
         document.getElementById('previewIcon').src = data.img;
         document.getElementById('previewName').innerText = name;
+        document.getElementById('itemDesc').value = data.stats.split('||')[1]?.includes('opis=') ? data.stats.split('opis=')[1].split(';')[0].replaceAll('[br]', '\n') : "";
     };
 
     // LOGOWANIE
@@ -479,8 +485,8 @@
             const snap = await getDoc(ref);
             if(snap.exists()) currentNick = snap.data().nick;
             else {
-                let n = prompt("Twój nick:");
-                if(n) { currentNick = n; await setDoc(ref, {nick:n}); } else logout();
+                let n = prompt("Twój nick z gry:");
+                if(n) { currentNick = n; await setDoc(ref, {nick:n}); } else { await signOut(auth); return; }
             }
             document.getElementById('googleLoginBtn').style.display = 'none';
             document.getElementById('userProfile').style.display = 'flex';
@@ -492,10 +498,12 @@
             document.getElementById('userProfile').style.display = 'none';
             document.getElementById('addOfferPanel').style.display = 'none';
         }
+        renderOffers();
     });
 
     window.addOffer = async () => {
         const sel = document.getElementById('itemSource');
+        if(!sel.value) return alert("Wybierz przeciwnika!");
         await addDoc(collection(db, "oferty"), {
             userId: currentUser.uid, nick: currentNick, avatar: currentUser.photoURL,
             type: document.getElementById('offerType').value,
@@ -510,6 +518,7 @@
     };
 
     window.reserveOffer = async (id) => {
+        if(!currentNick) return alert("Zaloguj się!");
         await updateDoc(doc(db, "oferty", id), { reservedBy: currentNick });
     };
 
@@ -558,6 +567,7 @@
                     <div class="item-source"><img src="${data.sourceImg}"> <span>${data.source}</span></div>
                     <div class="price-tag">Cena: <span>${escapeHtml(data.price)}</span></div>
                     ${resHtml}
+                    <div style="color:#aaa; font-size:0.8em; margin:10px 0; font-style:italic;" class="item-description">${escapeHtml(data.desc)}</div>
                     <div class="seller-info">
                         <div class="seller-left"><img src="${data.avatar}" class="tiny-avatar"><b>${data.nick}</b></div>
                         <div class="btn-group">
@@ -584,8 +594,17 @@
         });
         window.closeFullEdit();
     };
-    window.updateCharCount = () => {}; // Opcjonalne
+    window.updateCharCount = () => {};
+    window.openFullEdit = (id, name, price, desc, img) => {
+        currentEditId = id;
+        document.getElementById('fullEditName').value = name;
+        document.getElementById('fullEditPrice').value = price;
+        document.getElementById('fullEditDesc').value = desc;
+        document.getElementById('fullEditImg').value = img;
+        document.getElementById('editModal').style.display = 'flex';
+    };
 </script>
 </body>
 </html>
+
 
