@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Targowisko Klanowe v2.0</title>
+    <title>Targowisko Klanowe v3.0</title>
     <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -11,7 +11,7 @@
             --bg: #121212;
             --card: #1e1e1e;
             --green: #2ecc71; --blue: #3498db; --red: #e74c3c;
-            --text-muted: #aaa;
+            --purple: #9b59b6;
         }
 
         body {
@@ -26,20 +26,11 @@
 
         /* HEADER */
         header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 2px solid #333;
-            padding-bottom: 20px;
-            margin-bottom: 30px;
+            display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 2px solid #333; padding-bottom: 20px; margin-bottom: 30px;
         }
 
-        h1 {
-            font-family: 'MedievalSharp', cursive;
-            color: var(--gold);
-            margin: 0;
-            font-size: 2em;
-        }
+        h1 { font-family: 'MedievalSharp', cursive; color: var(--gold); margin: 0; font-size: 2em; }
 
         /* LOGOWANIE */
         .login-btn {
@@ -52,13 +43,8 @@
         .user-avatar { width: 40px; height: 40px; border-radius: 50%; border: 2px solid var(--gold); }
         .logout-link { color: #888; font-size: 0.8em; text-decoration: underline; cursor: pointer; }
 
-        /* FILTRY (NOWOŚĆ) */
-        .filters {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-            justify-content: center;
-        }
+        /* FILTRY */
+        .filters { display: flex; gap: 10px; margin-bottom: 20px; justify-content: center; flex-wrap: wrap; }
         .filter-btn {
             background: #333; color: #aaa; border: 1px solid #444; padding: 8px 16px; 
             border-radius: 20px; cursor: pointer; transition: 0.3s; font-size: 0.9em;
@@ -86,13 +72,10 @@
         }
         .action-btn:hover { background: #d4a000; }
 
-        .search-row { display: flex; gap: 10px; align-items: center; }
-        .search-btn { background: #444; color: #fff; border: 1px solid #555; padding: 10px; cursor: pointer; border-radius: 5px; white-space: nowrap; }
+        .helper-btn { background: #444; color: #fff; border: 1px solid #555; padding: 10px; cursor: pointer; border-radius: 5px; white-space: nowrap; }
 
         /* LISTA OFERT */
-        .offers-grid {
-            display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px;
-        }
+        .offers-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
 
         .offer-card {
             background: var(--card); border: 1px solid #333; border-radius: 8px; padding: 15px; position: relative; transition: transform 0.2s;
@@ -106,6 +89,13 @@
 
         .item-img { width: 50px; height: 50px; float: right; object-fit: contain; }
         
+        .item-source { font-size: 0.85em; color: var(--purple); margin-bottom: 5px; font-weight: 600; display: flex; align-items: center; gap: 5px; }
+
+        .margo-link {
+            display: inline-block; font-size: 0.8em; color: #3498db; text-decoration: none; border: 1px solid #3498db; padding: 2px 8px; border-radius: 4px; margin-bottom: 10px; transition: 0.3s;
+        }
+        .margo-link:hover { background: #3498db; color: #fff; }
+
         .seller-info { 
             margin-top: 15px; padding-top: 10px; border-top: 1px solid #333; 
             display: flex; align-items: center; justify-content: space-between; font-size: 0.9em; color: #aaa;
@@ -113,14 +103,11 @@
         .seller-left { display: flex; align-items: center; gap: 8px; }
         .tiny-avatar { width: 24px; height: 24px; border-radius: 50%; }
 
-        /* Przycisk kopiowania nicku */
-        .copy-nick-btn {
-            background: none; border: 1px solid #444; color: #888; cursor: pointer; padding: 2px 6px; border-radius: 4px; font-size: 0.8em; transition: 0.2s;
-        }
+        .copy-nick-btn { background: none; border: 1px solid #444; color: #888; cursor: pointer; padding: 2px 6px; border-radius: 4px; font-size: 0.8em; }
         .copy-nick-btn:hover { color: var(--gold); border-color: var(--gold); }
 
-        .time-ago { font-size: 0.75em; color: #666; margin-top: 2px; }
-
+        .time-ago { font-size: 0.75em; color: #666; }
+        
         .delete-btn {
             position: absolute; top: 10px; right: 10px;
             background: #333; color: #fff; border: none; cursor: pointer; font-size: 0.8em; padding: 2px 6px; border-radius: 3px;
@@ -133,7 +120,6 @@
 <div class="container">
     <header>
         <h1>⚔️ Targowisko</h1>
-        
         <button id="googleLoginBtn" class="login-btn">
             <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
             Zaloguj
@@ -165,22 +151,24 @@
             </select>
             <input type="text" id="itemPrice" placeholder="Cena (np. 50m)">
             
-            <div class="search-row full-width">
-                <input type="text" id="itemName" placeholder="Nazwa przedmiotu (dokładna)">
-                <button class="search-btn" onclick="searchMargo()">🔍 MargoWorld</button>
+            <div style="display:flex; gap:10px; align-items:center;" class="full-width">
+                <input type="text" id="itemName" placeholder="Nazwa przedmiotu (dokładna)" style="margin:0;">
+                <button class="helper-btn" onclick="searchMargo()" title="Pomocnik - otwiera wyszukiwarkę">🔍 Znajdź link</button>
             </div>
 
-            <input type="text" id="itemImg" placeholder="Link do obrazka (opcjonalne)" class="full-width">
-            <textarea id="itemDesc" placeholder="Opis (statystyki, uwagi)" class="full-width"></textarea>
+            <input type="text" id="itemSource" placeholder="Z czego spadło? (np. Lichwiarz Grauhaz 177)" class="full-width">
+            <input type="text" id="itemMargoLink" placeholder="Wklej link do przedmiotu z MargoWorld (np. https://margoworld.pl/item/view/...)" class="full-width">
+
+            <input type="text" id="itemImg" placeholder="Link do obrazka/grafiki (opcjonalne)" class="full-width">
+            <textarea id="itemDesc" placeholder="Dodatkowy opis (ulepszenie, uwagi)" class="full-width"></textarea>
             
-            <button class="action-btn full-width" onclick="addOffer()">DODAJ OFERTĘ</button>
+            <button class="action-btn full-width" onclick="addOffer()">OPUBLIKUJ</button>
         </div>
     </div>
 
     <div id="offersList" class="offers-grid">
-        <div style="text-align:center; grid-column:1/-1;">Ładowanie...</div>
+        <div style="text-align:center; grid-column:1/-1;">Ładowanie ofert...</div>
     </div>
-
 </div>
 
 <script type="module">
@@ -189,14 +177,14 @@
     import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, deleteDoc, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
 
     // --- ⚠️ WKLEJ TU SWOJĄ KONFIGURACJĘ ⚠️ ---
-const firebaseConfig = {
-  apiKey: "AIzaSyApFYFkAghXreeX_xptg-PTCSxtPdiXYdA",
-  authDomain: "targowisko-klanu.firebaseapp.com",
-  projectId: "targowisko-klanu",
-  storageBucket: "targowisko-klanu.firebasestorage.app",
-  messagingSenderId: "1002027435908",
-  appId: "1:1002027435908:web:56419c7bc38e148cf0ffd1"
-};
+    const firebaseConfig = {
+        apiKey: "TU_WKLEJ_SWOJE",
+        authDomain: "TU_WKLEJ_SWOJE",
+        projectId: "TU_WKLEJ_SWOJE",
+        storageBucket: "TU_WKLEJ_SWOJE",
+        messagingSenderId: "TU_WKLEJ_SWOJE",
+        appId: "TU_WKLEJ_SWOJE"
+    };
     // ------------------------------------------
 
     const app = initializeApp(firebaseConfig);
@@ -206,10 +194,9 @@ const firebaseConfig = {
 
     let currentUser = null;
     let currentNick = null;
-    let allOffers = []; // Przechowuje pobrane oferty do filtrowania
+    let allOffers = [];
     let currentFilter = 'all';
 
-    // Logowanie
     document.getElementById('googleLoginBtn').addEventListener('click', () => {
         signInWithPopup(auth, provider).catch(e => alert(e.message));
     });
@@ -233,7 +220,6 @@ const firebaseConfig = {
                     logout(); return;
                 }
             }
-            // UI Update
             document.getElementById('googleLoginBtn').style.display = 'none';
             document.getElementById('userProfile').style.display = 'flex';
             document.getElementById('addOfferPanel').style.display = 'block';
@@ -245,21 +231,24 @@ const firebaseConfig = {
             document.getElementById('addOfferPanel').style.display = 'none';
             currentNick = null;
         }
-        renderOffers(); // Przeładuj przyciski usuwania
+        renderOffers();
     });
 
-    // Wyszukiwarka
+    // Pomocnik do szukania linku
     window.searchMargo = () => {
         const name = document.getElementById('itemName').value;
-        if(name) window.open(`https://margoworld.pl/ladder/item?name=${encodeURIComponent(name)}`, '_blank');
+        // Otwieramy wyszukiwarkę przedmiotów, żeby użytkownik mógł skopiować właściwy link
+        window.open(`https://margoworld.pl/ladder/item?name=${encodeURIComponent(name)}`, '_blank');
     };
 
-    // Dodawanie
     window.addOffer = async () => {
-        if (!currentUser || !currentNick) return alert("Musisz być zalogowany!");
+        if (!currentUser || !currentNick) return alert("Zaloguj się!");
+        
         const type = document.getElementById('offerType').value;
         const name = document.getElementById('itemName').value;
         const price = document.getElementById('itemPrice').value;
+        const source = document.getElementById('itemSource').value; // NOWE
+        const margoLink = document.getElementById('itemMargoLink').value; // NOWE
         const desc = document.getElementById('itemDesc').value;
         const img = document.getElementById('itemImg').value;
 
@@ -268,11 +257,14 @@ const firebaseConfig = {
         try {
             await addDoc(collection(db, "oferty"), {
                 userId: currentUser.uid, nick: currentNick, avatar: currentUser.photoURL,
-                type, name, price, desc, img, date: new Date().toISOString()
+                type, name, price, source, margoLink, desc, img, // Zapisujemy nowe pola
+                date: new Date().toISOString()
             });
-            // Reset
+            // Reset pól
             document.getElementById('itemName').value = "";
             document.getElementById('itemPrice').value = "";
+            document.getElementById('itemSource').value = "";
+            document.getElementById('itemMargoLink').value = "";
             document.getElementById('itemDesc').value = "";
             document.getElementById('itemImg').value = "";
         } catch(e) { alert("Błąd: " + e.message); }
@@ -282,34 +274,24 @@ const firebaseConfig = {
         if(confirm("Usunąć?")) await deleteDoc(doc(db, "oferty", id));
     };
 
-    // Kopiowanie nicku
     window.copyNick = (nick) => {
-        navigator.clipboard.writeText(`/t ${nick} `).then(() => {
-            alert(`Skopiowano: "/t ${nick} " - wklej w grze!`);
-        });
+        navigator.clipboard.writeText(`/t ${nick} `).then(() => alert(`Skopiowano: /t ${nick} `));
     };
 
-    // Formatowanie czasu (np. "5 minut temu")
     function timeSince(dateString) {
         const date = new Date(dateString);
         const seconds = Math.floor((new Date() - date) / 1000);
-        let interval = seconds / 31536000;
-        if (interval > 1) return Math.floor(interval) + " lat temu";
-        interval = seconds / 2592000;
-        if (interval > 1) return Math.floor(interval) + " mies. temu";
-        interval = seconds / 86400;
+        let interval = seconds / 86400;
         if (interval > 1) return Math.floor(interval) + " dni temu";
         interval = seconds / 3600;
         if (interval > 1) return Math.floor(interval) + " godz. temu";
         interval = seconds / 60;
         if (interval > 1) return Math.floor(interval) + " min. temu";
-        return "przed chwilą";
+        return "teraz";
     }
 
-    // Filtrowanie
     window.filterOffers = (filterType) => {
         currentFilter = filterType;
-        // Aktualizacja przycisków
         document.querySelectorAll('.filter-btn').forEach(btn => {
             btn.classList.remove('active');
             if(btn.innerText.toLowerCase() === filterType || (filterType === 'all' && btn.innerText === 'Wszystkie')) {
@@ -319,7 +301,6 @@ const firebaseConfig = {
         renderOffers();
     };
 
-    // Pobieranie i Wyświetlanie
     const q = query(collection(db, "oferty"), orderBy("date", "desc"));
     
     onSnapshot(q, (snapshot) => {
@@ -334,24 +315,30 @@ const firebaseConfig = {
         const list = document.getElementById('offersList');
         list.innerHTML = "";
         
-        // Filtrujemy
-        const filtered = currentFilter === 'all' 
-            ? allOffers 
-            : allOffers.filter(o => o.type === currentFilter);
+        const filtered = currentFilter === 'all' ? allOffers : allOffers.filter(o => o.type === currentFilter);
 
         if(filtered.length === 0) {
-            list.innerHTML = `<div style="text-align:center; grid-column:1/-1; color:#555;">Brak ofert w tej kategorii.</div>`;
+            list.innerHTML = `<div style="text-align:center; grid-column:1/-1; color:#555;">Brak ofert.</div>`;
             return;
         }
 
         filtered.forEach(data => {
             let tagClass = data.type; 
             let typeLabel = data.type.toUpperCase();
+            
             let deleteBtn = "";
             if(currentUser && (data.userId === currentUser.uid || currentNick === "jacobpogorzelec")) {
                 deleteBtn = `<button class="delete-btn" onclick="deleteOffer('${data.id}')">X</button>`;
             }
+            
             let imgHtml = data.img ? `<img src="${data.img}" class="item-img" onerror="this.style.display='none'">` : "";
+            
+            // NOWE: Wyświetlanie źródła
+            let sourceHtml = data.source ? `<div class="item-source">🕷️ ${data.source}</div>` : "";
+            
+            // NOWE: Link do MargoWorld
+            let linkHtml = data.margoLink ? `<a href="${data.margoLink}" target="_blank" class="margo-link">📊 Statystyki (MargoWorld)</a>` : "";
+
             let timeAgo = timeSince(data.date);
 
             const html = `
@@ -360,14 +347,16 @@ const firebaseConfig = {
                     <div class="tag ${tagClass}">${typeLabel}</div>
                     ${imgHtml}
                     <div style="font-size:1.1em; font-weight:bold; margin-bottom:5px;">${data.name}</div>
-                    <div style="color:var(--gold); margin-bottom:10px;">${data.price}</div>
-                    <div style="color:#aaa; font-size:0.9em; margin-bottom:15px; font-style:italic; min-height:40px;">${data.desc}</div>
+                    ${sourceHtml}
+                    ${linkHtml}
+                    <div style="color:var(--gold); margin-bottom:10px;">Cena: ${data.price}</div>
+                    <div style="color:#aaa; font-size:0.9em; margin-bottom:15px; font-style:italic;">${data.desc}</div>
                     
                     <div class="seller-info">
                         <div class="seller-left">
                             <img src="${data.avatar}" class="tiny-avatar">
                             <span style="color:#fff; font-weight:bold;">${data.nick}</span>
-                            <button class="copy-nick-btn" onclick="copyNick('${data.nick}')" title="Kopiuj komendę do gry">✉️</button>
+                            <button class="copy-nick-btn" onclick="copyNick('${data.nick}')">✉️</button>
                         </div>
                         <div class="time-ago">${timeAgo}</div>
                     </div>
