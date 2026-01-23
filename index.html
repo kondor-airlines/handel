@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Targowisko Klanowe - Ultra Secure</title>
+    <title>Targowisko Klanowe - Admin Secure</title>
     <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -20,6 +20,7 @@
             color: #eee;
             margin: 0;
             padding: 20px;
+            padding-bottom: 80px;
         }
 
         .container { max-width: 1200px; margin: 0 auto; }
@@ -207,6 +208,7 @@
 
     <div id="addOfferPanel" class="panel">
         <h3 style="margin-top:0; color:#ffd700;">Dodaj Legendarne Ogłoszenie</h3>
+
         <div class="form-grid">
             <select id="offerType">
                 <option value="sprzedam">Sprzedam</option>
@@ -283,14 +285,11 @@
 
     function isValidImageUrl(url) {
         if (!url) return false;
-        // Akceptuje tylko linki http/https i blokuje iframe/tagi HTML
-        const safePattern = /^https?:\/\/[^<>"]+\.(jpeg|jpg|gif|png|webp|bmp)$/i;
-        return safePattern.test(url);
+        const pattern = /^https?:\/\/[^<>"]+\.(jpeg|jpg|gif|png|webp|bmp)$/i;
+        return pattern.test(url);
     }
 
     const monstersList = [
-        { name: "Domina Ecclesiae (21 lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/her/domina.gif" },
-        { name: "Mietek Żul (25 lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/mas/mietek_zul.gif" },
         { name: "Mroczny Patryk (35 lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/her/bardzozlypatryk.gif" },
         { name: "Karmazynowy Mściciel (45 lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/klanowe/heros_karm_msc.gif" },
         { name: "Złodziej (51 lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/her/zlodziej.gif" },
@@ -320,155 +319,155 @@
 
     const lootTable = {
         "Mroczny Patryk (35 lvl)": [
-            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm749.gif", stats: "Kapelusz wiecznej udręki||rarity=legendary;opis=Chociaż poprzednia właścicielka tego kapelusza powiązana była z ciemną stroną mocy..."},
-            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm748.gif", stats: "Splot szaleństwa||rarity=legendary;opis=Ostre kolce boleśnie wbijały się w skroń..."},
-            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm1365.gif", stats: "Korona tańczących płomieni||rarity=legendary;opis=Płonąca wiecznie czarnym ogniem korona..."},
-            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_06.gif.gif", stats: "Lekka skrytka mocy||rarity=legendary"}
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm749.gif", stats: "Kapelusz wiecznej udręki||rarity=legendary"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm748.gif", stats: "Splot szaleństwa||rarity=legendary"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm1365.gif", stats: "Korona tańczących płomieni||rarity=legendary"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_06.gif", stats: "Lekka skrytka mocy||rarity=legendary"}
         ],
         "Karmazynowy Mściciel (45 lvl)": [
-            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice854.gif", stats: "Stalowe szpony zemsty||rarity=legendary;opis=Zmechanizowane rękawice wykradzione z tajemnego schowka gnomów."},
-            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice853.gif", stats: "Chwyt niestygnącej krwi||rarity=legendary;opis=Krew plamiąca rękawice nie miała czasu zaschnąć..."},
-            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice855.gif", stats: "Kajdany gniewnej tułaczki||rarity=legendary;opis=Gdy Mściciel opuszczał swój dom, zabrał ze sobą ciężkie kajdany..."},
-            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_06.gif.gif", stats: "Lekka skrytka mocy||rarity=legendary"}
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice854.gif", stats: "Stalowe szpony zemsty||rarity=legendary"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice853.gif", stats: "Chwyt niestygnącej krwi||rarity=legendary"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice855.gif", stats: "Kajdany gniewnej tułaczki||rarity=legendary"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_06.gif", stats: "Lekka skrytka mocy||rarity=legendary"}
         ],
         "Złodziej (51 lvl)": [
-            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/but/buty535.gif", stats: "Pantofle Madame Baterflaj||rarity=legendary;opis=Jedna z pamiątek skradzionych w Eder."},
-            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/but/buty872.gif", stats: "Podwójne podeszwy złodzieja||rarity=legendary;opis=W każdym bucie znajduje się mała skrytka."},
-            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/but/buty871.gif", stats: "Pamiątka z Tuzmer||rarity=legendary;opis=Nagroda poświadczająca ukończenie szkolenia."},
-            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_06.gif.gif", stats: "Lekka skrytka mocy||rarity=legendary"}
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/but/buty535.gif", stats: "Pantofle Madame Baterflaj||rarity=legendary"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/but/buty872.gif", stats: "Podwójne podeszwy złodzieja||rarity=legendary"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/but/buty871.gif", stats: "Pamiątka z Tuzmer||rarity=legendary"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_06.gif", stats: "Lekka skrytka mocy||rarity=legendary"}
         ],
         "Zły Przewodnik (63 lvl)": [
-            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice893.gif", stats: "Dwulicowy chwyt mnicha||rarity=legendary;opis=Niedługo po tym, gdy Kreiden zadomowił się już..."},
-            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice891.gif", stats: "Dotyk zwodniczych mgieł||rarity=legendary;opis=Zielone mankiety sporadycznie znikają tak jak przewodnik..."},
-            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice892.gif", stats: "Zamach wybitnego łgarza||rarity=legendary;opis=Rękawiczki te wskazały złą drogę wielu śmiałkom..."},
-            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_06.gif.gif", stats: "Lekka skrytka mocy||rarity=legendary"}
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice893.gif", stats: "Dwulicowy chwyt mnicha||rarity=legendary"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice891.gif", stats: "Dotyk zwodniczych mgieł||rarity=legendary"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice892.gif", stats: "Zamach wybitnego łgarza||rarity=legendary"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_06.gif", stats: "Lekka skrytka mocy||rarity=legendary"}
         ],
         "Opętany Paladyn (74 lvl)": [
-            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm847.gif", stats: "Zęby klasztornego postrachu||rarity=legendary;opis=Żelazne podeszwy stukające o klasztorne posadzki zwiastowały tylko jedno..."},
-            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm845.gif", stats: "Złota maska opętańca||rarity=legendary;opis=Chociaż w złotej masce szalały rozpalone oczodoły..."},
-            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm846.gif", stats: "Przyłbica przeklętego umysłu||rarity=legendary;opis=Zdobiony kask przypomina o klątwie trawiącej duszę Markusa Vinta."},
-            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_06.gif.gif", stats: "Lekka skrytka mocy||rarity=legendary"}
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm847.gif", stats: "Zęby klasztornego postrachu||rarity=legendary"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm845.gif", stats: "Złota maska opętańca||rarity=legendary"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm846.gif", stats: "Przyłbica przeklętego umysłu||rarity=legendary"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_06.gif", stats: "Lekka skrytka mocy||rarity=legendary"}
         ],
         "Piekielny Kościej (85 lvl)": [
-            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/naszyjnik918.gif", stats: "Cząstka siły Azelatho||rarity=legendary;opis=Przemieniony w kościeja Tervil rzucił się na Morthena..."},
-            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/naszyjnik920.gif", stats: "Pamiątka poprzedniego życia||rarity=legendary;opis=Za życia dowódca ithańskiego oddziału..."},
-            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/naszyjnik919.gif", stats: "Manifestacja mocy Shurako||rarity=legendary;opis=Słowa Tervila dały do myślenia Morthenowi..."},
-            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_06.gif.gif", stats: "Lekka skrytka mocy||rarity=legendary"}
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/naszyjnik918.gif", stats: "Cząstka siły Azelatho||rarity=legendary"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/naszyjnik920.gif", stats: "Pamiątka poprzedniego życia||rarity=legendary"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/naszyjnik919.gif", stats: "Manifestacja mocy Shurako||rarity=legendary"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_06.gif", stats: "Lekka skrytka mocy||rarity=legendary"}
         ],
         "Koziec Mąciciel Ścieżek (94lvl)": [
-            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/sur/koziec_craft_02.gif", stats: "Kwiecista narzuta Koźca||rarity=legendary;opis=Gęsty splot leśnych pnączy, w kontakcie z magią Koźca..."},
-            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/sur/koziec_craft_03.gif", stats: "Trzeci róg mąciciela||rarity=legendary;opis=Wyjątkowe trofeum czy bezużyteczna pamiątka?"},
-            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/sur/koziec_craft_01.gif", stats: "Bukiet kryształowych bazi||rarity=legendary;opis=Drżyjcie stare wierzby i pogrążcie się w strachu..."},
-            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_06.gif.gif", stats: "Lekka skrytka mocy||rarity=legendary"}
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/sur/koziec_craft_02.gif", stats: "Kwiecista narzuta Koźca||rarity=legendary"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/sur/koziec_craft_03.gif", stats: "Trzeci róg mąciciela||rarity=legendary"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/sur/koziec_craft_01.gif", stats: "Bukiet kryształowych bazi||rarity=legendary"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_06.gif", stats: "Lekka skrytka mocy||rarity=legendary"}
         ],
         "Kochanka Nocy (102 lvl)": [
-            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm851.gif", stats: "Oblicze smutku||rarity=legendary;opis=Gdy poziom smutku przekracza pewną granicę..."},
-            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm853.gif", stats: "Hełm kochanka Nocnej Kochanki||rarity=legendary;opis=Hełm ten to jedna z niewielu pamiątek..."},
-            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm852.gif", stats: "Maska nocnego szlochu||rarity=legendary;opis=Wielkie emocje targające wdową uwolniły w jej umyśle pokłady magii."},
-            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_06.gif.gif", stats: "Skrytka mocy||rarity=legendary"}
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm851.gif", stats: "Oblicze smutku||rarity=legendary"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm853.gif", stats: "Hełm kochanka Nocnej Kochanki||rarity=legendary"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm852.gif", stats: "Maska nocnego szlochu||rarity=legendary"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_06.gif", stats: "Skrytka mocy||rarity=legendary"}
         ],
         "Książę Kasim (116 lvl)": [
-            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice1010.gif", stats: "Klątwa tysiąca i jednej nocy||rarity=legendary;opis=Przeklęty amulet Abrizy - ukochanej Kasima..."},
-            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice1009.gif", stats: "Szpony utraconej nadziei||rarity=legendary;opis=Wizja skarbu, który odmienić miał życie młodego księcia..."},
-            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice1011.gif", stats: "Rękawy z pustynnych krain||rarity=legendary;opis=Trudne życie tworzy twardych ludzi..."},
-            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_06.gif.gif", stats: "Skrytka mocy||rarity=legendary"}
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice1010.gif", stats: "Klątwa tysiąca i jednej nocy||rarity=legendary"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice1009.gif", stats: "Szpony utraconej nadziei||rarity=legendary"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice1011.gif", stats: "Rękawy z pustynnych krain||rarity=legendary"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_06.gif", stats: "Skrytka mocy||rarity=legendary"}
         ],
         "Święty Braciszek (123 lvl)": [
-            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/naszyjnik1133.gif", stats: "Medalion smakosza trunków||rarity=legendary;opis=Umysły oczyszcza woda święcona..."},
-            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/naszyjnik1135.gif", stats: "Tabernakulum z sekretną recepturą||rarity=legendary;opis=Wewnątrz wisiorka malutka książeczka..."},
-            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/naszyjnik1134.gif", stats: "Krzyż wiary w trunki (Szacowany)||rarity=legendary"},
-            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_06.gif.gif", stats: "Skrytka mocy||rarity=legendary"}
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/naszyjnik1133.gif", stats: "Medalion smakosza trunków||rarity=legendary"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/naszyjnik1135.gif", stats: "Tabernakulum z sekretną recepturą||rarity=legendary"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/naszyjnik1134.gif", stats: "Krzyż wiary w trunki||rarity=legendary"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_06.gif", stats: "Skrytka mocy||rarity=legendary"}
         ],
         "Złoty Roger (135 lvl)": [
-            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice1189.gif", stats: "Złowrogie czaszki Rogera||rarity=legendary;opis=Gdy załoga zacumowała w ukrytym porcie..."},
-            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice1188.gif", stats: "Pirackie rękawice (Szacowany)||rarity=legendary"},
-            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice1190.gif", stats: "Skrab kapitana (Szacowany)||rarity=legendary"},
-            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_06.gif.gif", stats: "Skrytka mocy||rarity=legendary"}
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice1189.gif", stats: "Złowrogie czaszki Rogera||rarity=legendary"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice1188.gif", stats: "Pirackie rękawice||rarity=legendary"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice1190.gif", stats: "Skrab kapitana||rarity=legendary"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_06.gif", stats: "Skrytka mocy||rarity=legendary"}
         ],
         "Baca bez łowiec (144 lvl)": [
-            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/naszyjnik1163.gif", stats: "Serowe wahadełko||rarity=heroic"}, 
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/naszyjnik1163.gif", stats: "Serowe wahadełko||rarity=heroic"}, 
             {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/naszyjnik1164.gif", stats: "Sztuczka doświadczonego bacy||rarity=legendary"},
             {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/naszyjnik1162.gif", stats: "Eteryczny baran||rarity=legendary"},
-            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_06.gif.gif", stats: "Skrytka mocy||rarity=legendary"}
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_06.gif", stats: "Skrytka mocy||rarity=legendary"}
         ],
         "Czarująca Atalia (157 lvl)": [
             {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/pie/pierscien1196.gif", stats: "Otok rodzinnych niesnasek||rarity=legendary"},
             {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/pie/pierscien1197.gif", stats: "Pamiątka rodu czarownic||rarity=legendary"},
             {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/pie/pierscien1195.gif", stats: "Pożeracz zmarszczek||rarity=legendary"},
-            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_06.gif.gif", stats: "Skrytka mocy||rarity=legendary"}
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_06.gif", stats: "Skrytka mocy||rarity=legendary"}
         ],
         "Obłąkany Łowca Orków (165 lvl)": [
-            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice1211.gif", stats: "Stalowa pięść obłąkańca||rarity=legendary;opis=Splamienie odzienia, a tym bardziej własnego ciała..."},
-            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice1213.gif", stats: "Mankiety z zerwanych sztandarów||rarity=legendary;opis=Krwawa rzeź dokonana przez orków..."},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice1211.gif", stats: "Stalowa pięść obłąkańca||rarity=legendary"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice1213.gif", stats: "Mankiety z zerwanych sztandarów||rarity=legendary"},
             {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice1212.gif", stats: "Miażdżyciele orczych serc||rarity=legendary"},
-            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_06.gif.gif", stats: "Skrytka mocy||rarity=legendary"}
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_06.gif", stats: "Skrytka mocy||rarity=legendary"}
         ],
         "Lichwiarz Grauhaz (177 lvl)": [
-            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/naszyjnik1165.gif", stats: "Sopel z porzuconych kopalni||rarity=legendary;opis=Pamiątka z ambitnej ekspedycji w głębie krainy mrozu..."},
-            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/naszyjnik1167.gif", stats: "Kolia dumnego rodu||rarity=legendary;opis=Podobno lichwiarz z Kardar-dun pochodził z klanu słynącego z takiej buty..."},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/naszyjnik1165.gif", stats: "Sopel z porzuconych kopalni||rarity=legendary"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/naszyjnik1167.gif", stats: "Kolia dumnego rodu||rarity=legendary"},
             {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/naszyjnik1166.gif", stats: "Klejnot smoczej choroby||rarity=legendary"},
-            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_06.gif.gif", stats: "Skrytka mocy||rarity=legendary"}
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_06.gif", stats: "Skrytka mocy||rarity=legendary"}
         ],
         "Viviana Nandin (185 lvl)": [
-            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm627.gif", stats: "Eteryczny wieniec Viviany||rarity=legendary;opis=Szczera łza Viviany spłynęła na poroże jej martwego wierzchowca..."},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm627.gif", stats: "Eteryczny wieniec Viviany||rarity=legendary"},
             {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm626.gif", stats: "Poroże leśnej bestii||rarity=legendary"},
             {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm628.gif", stats: "Kaptur strażniczki kniei||rarity=legendary"},
-            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_06.gif.gif", stats: "Skrytka mocy||rarity=legendary"}
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_06.gif", stats: "Skrytka mocy||rarity=legendary"}
         ],
         "Przeraza (194 lvl)": [
-            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice1371.gif", stats: "Bransolety kwitnącej aberracji||rarity=legendary;opis=Przeraza nie posiada własnej osobowości - przemawiają przez nią ofiary..."},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice1371.gif", stats: "Bransolety kwitnącej aberracji||rarity=legendary"},
             {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice1370.gif", stats: "Dłonie wielu osobowości||rarity=legendary"},
             {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice1372.gif", stats: "Mankiety powiernika woli||rarity=legendary"},
-            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_06.gif.gif", stats: "Skrytka mocy||rarity=legendary"}
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_06.gif", stats: "Skrytka mocy||rarity=legendary"}
         ],
         "Demonis Pan Nicości (205 lvl)": [
-            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/pie/pierscien1284.gif", stats: "Czarne Słońce||rarity=legendary;opis=Wojna Magów nadeszła i przeminęła..."},
-            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/pie/pierscien1285.gif", stats: "Krwawa relikwia||rarity=legendary;opis=W czasach, gdy Nithal było zaledwie małą osadą..."},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/pie/pierscien1284.gif", stats: "Czarne Słońce||rarity=legendary"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/pie/pierscien1285.gif", stats: "Krwawa relikwia||rarity=legendary"},
             {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/pie/pierscien1286.gif", stats: "Nerw wzrokowy demona||rarity=legendary"},
-            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_06.gif.gif", stats: "Ciężka skrytka mocy||rarity=legendary"}
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_06.gif", stats: "Ciężka skrytka mocy||rarity=legendary"}
         ],
         "Mulher Ma (214 lvl)": [
-            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_06.gif.gif", stats: "Ciężka skrytka mocy||rarity=legendary"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_06.gif", stats: "Ciężka skrytka mocy||rarity=legendary"},
             {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/naszyjnik1300.gif", stats: "Kołnierz dekapitacji||rarity=legendary"},
             {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/naszyjnik1299.gif", stats: "Obręcz Najwyższej Kapłanki||rarity=legendary"},
             {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/naszyjnik1301.gif", stats: "Wdzięczność Pajęczycy||rarity=legendary"}
         ],
         "Vapor Veneno (231 lvl)": [
-            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_06.gif.gif", stats: "Ciężka skrytka mocy||rarity=legendary"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_06.gif", stats: "Ciężka skrytka mocy||rarity=legendary"},
             {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/pie/pierscien1319.gif", stats: "Błyskotka humanoidalnej natury||rarity=legendary"},
             {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/pie/pierscien1320.gif", stats: "Pierścionek toksycznej fascynacji||rarity=legendary"},
             {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/pie/pierscien1318.gif", stats: "Symbol wodnych narodzin||rarity=legendary"}
         ],
         "Dęborożec (244 lvl)": [
-            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm1487.gif", stats: "Czaszka wielkiego nieszczęśnika||rarity=legendary;opis=Trofeum z potężnego strażnika lasu."},
-            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm1488.gif", stats: "Gniew strażnika kniei||rarity=legendary;opis=Maska używana podczas rytuałów..."},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm1487.gif", stats: "Czaszka wielkiego nieszczęśnika||rarity=legendary"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm1488.gif", stats: "Gniew strażnika kniei||rarity=legendary"},
             {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm1489.gif", stats: "Maska Puryfikacji||rarity=legendary"},
-            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_06.gif.gif", stats: "Ciężka skrytka mocy||rarity=legendary"}
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_06.gif", stats: "Ciężka skrytka mocy||rarity=legendary"}
         ],
         "Tepeyollotl (258 lvl)": [
             {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/naszyjnik1358.gif", stats: "Brama do zaświatów||rarity=legendary"},
             {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/naszyjnik1357.gif", stats: "Kręgosłupy boskich bliźniąt||rarity=legendary"},
             {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/naszyjnik1356.gif", stats: "Symbol Wieczności||rarity=legendary"},
-            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_06.gif.gif", stats: "Ciężka skrytka mocy||rarity=legendary"}
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_06.gif", stats: "Ciężka skrytka mocy||rarity=legendary"}
         ],
         "Widmo Triady (265 lvl)": [
-            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm1501.gif", stats: "Kaptur wyzwolenia ducha||rarity=legendary;opis=Zbroja, która zdaje się znikać w cieniu..."},
-            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm1502.gif", stats: "Ofiara eliksiru hydrofilowego||rarity=legendary;opis=Wędrówka przez dziewięć kręgów Mictlan..."},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm1501.gif", stats: "Kaptur wyzwolenia ducha||rarity=legendary"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm1502.gif", stats: "Ofiara eliksiru hydrofilowego||rarity=legendary"},
             {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm1503.gif", stats: "Przeklęta klatka na ptaki||rarity=legendary"},
-            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_06.gif.gif", stats: "Ciężka skrytka mocy||rarity=legendary"}
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_06.gif", stats: "Ciężka skrytka mocy||rarity=legendary"}
         ],
         "Negthotep Czarny Kapłan (271 lvl)": [
-            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice521.gif", stats: "Palce demonicznego kompozytora||rarity=legendary;opis=Wieki temu, nim w krainie zaistniały pierwsze antyczne cywilizacje..."},
-            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice520.gif", stats: "Dłonie Czarnego Kapłana||rarity=legendary;opis=Kto założy tę maskę, staje się jednością z mrokiem."},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice521.gif", stats: "Palce demonicznego kompozytora||rarity=legendary"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice520.gif", stats: "Dłonie Czarnego Kapłana||rarity=legendary"},
             {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice519.gif", stats: "Złoty chwyt generała||rarity=legendary"},
-            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_06.gif.gif", stats: "Ciężka skrytka mocy||rarity=legendary"}
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_06.gif", stats: "Ciężka skrytka mocy||rarity=legendary"}
         ],
         "Młody Smok (282 lvl)": [
-            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/tal/tal32.gif", stats: "Talizman smoczego boga||rarity=legendary;opis=Hełm wykuty w smoczym ogniu."},
-            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm658.gif", stats: "Maska gniewu Shaiharrud||rarity=legendary"}, 
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/tal/tal32.gif", stats: "Talizman smoczego boga||rarity=legendary"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm658.gif", stats: "Maska gniewu Shaiharrud||rarity=legendary"}, 
             {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm659.gif", stats: "Skupisko smoczej magii||rarity=legendary"},
             {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm657.gif", stats: "Więzienie gadzich płomieni||rarity=legendary"},
-            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_06.gif.gif", stats: "Ciężka skrytka mocy||rarity=legendary"}
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_06.gif", stats: "Ciężka skrytka mocy||rarity=legendary"}
         ]
     };
 
@@ -533,6 +532,7 @@
             document.getElementById('userProfile').style.display = 'none';
             document.getElementById('addOfferPanel').style.display = 'none';
         }
+        renderOffers();
     });
 
     window.addOffer = async () => {
@@ -545,7 +545,7 @@
         const sourceName = document.getElementById('itemSource').value;
         const sourceImg = document.getElementById('itemSource').selectedIndex > 0 ? document.getElementById('itemSource').options[document.getElementById('itemSource').selectedIndex].dataset.img : "";
 
-        if(!name || !price) return alert("Błąd!");
+        if(!name || !price) return alert("Błąd! Wpisz nazwę i cenę.");
 
         await addDoc(collection(db, "oferty"), {
             userId: currentUser.uid, nick: currentNick, avatar: currentUser.photoURL,
@@ -561,23 +561,29 @@
     window.searchMargo = () => { window.open(`https://margoworld.pl/item?name=${encodeURIComponent(document.getElementById('itemName').value)}&minLvl=&maxLvl=&cl=`, '_blank'); };
 
     onSnapshot(query(collection(db, "oferty"), orderBy("date", "desc")), (snapshot) => {
+        allOffers = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        renderOffers();
+    });
+
+    function renderOffers() {
         const list = document.getElementById('offersList');
         list.innerHTML = "";
-        snapshot.forEach(docSnap => {
-            const data = docSnap.data();
+        allOffers.forEach(data => {
             if (currentFilter !== 'all' && data.type !== currentFilter) return;
 
+            const isAdmin = (currentNick === ADMIN_NICK);
+            const isOwner = currentUser && (data.userId === currentUser.uid);
+
             let deleteBtn = "";
-            const isAdmin = currentNick === ADMIN_NICK;
-            if (currentUser && (data.userId === currentUser.uid || isAdmin)) {
-                deleteBtn = `<button class="delete-btn ${isAdmin && data.userId !== currentUser.uid ? 'admin-delete-btn' : ''}" onclick="deleteOffer('${docSnap.id}')">${isAdmin && data.userId !== currentUser.uid ? 'USUŃ (Admin)' : '✕'}</button>`;
+            if (isOwner || isAdmin) {
+                let btnClass = (isAdmin && !isOwner) ? "delete-btn admin-delete-btn" : "delete-btn";
+                let label = (isAdmin && !isOwner) ? "USUŃ (Admin)" : "✕";
+                deleteBtn = `<button class="${btnClass}" onclick="deleteOffer('${data.id}')">${label}</button>`;
             }
-            
-            // SECURITY: Sprawdzanie obrazka
+
             let imgHtml = "";
-            const safeImgUrl = escapeHtml(data.img);
-            if (isValidImageUrl(safeImgUrl)) {
-                imgHtml = `<img src="${safeImgUrl}" class="item-img" onerror="this.style.display='none'">`;
+            if (isValidImageUrl(data.img)) {
+                imgHtml = `<img src="${escapeHtml(data.img)}" class="item-img" onerror="this.style.display='none'">`;
             } else if (data.img) {
                 imgHtml = `<span style="float:right; font-size:20px;" title="Niebezpieczny link">⚠️</span>`;
             }
@@ -590,19 +596,19 @@
                     <div style="font-size:1.1em; font-weight:bold; margin-bottom:5px;">${escapeHtml(data.name)}</div>
                     <div class="item-source"><img src="${data.sourceImg}"> <span>${escapeHtml(data.source)}</span></div>
                     <div style="color:var(--gold); margin-bottom:10px;">Cena: ${escapeHtml(data.price)}</div>
-                    <div style="color:#aaa; font-size:0.9em; margin-bottom:15px;">${escapeHtml(data.desc)}</div>
+                    <div style="color:#aaa; font-size:0.9em; margin-bottom:15px; font-style:italic;">${escapeHtml(data.desc)}</div>
                     <div class="seller-info">
                         <div class="seller-left"><img src="${data.avatar}" class="tiny-avatar"> <b>${escapeHtml(data.nick)}</b>
                         <button class="copy-nick-btn" onclick="copyNick('${data.nick}')">✉️</button></div>
                     </div>
                 </div>`;
         });
-    });
+    }
 
     window.filterOffers = (type) => {
         currentFilter = type;
         document.querySelectorAll('.filter-btn').forEach(b => b.classList.toggle('active', b.innerText.toLowerCase() === type || (type === 'all' && b.innerText === 'Wszystkie')));
-        renderOffers(); // Logika odświeżania jest w onSnapshot
+        renderOffers();
     };
 </script>
 </body>
