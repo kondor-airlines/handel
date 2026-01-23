@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Targowisko Klanowe</title>
+    <title>Targowisko Klanowe - Admin</title>
     <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -20,6 +20,7 @@
             color: #eee;
             margin: 0;
             padding: 20px;
+            padding-bottom: 80px;
         }
 
         .container { max-width: 1200px; margin: 0 auto; }
@@ -93,7 +94,6 @@
         }
         .offer-card:hover { transform: translateY(-3px); border-color: #555; }
 
-        /* Styl Legendarny */
         .legendary-item {
             border: 1px solid #ffd700 !important;
             box-shadow: 0 0 15px rgba(255, 215, 0, 0.2), inset 0 0 20px rgba(255, 215, 0, 0.05);
@@ -112,10 +112,9 @@
             border-color: rgba(255, 215, 0, 0.3);
         }
 
-        /* LIVE PREVIEW BOX */
         .preview-box {
             grid-column: 1 / -1;
-            display: none; /* Domyślnie ukryte */
+            display: none;
             align-items: center;
             gap: 15px;
             background: rgba(255, 215, 0, 0.05);
@@ -133,18 +132,8 @@
             background: #000;
             border-radius: 4px;
         }
-        .preview-text {
-            font-size: 0.9em;
-            color: #ffd700;
-            font-weight: bold;
-        }
-        .preview-label {
-            font-size: 0.7em; 
-            color: #888; 
-            text-transform: uppercase; 
-            display: block; 
-            margin-bottom: 2px;
-        }
+        .preview-text { font-size: 0.9em; color: #ffd700; font-weight: bold; }
+        .preview-label { font-size: 0.7em; color: #888; text-transform: uppercase; display: block; margin-bottom: 2px; }
 
         .tag { display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 0.75em; font-weight: bold; margin-bottom: 10px; text-transform: uppercase; }
         .tag.sprzedam { background: rgba(46, 204, 113, 0.2); color: var(--green); }
@@ -176,11 +165,51 @@
         .copy-nick-btn:hover { color: var(--gold); border-color: var(--gold); }
 
         .time-ago { font-size: 0.75em; color: #666; }
+        
         .delete-btn {
             position: absolute; top: 10px; right: 10px;
             background: #333; color: #fff; border: none; cursor: pointer; font-size: 0.8em; padding: 2px 6px; border-radius: 3px;
         }
         .delete-btn:hover { background: red; }
+        
+        /* Styl dla Admina */
+        .admin-delete-btn {
+            background: #800000; border-color: red; color: white;
+        }
+        .admin-delete-btn:hover { background: red; }
+
+        /* Pasek Online */
+        .bottom-bar {
+            position: fixed; bottom: 0; left: 0; width: 100%;
+            background: rgba(15, 15, 15, 0.95);
+            border-top: 1px solid var(--gold);
+            padding: 8px 20px;
+            display: flex; align-items: center; gap: 15px;
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+            box-shadow: 0 -5px 15px rgba(0,0,0,0.5);
+        }
+        .online-label { color: #888; font-size: 0.8em; font-weight: bold; text-transform: uppercase; }
+        .online-list { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 5px; }
+        
+        .online-user { position: relative; cursor: help; }
+        .online-user img { 
+            width: 32px; height: 32px; border-radius: 50%; 
+            border: 2px solid var(--green); 
+            transition: 0.3s;
+        }
+        .online-user:hover img { transform: scale(1.1); border-color: var(--gold); }
+        
+        .online-user::after {
+            content: attr(data-nick);
+            position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%);
+            background: #000; color: #fff; padding: 4px 8px; border-radius: 4px;
+            font-size: 0.75em; white-space: nowrap; opacity: 0; pointer-events: none;
+            transition: 0.2s; margin-bottom: 5px; border: 1px solid #444;
+        }
+        .online-user:hover::after { opacity: 1; margin-bottom: 8px; }
+        
+        .char-counter { font-size: 0.7em; color: #666; text-align: right; margin-top: -10px; margin-bottom: 10px; }
     </style>
 </head>
 <body>
@@ -218,10 +247,10 @@
                 <option value="kupie">Kupię</option>
                 <option value="zamienie">Zamienię</option>
             </select>
-            <input type="text" id="itemPrice" placeholder="Cena (np. 50m)">
+            <input type="text" id="itemPrice" placeholder="Cena (np. 50m)" maxlength="30">
             
             <select id="itemSource" class="full-width" onchange="updateLootList()">
-                <option value="">-- Wybierz Herosa --</option>
+                <option value="">-- Wybierz Herosa/Tytana (Pełna Baza Legend) --</option>
             </select>
 
             <select id="itemSelect" class="full-width" onchange="fillItemDetails()">
@@ -237,13 +266,15 @@
             </div>
 
             <div style="display:flex; gap:10px; align-items:center;" class="full-width">
-                <input type="text" id="itemName" placeholder="Nazwa przedmiotu" style="margin:0;">
+                <input type="text" id="itemName" placeholder="Nazwa przedmiotu" style="margin:0;" maxlength="50">
                 <button class="helper-btn" onclick="searchMargo()" title="Szukaj na MargoWorld">🔍</button>
             </div>
 
             <input type="text" id="itemMargoLink" placeholder="Link do statystyk (opcjonalne)" class="full-width">
             <input type="text" id="itemImg" placeholder="Link do obrazka" class="full-width">
-            <textarea id="itemDesc" placeholder="Opis przedmiotu" class="full-width"></textarea>
+            
+            <textarea id="itemDesc" placeholder="Opis przedmiotu" class="full-width" maxlength="150" oninput="updateCharCount()"></textarea>
+            <div id="charCount" class="char-counter full-width">0/150</div>
             
             <button class="action-btn full-width" onclick="addOffer()">OPUBLIKUJ</button>
         </div>
@@ -254,10 +285,15 @@
     </div>
 </div>
 
+<div class="bottom-bar">
+    <div class="online-label">Online (15 min):</div>
+    <div id="onlineUsersList" class="online-list"></div>
+</div>
+
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
     import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
-    import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, deleteDoc, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, deleteDoc, doc, getDoc, setDoc, serverTimestamp, where } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
     
     // --- ⚠️ WKLEJ TU SWOJĄ KONFIGURACJĘ ⚠️ ---
     const firebaseConfig = {
@@ -279,9 +315,14 @@
     let currentNick = null;
     let allOffers = [];
     let currentFilter = 'all';
+    
+    // --- ADMIN CONFIG ---
+    const ADMIN_NICK = "Stachu Drzymała"; 
 
     // --- BAZA HEROSÓW ---
     const monstersList = [
+        { name: "Domina Ecclesiae (21 lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/her/domina.gif" },
+        { name: "Mietek Żul (25 lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/mas/mietek_zul.gif" },
         { name: "Mroczny Patryk (35 lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/her/bardzozlypatryk.gif" },
         { name: "Karmazynowy Mściciel (45 lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/klanowe/heros_karm_msc.gif" },
         { name: "Złodziej (51 lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/her/zlodziej.gif" },
@@ -309,8 +350,20 @@
         { name: "Młody Smok (282 lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/her/smokbarb.gif" }
     ];
 
-    // --- PEŁNA BAZA LEGEND Z PLIKU (UZUPEŁNIONA) ---
+    // --- PEŁNA BAZA LEGEND ---
     const lootTable = {
+        "Domina Ecclesiae (21 lvl)": [
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/sur/smocza_runa3.gif", stats: "Smocza Runa (Legenda)||rarity=legendary;runes=2250"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_06.gif", stats: "Lekka skrytka mocy||rarity=legendary"},
+            {img: "", stats: "Legendarny Przedmiot 3 (Brak w pliku)||rarity=legendary"},
+            {img: "", stats: "Legendarny Przedmiot 4 (Brak w pliku)||rarity=legendary"}
+        ],
+        "Mietek Żul (25 lvl)": [
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_06.gif", stats: "Lekka skrytka mocy||rarity=legendary"},
+            {img: "", stats: "Legendarny Przedmiot 2 (Brak w pliku)||rarity=legendary"},
+            {img: "", stats: "Legendarny Przedmiot 3 (Brak w pliku)||rarity=legendary"},
+            {img: "", stats: "Legendarny Przedmiot 4 (Brak w pliku)||rarity=legendary"}
+        ],
         "Mroczny Patryk (35 lvl)": [
             {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm749.gif", stats: "Kapelusz wiecznej udręki||rarity=legendary;opis=Chociaż poprzednia właścicielka tego kapelusza powiązana była z ciemną stroną mocy..."},
             {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm748.gif", stats: "Splot szaleństwa||rarity=legendary;opis=Ostre kolce boleśnie wbijały się w skroń..."},
@@ -474,27 +527,6 @@
         sourceSelect.appendChild(opt);
     });
 
-    // Wybór herosa - ładowanie listy przedmiotów
-    window.updateLootList = function() {
-        const heroName = document.getElementById('itemSource').value;
-        const itemSelect = document.getElementById('itemSelect');
-        itemSelect.innerHTML = '<option value="">-- Wybierz przedmiot legendarny --</option>'; 
-        
-        if (heroName && lootTable[heroName] && lootTable[heroName].length > 0) {
-            itemSelect.style.display = 'block'; 
-            lootTable[heroName].forEach(item => {
-                const realName = item.stats.split('||')[0];
-                let opt = document.createElement('option');
-                opt.value = JSON.stringify(item); 
-                opt.innerText = realName;
-                itemSelect.appendChild(opt);
-            });
-        } else {
-            itemSelect.style.display = 'none'; 
-            if(heroName) alert("Wybrany heros nie posiada przedmiotów legendarnych w bazie.");
-        }
-    }
-
     // Uzupełnienie formularza po wyborze przedmiotu
     window.fillItemDetails = function() {
         const selectedValue = document.getElementById('itemSelect').value;
@@ -530,6 +562,62 @@
             }
         }
         document.getElementById('itemDesc').value = description;
+        updateCharCount(); // Aktualizacja licznika znaków
+    }
+
+    // Licznik znaków
+    window.updateCharCount = function() {
+        const val = document.getElementById('itemDesc').value.length;
+        document.getElementById('charCount').innerText = val + "/150";
+    }
+
+    // Wybór herosa - ładowanie listy przedmiotów
+    window.updateLootList = function() {
+        const heroName = document.getElementById('itemSource').value;
+        const itemSelect = document.getElementById('itemSelect');
+        itemSelect.innerHTML = '<option value="">-- Wybierz przedmiot legendarny --</option>'; 
+        
+        if (heroName && lootTable[heroName] && lootTable[heroName].length > 0) {
+            itemSelect.style.display = 'block'; 
+            lootTable[heroName].forEach(item => {
+                const realName = item.stats.split('||')[0];
+                let opt = document.createElement('option');
+                opt.value = JSON.stringify(item); 
+                opt.innerText = realName;
+                itemSelect.appendChild(opt);
+            });
+        } else {
+            itemSelect.style.display = 'none'; 
+            if(heroName) alert("Wybrany heros nie posiada przedmiotów legendarnych w bazie.");
+        }
+    }
+
+    // --- FUNKCJA OBECNOŚCI ONLINE ---
+    async function updatePresence() {
+        if (!currentUser) return;
+        const userRef = doc(db, "users", currentUser.uid);
+        try {
+            await setDoc(userRef, {
+                lastSeen: serverTimestamp(),
+                nick: currentNick,
+                photo: currentUser.photoURL
+            }, { merge: true });
+        } catch (e) { console.error("Błąd presence:", e); }
+    }
+
+    function renderOnlineUsers(snapshot) {
+        const listDiv = document.getElementById('onlineUsersList');
+        listDiv.innerHTML = "";
+        snapshot.forEach(docSnap => {
+            const data = docSnap.data();
+            const userDiv = document.createElement('div');
+            userDiv.className = 'online-user';
+            userDiv.dataset.nick = data.nick;
+            const img = document.createElement('img');
+            img.src = data.photo || "https://micc.garmory-cdn.cloud/obrazki/postacie//hum_m_001.gif";
+            userDiv.appendChild(img);
+            listDiv.appendChild(userDiv);
+        });
     }
 
     document.getElementById('googleLoginBtn').addEventListener('click', () => {
@@ -560,6 +648,9 @@
             document.getElementById('addOfferPanel').style.display = 'block';
             document.getElementById('userNickDisplay').innerText = currentNick;
             document.getElementById('userAvatar').src = user.photoURL;
+
+            updatePresence();
+            setInterval(updatePresence, 60000);
         } else {
             document.getElementById('googleLoginBtn').style.display = 'flex';
             document.getElementById('userProfile').style.display = 'none';
@@ -569,9 +660,13 @@
         renderOffers();
     });
 
+    // ONLINE QUERY
+    const fifteenMinutesAgo = new Date(Date.now() - 15 * 60 * 1000);
+    const qOnline = query(collection(db, "users"), where("lastSeen", ">", fifteenMinutesAgo));
+    onSnapshot(qOnline, (snapshot) => { renderOnlineUsers(snapshot); });
+
     window.searchMargo = () => {
         const name = document.getElementById('itemName').value;
-        // NOWY LINK DO MARGOWORLD
         window.open(`https://margoworld.pl/item?name=${encodeURIComponent(name)}&minLvl=&maxLvl=&cl=`, '_blank');
     };
 
@@ -597,6 +692,7 @@
                 type, name, price, source: sourceName, sourceImg: sourceImg, margoLink, desc, img,
                 date: new Date().toISOString()
             });
+            // Reset formularza
             document.getElementById('itemName').value = "";
             document.getElementById('itemPrice').value = "";
             document.getElementById('itemSource').value = "";
@@ -605,6 +701,7 @@
             document.getElementById('itemMargoLink').value = "";
             document.getElementById('itemDesc').value = "";
             document.getElementById('itemImg').value = "";
+            updateCharCount();
         } catch(e) { alert("Błąd: " + e.message); }
     };
 
@@ -665,15 +762,23 @@
             let tagClass = data.type; 
             let typeLabel = data.type.toUpperCase();
             
+            // --- LOGIKA ADMINA ---
             let deleteBtn = "";
-            if(currentUser && (data.userId === currentUser.uid || currentNick === "jacobpogorzelec")) {
-                deleteBtn = `<button class="delete-btn" onclick="deleteOffer('${data.id}')">X</button>`;
+            const isOwner = currentUser && data.userId === currentUser.uid;
+            // Admin "Stachu Drzymała" może usuwać wszystko
+            const isAdmin = currentNick === ADMIN_NICK;
+
+            if (isOwner || isAdmin) {
+                // Jeśli admin usuwa cudze, przycisk jest czerwony
+                let btnClass = (isAdmin && !isOwner) ? "delete-btn admin-delete-btn" : "delete-btn";
+                let label = (isAdmin && !isOwner) ? "USUŃ (Admin)" : "✕";
+                deleteBtn = `<button class="${btnClass}" onclick="deleteOffer('${data.id}')">${label}</button>`;
             }
+            // ---------------------
             
             let imgHtml = data.img ? `<img src="${data.img}" class="item-img" onerror="this.style.display='none'">` : "";
             
             let sourceHtml = "";
-            
             let cardClass = "offer-card legendary-item";
 
             if (data.source) {
@@ -712,6 +817,3 @@
 
 </body>
 </html>
-
-
-
