@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Targowisko Klanowe v9.0</title>
+    <title>Targowisko Klanowe v10.0</title>
     <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -165,7 +165,7 @@
             <input type="text" id="itemPrice" placeholder="Cena (np. 50m)">
             
             <select id="itemSource" class="full-width">
-                <option value="">-- Wybierz Herosa/Tytana (Lista z Twoich danych) --</option>
+                <option value="">-- Wybierz Herosa/Tytana (Lista klanowa) --</option>
             </select>
 
             <div style="display:flex; gap:10px; align-items:center;" class="full-width">
@@ -212,35 +212,35 @@
     let allOffers = [];
     let currentFilter = 'all';
 
-    // --- BAZA HEROSÓW (POPRAWIONE NAZWY PLIKÓW I HTTPS) ---
+    // --- BAZA HEROSÓW: POZIOMY ZE SKRYPTU + TWOJE GRAFIKI ---
     const monstersList = [
         { name: "Domina Ecclesiae (21 lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/her/domina.gif" },
-        { name: "Mietek Żul (25 lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/mas/mietek_zul.gif" },
-        { name: "Mroczny Patryk (35 lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/e2/mroczny_patryk.gif" },
-        { name: "Karmazynowy Mściciel (45 lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/klanowe/heros_karm_msc.gif" },
+        { name: "Mietek Żul (25 lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/her/zulek.gif" },
+        { name: "Mroczny Patryk (35 lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/her/bardzozlypatryk.gif" },
+        { name: "Karmazynowy Mściciel (45 lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/her/gnom_msciciel.gif" },
         { name: "Złodziej (51 lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/her/zlodziej.gif" },
-        { name: "Zły Przewodnik (63 lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/e2/zly_przewodnik.gif" },
-        { name: "Opętany Paladyn (74 lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/her/opetany_pal.gif" },
+        { name: "Zły Przewodnik (63 lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/her/mnich-zly2.gif" },
+        { name: "Opętany Paladyn (74 lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/her/opetanypaladyn02.gif" },
         { name: "Piekielny Kościej (85 lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/her/piekielny_kosciej.gif" },
-        { name: "Koziec Mąciciel Ścieżek (94lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/her/koziec.gif" },
-        { name: "Kochanka Nocy (102 lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/her/kochanka.gif" },
-        { name: "Książę Kasim (116 lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/her/kasim.gif" },
-        { name: "Święty Braciszek (123 lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/her/braciszek.gif" },
-        { name: "Złoty Roger (135 lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/her/roger.gif" },
-        { name: "Baca bez łowiec (144 lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/her/baca.gif" },
-        { name: "Czarująca Atalia (157 lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/her/atalia.gif" },
-        { name: "Obłąkany Łowca Orków (165 lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/her/lowca_orkow.gif" },
+        { name: "Koziec Mąciciel Ścieżek (94lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/her/koziec_maciciel_sciezek.gif" },
+        { name: "Kochanka Nocy (102 lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/her/kochanka-nocy.gif" },
+        { name: "Książę Kasim (116 lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/her/ksiaze-kasim.gif" },
+        { name: "Święty Braciszek (123 lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/her/sw_braciszek.gif" },
+        { name: "Złoty Roger (135 lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/her/szkielet_pirata.gif" },
+        { name: "Baca bez łowiec (144 lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/her/baca-bez-lowiec.gif" },
+        { name: "Czarująca Atalia (157 lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/her/czarujaca-atalia.gif" },
+        { name: "Obłąkany Łowca Orków (165 lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/her/oblakany_ac1dae9d.gif" },
         { name: "Lichwiarz Grauhaz (177 lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/her/lichwiarz_grauhaz.gif" },
-        { name: "Viviana Nandin (185 lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/her/viviana.gif" },
+        { name: "Viviana Nandin (185 lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/her/viv_nandin_i3bd1.gif" },
         { name: "Przeraza (194 lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/her/przeraza.gif" },
-        { name: "Demonis Pan Nicości (205 lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/e2/demonis.gif" },
-        { name: "Mulher Ma (214 lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/her/mulher.gif" },
-        { name: "Vapor Veneno (231 lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/her/vapor.gif" },
-        { name: "Dęborożec (244 lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/tyt/deborozec.gif" },
-        { name: "Tepeyollotl (258 lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/her/tepeyollotl.gif" },
-        { name: "Widmo Triady (265 lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/her/widmo_triady.gif" },
+        { name: "Demonis Pan Nicości (205 lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/her/sekta_demon_cz_s.gif" },
+        { name: "Mulher Ma (214 lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/her/mulher_ma.gif" },
+        { name: "Vapor Veneno (231 lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/her/joziniec_bagienny.gif" },
+        { name: "Dęborożec (244 lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/her/zwierz_kniei.gif" },
+        { name: "Tepeyollotl (258 lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/her/tep_35ecb966.gif" },
+        { name: "Widmo Triady (265 lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/her/trist2_widmo_triady.gif" },
         { name: "Negthotep Czarny Kapłan (271 lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/her/negthotep.gif" },
-        { name: "Młody Smok (282 lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/her/mlody_smok.gif" }
+        { name: "Młody Smok (282 lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/her/smokbarb.gif" }
     ];
 
     // Ładowanie listy
@@ -346,7 +346,7 @@
         interval = seconds / 60;
         if (interval > 1) return Math.floor(interval) + " min. temu";
         return "teraz";
-    }
+        }
 
     window.filterOffers = (filterType) => {
         currentFilter = filterType;
@@ -429,4 +429,3 @@
 
 </body>
 </html>
-
