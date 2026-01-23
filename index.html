@@ -1339,7 +1339,6 @@
     };
 
     window.deleteOffer = async (id) => { if(confirm("Usunąć?")) await deleteDoc(doc(db, "oferty", id)); };
-    window.copyNick = (nick) => { navigator.clipboard.writeText(`/t ${nick} `).then(() => alert("Skopiowano!")); };
     window.logout = () => signOut(auth);
 
     onSnapshot(query(collection(db, "oferty"), orderBy("date", "desc")), (snapshot) => {
@@ -1372,12 +1371,9 @@
                     <div style="color:#aaa; font-size:0.9em; margin-bottom:15px; font-style:italic;">${escapeHtml(data.desc)}</div>
                     <div class="seller-info">
                         <div class="seller-left">
-                            <img src="${data.avatar}" class="tiny-avatar"> 
-                            <b>${escapeHtml(data.nick)}</b>
-                            <button class="copy-nick-btn" onclick="copyNick('${data.nick}')">✉️</button>
-                        </div>
-                        ${deleteBtn}
-                    </div>
+    <img src="${data.avatar}" class="tiny-avatar"> 
+    <b>${escapeHtml(data.nick)}</b>
+</div>
                 </div>`;
         });
     }
@@ -1521,6 +1517,7 @@
     
 </body>
 </html>
+
 
 
 
