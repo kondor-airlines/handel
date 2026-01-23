@@ -1388,92 +1388,10 @@
         renderOffers();
     };
 </script>
-
-<style>
-    /* Zmiana siatki na widok listy przy dużej ilości ofert */
-    .offers-grid {
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-    }
-
-    .offer-card {
-        padding: 10px 20px;
-        min-height: auto;
-        flex-direction: row; /* Elementy w jednej linii */
-        align-items: center;
-        justify-content: space-between;
-    }
-
-    .card-header {
-        margin-bottom: 0;
-        display: flex;
-        align-items: center;
-        width: 35%; /* Nazwa przedmiotu zajmuje lewą stronę */
-    }
-
-    .item-img {
-        width: 30px;
-        height: 30px;
-        margin-left: 10px;
-        margin-top: 0;
-    }
-
-    .item-source {
-        margin: 0;
-        padding: 5px 10px;
-        width: 25%;
-        justify-content: center;
-    }
-
-    .price-tag {
-        margin: 0;
-        font-size: 1.1em;
-        width: 15%;
-        text-align: center;
-    }
-
-    .seller-info {
-        margin-top: 0;
-        padding-top: 0;
-        border-top: none;
-        width: 20%;
-        justify-content: flex-end;
-    }
-
-    /* Ukrycie dekoracji bocznej 'LEGENDARNY', żeby zaoszczędzić miejsce w liście */
-    .legendary-item::after {
-        display: none;
-    }
-
-    /* Ukrycie opisu w widoku listy dla maksymalnej kompaktowości - pojawi się tylko przy najechaniu */
-    .offer-card [style*="font-style:italic"] {
-        display: none;
-    }
-    
-    .offer-card:hover [style*="font-style:italic"] {
-        display: block;
-        position: absolute;
-        bottom: 40px;
-        left: 20px;
-        background: #000;
-        border: 1px solid var(--gold);
-        padding: 10px;
-        z-index: 100;
-        width: 250px;
-    }
-
-    /* Przycisk usuwania w widoku listy */
-    .delete-btn {
-        position: relative;
-        bottom: auto;
-        right: auto;
-        margin-left: 10px;
-    }
-</style>
     
 </body>
 </html>
+
 
 
 
