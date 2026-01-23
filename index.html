@@ -1487,6 +1487,136 @@
     // Odpalenie wstrzykiwania przy starcie i zmianach
     setInterval(injectEditButtons, 1000);
 </script>
+
+<style>
+    /* Styl dla okna edycji pełnej */
+    #editModal {
+        display: none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%;
+        background-color: rgba(0,0,0,0.95); align-items: center; justify-content: center;
+        backdrop-filter: blur(5px);
+    }
+    .modal-content-full {
+        background: #1a1a1a; padding: 30px; border: 2px solid var(--gold);
+        border-radius: 15px; width: 95%; max-width: 600px; 
+        box-shadow: 0 0 50px rgba(255,215,0,0.15);
+    }
+    .edit-input-group { margin-bottom: 15px; }
+    .edit-label { display: block; font-size: 0.7em; color: var(--gold); text-transform: uppercase; margin-bottom: 5px; letter-spacing: 1px; }
+    
+    .edit-btn-trigger {
+        background: rgba(255, 215, 0, 0.1); color: var(--gold); border: 1px solid var(--gold);
+        padding: 4px 12px; border-radius: 4px; cursor: pointer; font-size: 0.75em; 
+        margin-right: 10px; font-weight: bold; transition: 0.2s;
+    }
+    .edit-btn-trigger:hover { background: var(--gold); color: #000; }
+</style>
+
+<div id="editModal">
+    <div class="modal-content-full">
+        <h3 style="color:var(--gold); font-family:'MedievalSharp'; margin-top:0; font-size: 1.8em;">Modyfikuj Artefakt</h3>
+        
+        <div class="edit-input-group">
+            <span class="edit-label">Nazwa Przedmiotu</span>
+            <input type="text" id="fullEditName">
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+            <div class="edit-input-group">
+                <span class="edit-label">Cena</span>
+                <input type="text" id="fullEditPrice">
+            </div>
+            <div class="edit-input-group">
+                <span class="edit-label">Link do obrazka</span>
+                <input type="text" id="fullEditImg">
+            </div>
+        </div>
+
+        <div class="edit-input-group">
+            <span class="edit-label">Opis / Statystyki</span>
+            <textarea id="fullEditDesc" rows="4"></textarea>
+        </div>
+
+        <div style="display:flex; gap:15px; margin-top: 10px;">
+            <button class="action-btn" onclick="confirmFullEdit()" style="flex:2;">ZATWIERDŹ ZMIANY</button>
+            <button class="action-btn" onclick="closeFullEdit()" style="flex:1; background: #333; color: #fff; border: 1px solid #444;">ANULUJ</button>
+        </div>
+    </div>
+</div>
+
+<script type="module">
+    import { getFirestore, doc, updateDoc } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+    const db = getFirestore();
+    let currentEditId = null;
+
+    // Funkcja otwierająca okno z kompletem danych
+    window.openFullEdit = (id, name, price, desc, img) => {
+        currentEditId = id;
+        document.getElementById('fullEditName').value = name;
+        document.getElementById('fullEditPrice').value = price;
+        document.getElementById('fullEditDesc').value = desc;
+        document.getElementById('fullEditImg').value = img;
+        document.getElementById('editModal').style.display = 'flex';
+    };
+
+    window.closeFullEdit = () => {
+        document.getElementById('editModal').style.display = 'none';
+    };
+
+    window.confirmFullEdit = async () => {
+        if (!currentEditId) return;
+        
+        const updateData = {
+            name: document.getElementById('fullEditName').value,
+            price: document.getElementById('fullEditPrice').value,
+            desc: document.getElementById('fullEditDesc').value,
+            img: document.getElementById('fullEditImg').value
+        };
+
+        try {
+            const offerRef = doc(db, "oferty", currentEditId);
+            await updateDoc(offerRef, updateData);
+            closeFullEdit();
+            // Strona odświeży się sama dzięki onSnapshot w Twoim kodzie
+        } catch (e) {
+            alert("Błąd podczas aktualizacji: " + e.message);
+        }
+    };
+
+    // Skrypt wstrzykujący przycisk "EDYTUJ" tylko do Twoich ofert
+    function injectFullEditButtons() {
+        const cards = document.querySelectorAll('.offer-card');
+        cards.forEach((card) => {
+            const deleteBtn = card.querySelector('.delete-btn');
+            
+            // Jeśli istnieje przycisk usuwania i NIE jest to przycisk admina (czyli należy do nas)
+            if (deleteBtn && !deleteBtn.classList.contains('admin-delete-btn')) {
+                // Wyciągamy ID z Twojego atrybutu onclick w delete-btn
+                const idMatch = deleteBtn.getAttribute('onclick').match(/'([^']+)'/);
+                if (!idMatch) return;
+                const id = idMatch[1];
+
+                // Pobieramy aktualne dane z karty, żeby wypełnić nimi formularz
+                const name = card.querySelector('.item-title').innerText;
+                const price = card.querySelector('.price-tag span').innerText;
+                const desc = card.querySelector('[style*="font-style:italic"]').innerText;
+                const img = card.querySelector('.item-img') ? card.querySelector('.item-img').src : "";
+
+                if (!card.querySelector('.edit-btn-trigger')) {
+                    const editBtn = document.createElement('button');
+                    editBtn.className = 'edit-btn-trigger';
+                    editBtn.innerText = 'EDYTUJ';
+                    editBtn.onclick = () => openFullEdit(id, name, price, desc, img);
+                    
+                    // Wstawiamy przycisk obok Twojego nicku/przycisku usuwania
+                    deleteBtn.parentNode.insertBefore(editBtn, deleteBtn);
+                }
+            }
+        });
+    }
+
+    // Uruchamiamy sprawdzanie co sekundę, żeby przyciski pojawiały się po filtrowaniu
+    setInterval(injectFullEditButtons, 1000);
+</script>
     
 </body>
 </html>
