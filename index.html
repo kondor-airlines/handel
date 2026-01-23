@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Targowisko Klanowe v3.0</title>
+    <title>Targowisko Klanowe v8.0</title>
     <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -28,6 +28,7 @@
         header {
             display: flex; justify-content: space-between; align-items: center;
             border-bottom: 2px solid #333; padding-bottom: 20px; margin-bottom: 30px;
+            flex-wrap: wrap; gap: 10px;
         }
 
         h1 { font-family: 'MedievalSharp', cursive; color: var(--gold); margin: 0; font-size: 2em; }
@@ -65,6 +66,14 @@
             background: #000; border: 1px solid #444; color: white;
             padding: 10px; border-radius: 5px; width: 100%; box-sizing: border-box;
         }
+        
+        select#itemSource {
+            color: var(--gold);
+            border: 1px solid var(--purple);
+            background: #151515;
+            cursor: pointer;
+        }
+        select#itemSource option { background: #000; color: #fff; padding: 5px; }
 
         .action-btn {
             background: var(--gold); color: #000; border: none; padding: 12px;
@@ -89,7 +98,11 @@
 
         .item-img { width: 50px; height: 50px; float: right; object-fit: contain; }
         
-        .item-source { font-size: 0.85em; color: var(--purple); margin-bottom: 5px; font-weight: 600; display: flex; align-items: center; gap: 5px; }
+        .item-source { 
+            font-size: 0.85em; color: var(--purple); margin-bottom: 8px; font-weight: 600; 
+            display: flex; align-items: center; gap: 8px; background: rgba(155, 89, 182, 0.1);
+            padding: 5px; border-radius: 4px; border: 1px solid rgba(155, 89, 182, 0.2);
+        }
 
         .margo-link {
             display: inline-block; font-size: 0.8em; color: #3498db; text-decoration: none; border: 1px solid #3498db; padding: 2px 8px; border-radius: 4px; margin-bottom: 10px; transition: 0.3s;
@@ -151,15 +164,17 @@
             </select>
             <input type="text" id="itemPrice" placeholder="Cena (np. 50m)">
             
+            <select id="itemSource" class="full-width">
+                <option value="">-- Wybierz Herosa/Tytana (Lista z Twoich danych) --</option>
+            </select>
+
             <div style="display:flex; gap:10px; align-items:center;" class="full-width">
                 <input type="text" id="itemName" placeholder="Nazwa przedmiotu (dokładna)" style="margin:0;">
                 <button class="helper-btn" onclick="searchMargo()" title="Pomocnik - otwiera wyszukiwarkę">🔍 Znajdź link</button>
             </div>
 
-            <input type="text" id="itemSource" placeholder="Z czego spadło? (np. Lichwiarz Grauhaz 177)" class="full-width">
-            <input type="text" id="itemMargoLink" placeholder="Wklej link do przedmiotu z MargoWorld (np. https://margoworld.pl/item/view/...)" class="full-width">
-
-            <input type="text" id="itemImg" placeholder="Link do obrazka/grafiki (opcjonalne)" class="full-width">
+            <input type="text" id="itemMargoLink" placeholder="Link do statystyk (np. https://margoworld.pl/item/view/...)" class="full-width">
+            <input type="text" id="itemImg" placeholder="Link do obrazka (opcjonalne)" class="full-width">
             <textarea id="itemDesc" placeholder="Dodatkowy opis (ulepszenie, uwagi)" class="full-width"></textarea>
             
             <button class="action-btn full-width" onclick="addOffer()">OPUBLIKUJ</button>
@@ -176,16 +191,16 @@
     import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
     import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, deleteDoc, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
 
-    // --- ⚠️ WKLEJ TU SWOJĄ KONFIGURACJĘ ⚠️ ---
-const firebaseConfig = {
-  apiKey: "AIzaSyApFYFkAghXreeX_xptg-PTCSxtPdiXYdA",
-  authDomain: "targowisko-klanu.firebaseapp.com",
-  projectId: "targowisko-klanu",
-  storageBucket: "targowisko-klanu.firebasestorage.app",
-  messagingSenderId: "1002027435908",
-  appId: "1:1002027435908:web:56419c7bc38e148cf0ffd1"
-};
-    // ------------------------------------------
+    // --- TWOJA KONFIGURACJA ---
+    const firebaseConfig = {
+      apiKey: "AIzaSyApFYFkAghXreeX_xptg-PTCSxtPdiXYdA",
+      authDomain: "targowisko-klanu.firebaseapp.com",
+      projectId: "targowisko-klanu",
+      storageBucket: "targowisko-klanu.firebasestorage.app",
+      messagingSenderId: "1002027435908",
+      appId: "1:1002027435908:web:56419c7bc38e148cf0ffd1"
+    };
+    // ---------------------------
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
@@ -196,6 +211,47 @@ const firebaseConfig = {
     let currentNick = null;
     let allOffers = [];
     let currentFilter = 'all';
+
+    // --- BAZA HEROSÓW (DANE Z TWOJEJ LISTY) ---
+    const monstersList = [
+        { name: "Domina Ecclesiae (21 lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/her/domina.gif" },
+        { name: "Mietek Żul (25 lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/mas/mietek_zul.gif" },
+        { name: "Mroczny Patryk (35 lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/e2/mroczny_patryk.gif" },
+        { name: "Karmazynowy Mściciel (45 lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/klanowe/heros_karm_msc.gif" },
+        { name: "Złodziej (51 lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/her/zlodziej.gif" },
+        { name: "Zły Przewodnik (63 lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/e2/zly_przewodnik.gif" },
+        { name: "Opętany Paladyn (74 lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/her/opetany_pal.gif" },
+        { name: "Piekielny Kościej (85 lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/her/piekielny_kosciej.gif" },
+        { name: "Koziec Mąciciel Ścieżek (94lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/her/koziec.gif" },
+        { name: "Kochanka Nocy (102 lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/her/kochanka.gif" },
+        { name: "Książę Kasim (116 lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/her/kasim.gif" },
+        { name: "Święty Braciszek (123 lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/her/braciszek.gif" },
+        { name: "Złoty Roger (135 lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/her/roger.gif" },
+        { name: "Baca bez łowiec (144 lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/her/baca.gif" },
+        { name: "Czarująca Atalia (157 lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/her/atalia.gif" },
+        { name: "Obłąkany Łowca Orków (165 lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/her/lowca_orkow.gif" },
+        { name: "Lichwiarz Grauhaz (177 lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/wt/k_grauhaz.gif" },
+        { name: "Viviana Nandin (185 lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/her/viviana.gif" },
+        { name: "Przeraza (194 lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/her/przeraza.gif" },
+        { name: "Demonis Pan Nicości (205 lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/e2/demonis.gif" },
+        { name: "Mulher Ma (214 lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/her/mulher.gif" },
+        { name: "Vapor Veneno (231 lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/her/vapor.gif" },
+        { name: "Dęborożec (244 lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/tyt/deborozec.gif" },
+        { name: "Tepeyollotl (258 lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/her/tepeyollotl.gif" },
+        { name: "Widmo Triady (265 lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/her/widmo_triady.gif" },
+        { name: "Negthotep Czarny Kapłan (271 lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/her/negthotep.gif" },
+        { name: "Młody Smok (282 lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/her/mlody_smok.gif" }
+    ];
+
+    // Ładowanie listy
+    const sourceSelect = document.getElementById('itemSource');
+    monstersList.forEach(mob => {
+        let opt = document.createElement('option');
+        opt.value = mob.name; // Zapisze całą nazwę z levelem, np "Mietek Żul (25 lvl)"
+        opt.dataset.img = mob.img; 
+        opt.innerText = mob.name;
+        sourceSelect.appendChild(opt);
+    });
 
     document.getElementById('googleLoginBtn').addEventListener('click', () => {
         signInWithPopup(auth, provider).catch(e => alert(e.message));
@@ -234,10 +290,8 @@ const firebaseConfig = {
         renderOffers();
     });
 
-    // Pomocnik do szukania linku
     window.searchMargo = () => {
         const name = document.getElementById('itemName').value;
-        // Otwieramy wyszukiwarkę przedmiotów, żeby użytkownik mógł skopiować właściwy link
         window.open(`https://margoworld.pl/ladder/item?name=${encodeURIComponent(name)}`, '_blank');
     };
 
@@ -247,23 +301,26 @@ const firebaseConfig = {
         const type = document.getElementById('offerType').value;
         const name = document.getElementById('itemName').value;
         const price = document.getElementById('itemPrice').value;
-        const source = document.getElementById('itemSource').value; // NOWE
-        const margoLink = document.getElementById('itemMargoLink').value; // NOWE
+        const margoLink = document.getElementById('itemMargoLink').value;
         const desc = document.getElementById('itemDesc').value;
         const img = document.getElementById('itemImg').value;
+
+        // Pobieramy dane z selecta
+        const sel = document.getElementById('itemSource');
+        const sourceName = sel.value; 
+        const sourceImg = sel.selectedIndex > 0 ? sel.options[sel.selectedIndex].dataset.img : "";
 
         if(!name || !price) return alert("Brakuje nazwy lub ceny!");
 
         try {
             await addDoc(collection(db, "oferty"), {
                 userId: currentUser.uid, nick: currentNick, avatar: currentUser.photoURL,
-                type, name, price, source, margoLink, desc, img, // Zapisujemy nowe pola
+                type, name, price, source: sourceName, sourceImg: sourceImg, margoLink, desc, img,
                 date: new Date().toISOString()
             });
-            // Reset pól
             document.getElementById('itemName').value = "";
             document.getElementById('itemPrice').value = "";
-            document.getElementById('itemSource').value = "";
+            document.getElementById('itemSource').value = ""; // Reset selecta
             document.getElementById('itemMargoLink').value = "";
             document.getElementById('itemDesc').value = "";
             document.getElementById('itemImg').value = "";
@@ -279,6 +336,7 @@ const firebaseConfig = {
     };
 
     function timeSince(dateString) {
+        if(!dateString) return "";
         const date = new Date(dateString);
         const seconds = Math.floor((new Date() - date) / 1000);
         let interval = seconds / 86400;
@@ -333,12 +391,14 @@ const firebaseConfig = {
             
             let imgHtml = data.img ? `<img src="${data.img}" class="item-img" onerror="this.style.display='none'">` : "";
             
-            // NOWE: Wyświetlanie źródła
-            let sourceHtml = data.source ? `<div class="item-source">🕷️ ${data.source}</div>` : "";
+            let sourceHtml = "";
+            if (data.source) {
+                // Wyświetla grafikę herosa i nazwę z levelem
+                let mobIcon = data.sourceImg ? `<img src="${data.sourceImg}" style="height:20px; vertical-align:middle; margin-right:5px;">` : "🕷️ ";
+                sourceHtml = `<div class="item-source">${mobIcon} <span>${data.source}</span></div>`;
+            }
             
-            // NOWE: Link do MargoWorld
-            let linkHtml = data.margoLink ? `<a href="${data.margoLink}" target="_blank" class="margo-link">📊 Statystyki (MargoWorld)</a>` : "";
-
+            let linkHtml = data.margoLink ? `<a href="${data.margoLink}" target="_blank" class="margo-link">📊 Statystyki</a>` : "";
             let timeAgo = timeSince(data.date);
 
             const html = `
@@ -369,4 +429,3 @@ const firebaseConfig = {
 
 </body>
 </html>
-
