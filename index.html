@@ -64,10 +64,30 @@
 
         h1 { font-family: 'MedievalSharp', cursive; color: var(--gold); margin: 0; font-size: 2.5em; text-shadow: 0 0 15px rgba(255, 215, 0, 0.5); letter-spacing: 2px; }
 
+        /* NOWY WYGLĄD PRZYCISKU LOGOWANIA */
         .login-btn {
-            background: linear-gradient(to bottom, #fff, #ccc); color: #333; border: none; padding: 10px 20px;
-            border-radius: 5px; cursor: pointer; font-weight: bold; display: flex; align-items: center; gap: 10px; 
-            transition: 0.3s; box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            background: rgba(255, 255, 255, 0.05);
+            color: #fff;
+            border: 1px solid var(--gold);
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 0.85em;
+            z-index: 10;
+        }
+
+        .login-btn:hover {
+            background: var(--gold);
+            color: #000;
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.4);
+            transform: translateY(-2px);
         }
 
         .user-profile { display: none; align-items: center; gap: 12px; background: rgba(255,255,255,0.05); padding: 5px 15px; border-radius: 50px; border: 1px solid var(--border); }
@@ -137,7 +157,7 @@
 
         .seller-info { margin-top: auto; padding-top: 15px; border-top: 1px dotted #444; display: flex; align-items: center; justify-content: space-between; font-size: 0.85em; }
         .seller-left { display: flex; align-items: center; gap: 10px; }
-        .tiny-avatar { width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--gold); }
+        .tiny-avatar { width: 28px; height: 28px; border-radius: 50%; border: 2px solid var(--gold); }
 
         .btn-group { display: flex; gap: 5px; }
         .small-btn { padding: 4px 8px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 0.7em; border: 1px solid transparent; }
@@ -163,7 +183,7 @@
         <h1>⚔️ Targowisko Kondor Airlines</h1>
         <button id="googleLoginBtn" class="login-btn">
             <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/pwa_googleg_color_64dp.png" width="18">
-            Zaloguj przez Google
+            <span>Zaloguj przez Google</span>
         </button>
         <div id="userProfile" class="user-profile">
             <img id="userAvatar" class="user-avatar" src="" alt="">
@@ -211,8 +231,8 @@
             <div style="display:flex; gap:10px; align-items:center;" class="full-width">
                 <input type="text" id="itemName" placeholder="Nazwa przedmiotu" maxlength="50">
                 <button class="helper-btn" onclick="searchMargo()" title="Sprawdź statystyki na MargoWorld">
-    <span style="margin-right: 5px; font-size: 0.8em; font-family: 'Montserrat'; font-weight: 600;">STATY</span> 🔍
-</button>
+                    <span style="margin-right: 5px; font-size: 0.8em; font-family: 'Montserrat'; font-weight: 600;">STATY</span> 🔍
+                </button>
             </div>
             <input type="text" id="itemImg" placeholder="Link do obrazka" class="full-width">
             <textarea id="itemDesc" placeholder="Dodatkowy opis..." class="full-width" maxlength="150" rows="2"></textarea>
@@ -452,6 +472,7 @@
 
 function escapeHtml(text) { return text ? text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;") : ""; }
 
+    // --- LOGIKA FILTRÓW ---
     window.setFilter = (type, val) => {
         if (type === 'cat' && currentFilters.cat === val) currentFilters.cat = 'all';
         else currentFilters[type] = val;
@@ -464,6 +485,7 @@ function escapeHtml(text) { return text ? text.replace(/&/g, "&amp;").replace(/<
         window.renderOffers();
     };
 
+    // --- FUNKCJE FORMULARZA ---
     window.updateSourceList = () => {
         const cat = document.getElementById('sourceCategory').value;
         const sel = document.getElementById('itemSource');
@@ -498,7 +520,16 @@ function escapeHtml(text) { return text ? text.replace(/&/g, "&amp;").replace(/<
         document.getElementById('livePreview').style.display = 'flex';
         document.getElementById('previewIcon').src = data.img;
         document.getElementById('previewName').innerText = name;
+        const statsPart = data.stats.split('||')[1];
+        if (statsPart && statsPart.includes('opis=')) {
+            document.getElementById('itemDesc').value = statsPart.split('opis=')[1].split(';')[0].replaceAll('[br]', '\n');
+        } else {
+            document.getElementById('itemDesc').value = "";
+        }
     };
+
+    // --- LOGOWANIE I AUTH ---
+    document.getElementById('googleLoginBtn').addEventListener('click', () => signInWithPopup(auth, provider).catch(e => alert("Błąd logowania: " + e.message)));
 
     onAuthStateChanged(auth, async (user) => {
         currentUser = user;
@@ -507,34 +538,38 @@ function escapeHtml(text) { return text ? text.replace(/&/g, "&amp;").replace(/<
             const snap = await getDoc(ref);
             if(snap.exists()) currentNick = snap.data().nick;
             else {
-                let n = prompt("Twój nick:");
-                if(n) { currentNick = n; await setDoc(ref, {nick:n}); } else await signOut(auth);
+                let n = prompt("Podaj swój nick z gry:");
+                if(n && n.trim()) { currentNick = n.trim(); await setDoc(ref, {nick:currentNick}); } else { await signOut(auth); return; }
             }
-            document.getElementById('googleLoginBtn').style.display = 'none';
+            document.getElementById('googleLoginBtn').style.setProperty('display', 'none', 'important');
             document.getElementById('userProfile').style.display = 'flex';
             document.getElementById('addOfferPanel').style.display = 'block';
             document.getElementById('userNickDisplay').innerText = currentNick;
             document.getElementById('userAvatar').src = user.photoURL;
         } else {
-            document.getElementById('googleLoginBtn').style.display = 'flex';
+            document.getElementById('googleLoginBtn').style.setProperty('display', 'flex', 'important');
             document.getElementById('userProfile').style.display = 'none';
             document.getElementById('addOfferPanel').style.display = 'none';
         }
         window.renderOffers();
     });
 
+    // --- RENDEROWANIE ---
     window.renderOffers = () => {
         const list = document.getElementById('offersList');
-        const search = document.getElementById('globalSearch').value.toLowerCase();
+        const searchInput = document.getElementById('globalSearch');
+        const searchStr = searchInput ? searchInput.value.toLowerCase().trim() : "";
         list.innerHTML = "";
         let count = 0;
+
         allOffers.forEach(data => {
             const isHeros = monstersList.herosi.some(m => m.name === data.source);
             const isE2 = monstersList.e2.some(m => m.name === data.source);
             if(currentFilters.type !== 'all' && data.type !== currentFilters.type) return;
             if(currentFilters.cat === 'herosi' && !isHeros) return;
             if(currentFilters.cat === 'e2' && !isE2) return;
-            if(!data.name.toLowerCase().includes(search)) return;
+            if(!data.name.toLowerCase().includes(searchStr)) return;
+
             count++;
             const isOwner = currentUser && data.userId === currentUser.uid;
             const isAdmin = currentNick === ADMIN_NICK;
@@ -555,10 +590,10 @@ function escapeHtml(text) { return text ? text.replace(/&/g, "&amp;").replace(/<
                         ${escapeHtml(data.desc)}
                     </div>
                     <div class="seller-info">
-                        <div class="seller-left"><img src="${data.avatar}" class="tiny-avatar"><b>${data.nick}</b></div>
+                        <div class="seller-left"><img src="${data.avatar}" class="tiny-avatar"><b>${escapeHtml(data.nick)}</b></div>
                         <div class="btn-group">
                             ${btnRes}
-                            ${isOwner ? `<button class="small-btn edit-added" onclick="openFullEdit('${data.id}','${data.name}','${data.price}','${data.desc}','${data.img}')">EDYTUJ</button>` : ""}
+                            ${isOwner ? `<button class="small-btn edit-added" onclick="openFullEdit('${data.id}','${escapeHtml(data.name)}','${escapeHtml(data.price)}','${escapeHtml(data.desc)}','${escapeHtml(data.img)}')">EDYTUJ</button>` : ""}
                             ${isOwner || isAdmin ? `<button class="small-btn delete-btn" onclick="deleteOffer('${data.id}')">✕</button>` : ""}
                         </div>
                     </div>
@@ -567,6 +602,7 @@ function escapeHtml(text) { return text ? text.replace(/&/g, "&amp;").replace(/<
         document.getElementById('offerStats').innerText = `Widocznych ofert: ${count}`;
     };
 
+    // --- OPERACJE NA BAZIE ---
     window.addOffer = async () => {
         const sel = document.getElementById('itemSource');
         if(!sel.value) return alert("Wybierz przeciwnika!");
@@ -591,6 +627,7 @@ function escapeHtml(text) { return text ? text.replace(/&/g, "&amp;").replace(/<
     window.openFullEdit = (id, n, p, d, i) => { currentEditId = id; document.getElementById('fullEditName').value=n; document.getElementById('fullEditPrice').value=p; document.getElementById('fullEditDesc').value=d; document.getElementById('fullEditImg').value=i; document.getElementById('editModal').style.display='flex'; };
     window.closeFullEdit = () => document.getElementById('editModal').style.display='none';
     window.confirmFullEdit = async () => { await updateDoc(doc(db, "oferty", currentEditId), { name: document.getElementById('fullEditName').value, price: document.getElementById('fullEditPrice').value, desc: document.getElementById('fullEditDesc').value, img: document.getElementById('fullEditImg').value }); window.closeFullEdit(); };
+    window.updateCharCount = () => {};
 
     onSnapshot(query(collection(db, "oferty"), orderBy("date", "desc")), (snap) => {
         allOffers = snap.docs.map(d => ({ id: d.id, ...d.data() }));
@@ -599,9 +636,3 @@ function escapeHtml(text) { return text ? text.replace(/&/g, "&amp;").replace(/<
 </script>
 </body>
 </html>
-
-
-
-
-
-
