@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Targowisko Klanowe v10.0</title>
+    <title>Targowisko Klanowe v12.0</title>
     <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -98,10 +98,26 @@
 
         .item-img { width: 50px; height: 50px; float: right; object-fit: contain; }
         
+        /* STYL DLA HEROSA (POPRAWIONY) */
         .item-source { 
-            font-size: 0.85em; color: var(--purple); margin-bottom: 8px; font-weight: 600; 
-            display: flex; align-items: center; gap: 8px; background: rgba(155, 89, 182, 0.1);
-            padding: 5px; border-radius: 4px; border: 1px solid rgba(155, 89, 182, 0.2);
+            font-size: 0.9em; 
+            color: #d1a3ff; /* Jasny fiolet */
+            margin-bottom: 12px; 
+            font-weight: 600; 
+            display: flex; 
+            align-items: center; 
+            gap: 12px; 
+            background: rgba(155, 89, 182, 0.15); /* Tło */
+            padding: 8px; 
+            border-radius: 6px; 
+            border: 1px solid rgba(155, 89, 182, 0.3);
+        }
+        
+        .item-source img {
+            height: 45px; /* DUŻY HEROS */
+            width: auto;
+            object-fit: contain;
+            filter: drop-shadow(0 0 2px rgba(0,0,0,0.5));
         }
 
         .margo-link {
@@ -212,7 +228,7 @@
     let allOffers = [];
     let currentFilter = 'all';
 
-    // --- BAZA HEROSÓW: POZIOMY ZE SKRYPTU + TWOJE GRAFIKI ---
+    // --- BAZA HEROSÓW ---
     const monstersList = [
         { name: "Domina Ecclesiae (21 lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/her/domina.gif" },
         { name: "Mietek Żul (25 lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/her/zulek.gif" },
@@ -236,7 +252,7 @@
         { name: "Demonis Pan Nicości (205 lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/her/sekta_demon_cz_s.gif" },
         { name: "Mulher Ma (214 lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/her/mulher_ma.gif" },
         { name: "Vapor Veneno (231 lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/her/joziniec_bagienny.gif" },
-        { name: "Dęborożec (244 lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/her/zwierz_kniei.gif" },
+        { name: "Dęborożec (244 lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/tyt/deborozec.gif" },
         { name: "Tepeyollotl (258 lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/her/tep_35ecb966.gif" },
         { name: "Widmo Triady (265 lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/her/trist2_widmo_triady.gif" },
         { name: "Negthotep Czarny Kapłan (271 lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/her/negthotep.gif" },
@@ -346,7 +362,7 @@
         interval = seconds / 60;
         if (interval > 1) return Math.floor(interval) + " min. temu";
         return "teraz";
-        }
+    }
 
     window.filterOffers = (filterType) => {
         currentFilter = filterType;
@@ -393,8 +409,8 @@
             
             let sourceHtml = "";
             if (data.source) {
-                // Wyświetla grafikę herosa i nazwę z levelem
-                let mobIcon = data.sourceImg ? `<img src="${data.sourceImg}" style="height:20px; vertical-align:middle; margin-right:5px;">` : "🕷️ ";
+                // Wyświetla grafikę herosa BEZ LIMITU 20PX (teraz w CSS jest 45px)
+                let mobIcon = data.sourceImg ? `<img src="${data.sourceImg}">` : "🕷️ ";
                 sourceHtml = `<div class="item-source">${mobIcon} <span>${data.source}</span></div>`;
             }
             
