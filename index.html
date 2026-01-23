@@ -3,224 +3,184 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Targowisko Klanowe - Ultimate</title>
-    <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&family=Montserrat:wght@400;500;700&display=swap" rel="stylesheet">
+    <title>Targowisko Klanowe</title>
+    <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
     <style>
         :root {
-            --gold-start: #ffd700;
-            --gold-end: #b8860b;
-            --bg: #0a0a0a;
-            --card-bg: rgba(30, 30, 30, 0.8);
+            --gold: #ffd700;
+            --bg: #121212;
+            --card: #1e1e1e;
             --green: #2ecc71; --blue: #3498db; --red: #e74c3c;
             --purple: #9b59b6;
-            --glass: rgba(255, 255, 255, 0.05);
-            --border: rgba(255, 215, 0, 0.2);
         }
 
         body {
             font-family: 'Montserrat', sans-serif;
             background: var(--bg);
-            background-image: 
-                radial-gradient(circle at 15% 50%, rgba(255, 215, 0, 0.03) 0%, transparent 25%),
-                radial-gradient(circle at 85% 30%, rgba(155, 89, 182, 0.03) 0%, transparent 25%);
             color: #eee;
             margin: 0;
             padding: 20px;
-            overflow-x: hidden;
         }
 
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: #111; }
-        ::-webkit-scrollbar-thumb { background: #444; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #666; }
+        .container { max-width: 1200px; margin: 0 auto; }
 
-        .container { max-width: 1200px; margin: 0 auto; position: relative; z-index: 1; }
-
-        /* HEADER */
         header {
             display: flex; justify-content: space-between; align-items: center;
-            border-bottom: 1px solid var(--border); padding-bottom: 20px; margin-bottom: 30px;
-            flex-wrap: wrap; gap: 15px;
-            background: rgba(10, 10, 10, 0.8);
-            backdrop-filter: blur(10px);
-            position: sticky; top: 0; z-index: 100;
-            padding: 20px;
-            border-radius: 0 0 15px 15px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.5);
+            border-bottom: 2px solid #333; padding-bottom: 20px; margin-bottom: 30px;
+            flex-wrap: wrap; gap: 10px;
         }
 
-        h1 { 
-            font-family: 'MedievalSharp', cursive; 
-            background: linear-gradient(to bottom, var(--gold-start), var(--gold-end));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            margin: 0; font-size: 2.2em; 
-            text-shadow: 0 2px 10px rgba(0,0,0,0.5);
-            letter-spacing: 1px;
-        }
+        h1 { font-family: 'MedievalSharp', cursive; color: var(--gold); margin: 0; font-size: 2em; text-shadow: 0 0 15px rgba(255, 215, 0, 0.4); }
 
-        /* LOGOWANIE */
         .login-btn {
-            background: linear-gradient(135deg, #ffffff, #e0e0e0);
-            color: #333; border: none; padding: 10px 25px;
-            border-radius: 30px; cursor: pointer; font-weight: bold; 
-            display: flex; align-items: center; gap: 10px; 
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(255,255,255,0.1);
+            background-color: #fff; color: #333; border: none; padding: 10px 20px;
+            border-radius: 5px; cursor: pointer; font-weight: bold; display: flex; align-items: center; gap: 10px; transition: 0.3s;
         }
-        .login-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(255,255,255,0.2); }
+        .login-btn:hover { background-color: #f1f1f1; }
 
-        .user-profile { display: none; align-items: center; gap: 15px; }
-        .user-avatar { width: 45px; height: 45px; border-radius: 50%; border: 2px solid var(--gold-start); box-shadow: 0 0 10px rgba(255, 215, 0, 0.3); }
-        .logout-link { color: #888; font-size: 0.8em; cursor: pointer; transition: 0.3s; }
-        .logout-link:hover { color: var(--red); text-decoration: underline; }
+        .user-profile { display: none; align-items: center; gap: 10px; }
+        .user-avatar { width: 40px; height: 40px; border-radius: 50%; border: 2px solid var(--gold); }
+        .logout-link { color: #888; font-size: 0.8em; text-decoration: underline; cursor: pointer; }
 
-        /* FILTRY */
-        .filters { display: flex; gap: 10px; margin-bottom: 30px; justify-content: center; flex-wrap: wrap; }
+        .filters { display: flex; gap: 10px; margin-bottom: 20px; justify-content: center; flex-wrap: wrap; }
         .filter-btn {
-            background: rgba(255,255,255,0.05); color: #aaa; border: 1px solid rgba(255,255,255,0.1); 
-            padding: 8px 20px; border-radius: 20px; cursor: pointer; transition: 0.3s; font-size: 0.9em; font-weight: 500;
+            background: #333; color: #aaa; border: 1px solid #444; padding: 8px 16px; 
+            border-radius: 20px; cursor: pointer; transition: 0.3s; font-size: 0.9em;
         }
-        .filter-btn:hover { background: rgba(255,255,255,0.1); color: #fff; }
-        .filter-btn.active { 
-            background: linear-gradient(135deg, var(--gold-start), var(--gold-end)); 
-            color: #000; border-color: transparent; font-weight: bold; box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
-        }
+        .filter-btn:hover { background: #444; color: #fff; }
+        .filter-btn.active { background: var(--gold); color: #000; border-color: var(--gold); font-weight: bold; }
 
-        /* FORMULARZ (GLASSMORPHISM) */
         .panel {
-            background: var(--card-bg); 
-            backdrop-filter: blur(10px);
-            padding: 25px; border-radius: 15px; border: 1px solid var(--border);
-            margin-bottom: 40px; display: none; 
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            background: var(--card); padding: 20px; border-radius: 10px; border: 1px solid #333;
+            margin-bottom: 30px; display: none; 
         }
 
-        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         .full-width { grid-column: 1 / -1; }
 
         input, select, textarea {
-            background: rgba(0,0,0,0.6); border: 1px solid #333; color: #fff;
-            padding: 12px; border-radius: 8px; width: 100%; box-sizing: border-box;
-            transition: 0.3s; font-family: 'Montserrat', sans-serif;
-        }
-        input:focus, select:focus, textarea:focus {
-            border-color: var(--gold-start); outline: none;
-            box-shadow: 0 0 10px rgba(255, 215, 0, 0.1);
+            background: #000; border: 1px solid #444; color: white;
+            padding: 10px; border-radius: 5px; width: 100%; box-sizing: border-box;
         }
         
-        select { color: var(--gold-start); cursor: pointer; }
+        select {
+            color: var(--gold);
+            border: 1px solid var(--purple);
+            background: #151515;
+            cursor: pointer;
+        }
         option { background: #000; color: #fff; padding: 5px; }
 
-        #itemSelect { border-color: var(--gold-start); display: none; background: rgba(20, 15, 0, 0.9); }
+        #itemSelect {
+            border-color: #ffd700;
+            color: #ffd700;
+            display: none; 
+            background: #1a1500;
+        }
 
         .action-btn {
-            background: linear-gradient(135deg, var(--gold-start), var(--gold-end));
-            color: #000; border: none; padding: 14px;
-            font-weight: bold; width: 100%; cursor: pointer; border-radius: 8px;
-            transition: 0.3s; font-size: 1em; letter-spacing: 1px;
-            box-shadow: 0 4px 15px rgba(255, 215, 0, 0.2);
+            background: var(--gold); color: #000; border: none; padding: 12px;
+            font-weight: bold; width: 100%; cursor: pointer; border-radius: 5px;
         }
-        .action-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(255, 215, 0, 0.4); }
+        .action-btn:hover { background: #d4a000; }
 
-        .helper-btn { 
-            background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.2); 
-            padding: 10px; cursor: pointer; border-radius: 8px; white-space: nowrap; transition: 0.3s; 
+        .helper-btn { background: #444; color: #fff; border: 1px solid #555; padding: 10px; cursor: pointer; border-radius: 5px; white-space: nowrap; }
+
+        .offers-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+
+        .offer-card {
+            background: var(--card); border: 1px solid #333; border-radius: 8px; padding: 15px; position: relative; transition: transform 0.2s;
         }
-        .helper-btn:hover { background: rgba(255,255,255,0.2); }
+        .offer-card:hover { transform: translateY(-3px); border-color: #555; }
+
+        /* Styl Legendarny */
+        .legendary-item {
+            border: 1px solid #ffd700 !important;
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.2), inset 0 0 20px rgba(255, 215, 0, 0.05);
+            background: linear-gradient(145deg, #1e1e1e, #2a2105) !important;
+            animation: legendary-pulse 4s infinite ease-in-out;
+        }
+        @keyframes legendary-pulse {
+            0% { box-shadow: 0 0 10px rgba(255, 215, 0, 0.2); border-color: #ffd700; }
+            50% { box-shadow: 0 0 25px rgba(255, 215, 0, 0.5); border-color: #ffeb3b; }
+            100% { box-shadow: 0 0 10px rgba(255, 215, 0, 0.2); border-color: #ffd700; }
+        }
+
+        .legendary-item .item-source {
+            color: #ffd700;
+            background: rgba(255, 215, 0, 0.1);
+            border-color: rgba(255, 215, 0, 0.3);
+        }
 
         /* LIVE PREVIEW BOX */
         .preview-box {
-            grid-column: 1 / -1; display: none; align-items: center; gap: 15px;
-            background: linear-gradient(to right, rgba(255, 215, 0, 0.1), transparent);
-            border-left: 4px solid var(--gold-start);
-            padding: 15px; border-radius: 4px; margin-bottom: 10px;
+            grid-column: 1 / -1;
+            display: none; /* Domyślnie ukryte */
+            align-items: center;
+            gap: 15px;
+            background: rgba(255, 215, 0, 0.05);
+            border: 1px solid #ffd700;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 10px;
             animation: fadeIn 0.3s ease-in;
         }
         @keyframes fadeIn { from { opacity:0; transform:translateY(-5px); } to { opacity:1; transform:translateY(0); } }
         
         .preview-box img {
-            width: 48px; height: 48px; border: 1px solid #444; background: #000; border-radius: 6px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.5);
+            width: 40px; height: 40px; 
+            border: 1px solid #555; 
+            background: #000;
+            border-radius: 4px;
         }
-        .preview-text { font-size: 1.1em; color: var(--gold-start); font-weight: bold; }
-        .preview-label { font-size: 0.7em; color: #888; text-transform: uppercase; display: block; margin-bottom: 2px; letter-spacing: 1px; }
-
-        /* LISTA OFERT */
-        .offers-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 25px; }
-
-        /* Styl Legendarny Karty */
-        .offer-card {
-            background: var(--card-bg); 
-            border: 1px solid transparent; 
-            border-radius: 12px; padding: 20px; position: relative; 
-            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-            /* Legendarny styl domyślny */
-            background-image: linear-gradient(#1e1e1e, #1e1e1e), linear-gradient(135deg, var(--gold-start), #2a2105);
-            background-origin: border-box;
-            background-clip: content-box, border-box;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+        .preview-text {
+            font-size: 0.9em;
+            color: #ffd700;
+            font-weight: bold;
         }
-        .offer-card:hover { 
-            transform: translateY(-7px) scale(1.01); 
-            box-shadow: 0 15px 30px rgba(255, 215, 0, 0.15); 
+        .preview-label {
+            font-size: 0.7em; 
+            color: #888; 
+            text-transform: uppercase; 
+            display: block; 
+            margin-bottom: 2px;
         }
 
-        .tag { 
-            display: inline-block; padding: 4px 10px; border-radius: 20px; font-size: 0.7em; 
-            font-weight: 700; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px;
-        }
-        .tag.sprzedam { background: rgba(46, 204, 113, 0.15); color: var(--green); border: 1px solid rgba(46, 204, 113, 0.3); }
-        .tag.kupie { background: rgba(52, 152, 219, 0.15); color: var(--blue); border: 1px solid rgba(52, 152, 219, 0.3); }
-        .tag.zamienie { background: rgba(231, 76, 60, 0.15); color: var(--red); border: 1px solid rgba(231, 76, 60, 0.3); }
+        .tag { display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 0.75em; font-weight: bold; margin-bottom: 10px; text-transform: uppercase; }
+        .tag.sprzedam { background: rgba(46, 204, 113, 0.2); color: var(--green); }
+        .tag.kupie { background: rgba(52, 152, 219, 0.2); color: var(--blue); }
+        .tag.zamienie { background: rgba(231, 76, 60, 0.2); color: var(--red); }
 
-        .item-img { width: 64px; height: 64px; float: right; object-fit: contain; filter: drop-shadow(0 0 5px rgba(0,0,0,0.7)); transition: 0.3s; }
-        .offer-card:hover .item-img { transform: scale(1.1) rotate(5deg); }
+        .item-img { width: 50px; height: 50px; float: right; object-fit: contain; }
         
         .item-source { 
-            font-size: 0.85em; color: #d1a3ff; margin-bottom: 15px; font-weight: 600; 
-            display: flex; align-items: center; gap: 10px; background: rgba(155, 89, 182, 0.1);
-            padding: 8px; border-radius: 6px; border: 1px solid rgba(155, 89, 182, 0.2);
+            font-size: 0.9em; color: #d1a3ff; margin-bottom: 12px; font-weight: 600; 
+            display: flex; align-items: center; gap: 12px; background: rgba(155, 89, 182, 0.15);
+            padding: 8px; border-radius: 6px; border: 1px solid rgba(155, 89, 182, 0.3);
         }
-        .item-source img { height: 35px; width: auto; object-fit: contain; }
+        .item-source img { height: 45px; width: auto; object-fit: contain; filter: drop-shadow(0 0 2px rgba(0,0,0,0.5)); }
 
         .margo-link {
-            display: inline-block; font-size: 0.8em; color: var(--blue); text-decoration: none; 
-            border: 1px solid var(--blue); padding: 4px 10px; border-radius: 4px; margin-bottom: 12px; transition: 0.3s;
+            display: inline-block; font-size: 0.8em; color: #3498db; text-decoration: none; border: 1px solid #3498db; padding: 2px 8px; border-radius: 4px; margin-bottom: 10px; transition: 0.3s;
         }
-        .margo-link:hover { background: var(--blue); color: #fff; }
+        .margo-link:hover { background: #3498db; color: #fff; }
 
         .seller-info { 
-            margin-top: 20px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.1); 
-            display: flex; align-items: center; justify-content: space-between; font-size: 0.85em; color: #aaa;
+            margin-top: 15px; padding-top: 10px; border-top: 1px solid #333; 
+            display: flex; align-items: center; justify-content: space-between; font-size: 0.9em; color: #aaa;
         }
-        .seller-left { display: flex; align-items: center; gap: 10px; }
-        .tiny-avatar { width: 28px; height: 28px; border-radius: 50%; }
+        .seller-left { display: flex; align-items: center; gap: 8px; }
+        .tiny-avatar { width: 24px; height: 24px; border-radius: 50%; }
 
-        .copy-nick-btn { 
-            background: none; border: 1px solid #555; color: #888; cursor: pointer; 
-            padding: 3px 8px; border-radius: 4px; font-size: 0.8em; transition: 0.2s;
-        }
-        .copy-nick-btn:hover { color: var(--gold-start); border-color: var(--gold-start); background: rgba(255,215,0,0.1); }
+        .copy-nick-btn { background: none; border: 1px solid #444; color: #888; cursor: pointer; padding: 2px 6px; border-radius: 4px; font-size: 0.8em; }
+        .copy-nick-btn:hover { color: var(--gold); border-color: var(--gold); }
 
-        .time-ago { font-size: 0.75em; color: #666; font-style: italic; }
-        
+        .time-ago { font-size: 0.75em; color: #666; }
         .delete-btn {
-            position: absolute; top: 15px; right: 15px;
-            background: rgba(231, 76, 60, 0.1); color: var(--red); border: 1px solid var(--red);
-            cursor: pointer; font-size: 0.8em; padding: 4px 8px; border-radius: 4px; transition: 0.2s;
+            position: absolute; top: 10px; right: 10px;
+            background: #333; color: #fff; border: none; cursor: pointer; font-size: 0.8em; padding: 2px 6px; border-radius: 3px;
         }
-        .delete-btn:hover { background: var(--red); color: #fff; }
-
-        /* TOAST NOTIFICATION */
-        #toast {
-            visibility: hidden; min-width: 250px; background-color: #333; color: #fff; text-align: center;
-            border-radius: 50px; padding: 16px; position: fixed; z-index: 1000; left: 50%; bottom: 30px;
-            transform: translateX(-50%); font-size: 17px; box-shadow: 0 5px 15px rgba(0,0,0,0.5);
-            border: 1px solid var(--gold-start); opacity: 0; transition: opacity 0.5s, bottom 0.5s;
-        }
-        #toast.show { visibility: visible; opacity: 1; bottom: 50px; }
+        .delete-btn:hover { background: red; }
     </style>
 </head>
 <body>
@@ -236,7 +196,7 @@
         <div id="userProfile" class="user-profile">
             <img id="userAvatar" class="user-avatar" src="" alt="">
             <div>
-                <div id="userNickDisplay" style="font-weight:bold; color:var(--gold-start)">...</div>
+                <div id="userNickDisplay" style="font-weight:bold; color:var(--gold)">...</div>
                 <div class="logout-link" onclick="logout()">Wyloguj</div>
             </div>
         </div>
@@ -250,15 +210,7 @@
     </div>
 
     <div id="addOfferPanel" class="panel">
-        <h3 style="margin-top:0; color:var(--gold-start); border-bottom:1px solid #333; padding-bottom:10px;">Dodaj Legendarne Ogłoszenie</h3>
-        
-        <div style="background:rgba(0,0,0,0.3); padding:15px; border-radius:8px; margin-bottom:20px; border:1px dashed var(--gold-start);">
-            <div style="font-size:0.85em; color:var(--gold-start); margin-bottom:8px; font-weight:bold;">⚡ Opcja Szybka: Wklej kod z forum</div>
-            <div style="display:flex; gap:10px;">
-                <input type="text" id="pasteCode" placeholder='<img src="..." stats="...">'>
-                <button class="action-btn" onclick="parseItemCode()" style="width:auto; font-size:0.9em;">Wczytaj</button>
-            </div>
-        </div>
+        <h3 style="margin-top:0; color:#ffd700;">Dodaj Legendarne Ogłoszenie</h3>
 
         <div class="form-grid">
             <select id="offerType">
@@ -291,18 +243,16 @@
 
             <input type="text" id="itemMargoLink" placeholder="Link do statystyk (opcjonalne)" class="full-width">
             <input type="text" id="itemImg" placeholder="Link do obrazka" class="full-width">
-            <textarea id="itemDesc" placeholder="Opis przedmiotu (automatyczny lub własny)" class="full-width"></textarea>
+            <textarea id="itemDesc" placeholder="Opis przedmiotu" class="full-width"></textarea>
             
-            <button class="action-btn full-width" onclick="addOffer()">OPUBLIKUJ OFERTĘ</button>
+            <button class="action-btn full-width" onclick="addOffer()">OPUBLIKUJ</button>
         </div>
     </div>
 
     <div id="offersList" class="offers-grid">
-        <div style="text-align:center; grid-column:1/-1; color:#666;">Ładowanie ofert...</div>
+        <div style="text-align:center; grid-column:1/-1;">Ładowanie ofert...</div>
     </div>
 </div>
-
-<div id="toast">Powiadomienie</div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
@@ -329,13 +279,6 @@
     let currentNick = null;
     let allOffers = [];
     let currentFilter = 'all';
-
-    function showToast(msg) {
-        const x = document.getElementById("toast");
-        x.innerText = msg;
-        x.className = "show";
-        setTimeout(() => { x.className = x.className.replace("show", ""); }, 3000);
-    }
 
     // --- BAZA HEROSÓW ---
     const monstersList = [
@@ -401,7 +344,7 @@
             {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_06.gif", stats: "Lekka skrytka mocy||rarity=legendary"}
         ],
         "Zły Przewodnik (63 lvl)": [
-            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice893.gif", stats: "Dwulicowy chwyt mnicha||rarity=legendary;opis=Ciężkie, szmaragdowe szaty przywdziane po rozmowie z opatem."},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice893.gif", stats: "Dwulicowy chwyt mnicha||rarity=legendary;opis=Niedługo po tym, gdy Kreiden zadomowił się już..."},
             {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice891.gif", stats: "Dotyk zwodniczych mgieł||rarity=legendary;opis=Zielone mankiety sporadycznie znikają tak jak przewodnik..."},
             {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice892.gif", stats: "Zamach wybitnego łgarza||rarity=legendary;opis=Rękawiczki te wskazały złą drogę wielu śmiałkom..."},
             {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_06.gif", stats: "Lekka skrytka mocy||rarity=legendary"}
@@ -509,8 +452,8 @@
             {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_06.gif", stats: "Ciężka skrytka mocy||rarity=legendary"}
         ],
         "Tepeyollotl (258 lvl)": [
-            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/naszyjnik1358.gif", stats: "Brama do zaświatów||rarity=legendary;opis=Potężny pancerz wykonany z najtwardszych skór..."},
-            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/naszyjnik1357.gif", stats: "Kręgosłupy boskich bliźniąt||rarity=legendary;opis=Świat został już zniszczony cztery razy..."},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/naszyjnik1358.gif", stats: "Brama do zaświatów||rarity=legendary"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/naszyjnik1357.gif", stats: "Kręgosłupy boskich bliźniąt||rarity=legendary"},
             {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/naszyjnik1356.gif", stats: "Symbol Wieczności||rarity=legendary"},
             {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_06.gif", stats: "Ciężka skrytka mocy||rarity=legendary"}
         ],
@@ -545,23 +488,6 @@
         sourceSelect.appendChild(opt);
     });
 
-    // Parser kodu (wklejanie)
-    window.parseItemCode = function() {
-        const raw = document.getElementById('pasteCode').value;
-        if (!raw) return showToast("Wklej kod przedmiotu!");
-        const imgMatch = raw.match(/src="([^"]+)"/);
-        if (imgMatch) document.getElementById('itemImg').value = imgMatch[1];
-        const statsMatch = raw.match(/stats="([^"|]+)/);
-        if (statsMatch) document.getElementById('itemName').value = statsMatch[1];
-        const opisMatch = raw.match(/opis=([^;"]+)/);
-        if (opisMatch) {
-            document.getElementById('itemDesc').value = opisMatch[1].replace(/\[br\]/g, "\n");
-        } else {
-            document.getElementById('itemDesc').value = "";
-        }
-        showToast("Dane wczytane!");
-    }
-
     // Wybór herosa - ładowanie listy przedmiotów
     window.updateLootList = function() {
         const heroName = document.getElementById('itemSource').value;
@@ -579,7 +505,7 @@
             });
         } else {
             itemSelect.style.display = 'none'; 
-            if(heroName) showToast("Brak legend w bazie dla tego herosa.");
+            if(heroName) alert("Wybrany heros nie posiada przedmiotów legendarnych w bazie.");
         }
     }
 
@@ -621,7 +547,7 @@
     }
 
     document.getElementById('googleLoginBtn').addEventListener('click', () => {
-        signInWithPopup(auth, provider).catch(e => showToast(e.message));
+        signInWithPopup(auth, provider).catch(e => alert(e.message));
     });
 
     window.logout = () => signOut(auth);
@@ -659,12 +585,12 @@
 
     window.searchMargo = () => {
         const name = document.getElementById('itemName').value;
-        if(!name) return showToast("Wpisz nazwę przedmiotu!");
-        window.open(`https://margoworld.pl/ladder/item?name=${encodeURIComponent(name)}`, '_blank');
+        // NOWY LINK DO MARGOWORLD
+        window.open(`https://margoworld.pl/item?name=${encodeURIComponent(name)}&minLvl=&maxLvl=&cl=`, '_blank');
     };
 
     window.addOffer = async () => {
-        if (!currentUser || !currentNick) return showToast("Musisz się zalogować!");
+        if (!currentUser || !currentNick) return alert("Zaloguj się!");
         
         const type = document.getElementById('offerType').value;
         const name = document.getElementById('itemName').value;
@@ -677,7 +603,7 @@
         const sourceName = sel.value; 
         const sourceImg = sel.selectedIndex > 0 ? sel.options[sel.selectedIndex].dataset.img : "";
 
-        if(!name || !price) return showToast("Uzupełnij nazwę i cenę!");
+        if(!name || !price) return alert("Brakuje nazwy lub ceny!");
 
         try {
             await addDoc(collection(db, "oferty"), {
@@ -693,19 +619,15 @@
             document.getElementById('itemMargoLink').value = "";
             document.getElementById('itemDesc').value = "";
             document.getElementById('itemImg').value = "";
-            showToast("Ogłoszenie dodane!");
-        } catch(e) { showToast("Błąd: " + e.message); }
+        } catch(e) { alert("Błąd: " + e.message); }
     };
 
     window.deleteOffer = async (id) => {
-        if(confirm("Czy na pewno chcesz usunąć to ogłoszenie?")) {
-            await deleteDoc(doc(db, "oferty", id));
-            showToast("Usunięto!");
-        }
+        if(confirm("Usunąć?")) await deleteDoc(doc(db, "oferty", id));
     };
 
     window.copyNick = (nick) => {
-        navigator.clipboard.writeText(`/t ${nick} `).then(() => showToast(`Skopiowano: /t ${nick}`));
+        navigator.clipboard.writeText(`/t ${nick} `).then(() => alert(`Skopiowano: /t ${nick} `));
     };
 
     function timeSince(dateString) {
@@ -749,7 +671,7 @@
         const filtered = currentFilter === 'all' ? allOffers : allOffers.filter(o => o.type === currentFilter);
 
         if(filtered.length === 0) {
-            list.innerHTML = `<div style="text-align:center; grid-column:1/-1; color:#666;">Brak ofert.</div>`;
+            list.innerHTML = `<div style="text-align:center; grid-column:1/-1; color:#555;">Brak ofert.</div>`;
             return;
         }
 
@@ -759,7 +681,7 @@
             
             let deleteBtn = "";
             if(currentUser && (data.userId === currentUser.uid || currentNick === "jacobpogorzelec")) {
-                deleteBtn = `<button class="delete-btn" onclick="deleteOffer('${data.id}')">✕</button>`;
+                deleteBtn = `<button class="delete-btn" onclick="deleteOffer('${data.id}')">X</button>`;
             }
             
             let imgHtml = data.img ? `<img src="${data.img}" class="item-img" onerror="this.style.display='none'">` : "";
@@ -784,7 +706,7 @@
                     <div style="font-size:1.1em; font-weight:bold; margin-bottom:5px;">${data.name}</div>
                     ${sourceHtml}
                     ${linkHtml}
-                    <div style="color:var(--gold-start); margin-bottom:10px;">Cena: ${data.price}</div>
+                    <div style="color:var(--gold); margin-bottom:10px;">Cena: ${data.price}</div>
                     <div style="color:#aaa; font-size:0.9em; margin-bottom:15px; font-style:italic;">${data.desc}</div>
                     
                     <div class="seller-info">
