@@ -426,54 +426,103 @@ function escapeHtml(text) {
         return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
     }
 
-    // LOGIKA FILTRÓW
+    // --- POPRAWIONA LOGIKA FILTRÓW ---
     window.setFilter = (type, val) => {
-        currentFilters[type] = val;
-        document.querySelectorAll(`.filters .filter-btn`).forEach(b => {
-            if(b.id === 'f-'+val) b.classList.add('active');
-            else if(b.id.startsWith('f-') && ((type === 'type' && !['h','e2'].includes(b.id.slice(2))) || (type === 'cat' && ['h','e2'].includes(b.id.slice(2))))) b.classList.remove('active');
+        // Jeśli klikasz w już aktywny filtr (inny niż 'all'), zresetuj go do 'all'
+        if (currentFilters[type] === val && val !== 'all') {
+            currentFilters[type] = 'all';
+        } else {
+            currentFilters[type] = val;
+        }
+
+        // Aktualizacja wyglądu przycisków
+        document.querySelectorAll('.filters .filter-btn').forEach(btn => {
+            const btnId = btn.id;
+            
+            // Obsługa podświetlania dla Typu (sprzedam/kupie/all)
+            if (type === 'type') {
+                if (btnId === 'f-' + currentFilters.type) btn.classList.add('active');
+                else if (['f-all', 'f-sprzedam', 'f-kupie'].includes(btnId)) btn.classList.remove('active');
+            }
+            
+            // Obsługa podświetlania dla Kategorii (herosi/e2)
+            if (type === 'cat') {
+                if (currentFilters.cat !== 'all' && btnId === 'f-' + currentFilters.cat) btn.classList.add('active');
+                else if (['f-h', 'f-e2'].includes(btnId)) btn.classList.remove('active');
+            }
         });
+
         renderOffers();
     };
 
-    window.updateSourceList = function() {
-        const cat = document.getElementById('sourceCategory').value;
-        const search = document.getElementById('sourceSearch');
-        const sel = document.getElementById('itemSource');
-        if(!cat) { search.style.display = 'none'; return; }
-        search.style.display = 'block';
-        const query = search.value.toLowerCase();
-        sel.innerHTML = '<option value="">-- Wybierz Przeciwnika --</option>';
-        monstersList[cat].filter(m => m.name.toLowerCase().includes(query)).forEach(m => {
-            let o = document.createElement('option'); o.value = m.name; o.dataset.img = m.img; o.innerText = m.name; sel.appendChild(o);
-        });
-    };
+    // --- POPRAWIONE RENDEROWANIE Z DZIAŁAJĄCYM SZUKANIEM ---
+    function renderOffers() {
+        const list = document.getElementById('offersList');
+        // Pobieramy aktualną frazę z wyszukiwarki targu
+        const searchInput = document.getElementById('globalSearch');
+        const searchStr = searchInput ? searchInput.value.toLowerCase().trim() : "";
+        
+        list.innerHTML = "";
+        let count = 0;
 
-    window.updateLootList = function() {
-        const src = document.getElementById('itemSource').value;
-        const search = document.getElementById('itemSearch');
-        const sel = document.getElementById('itemSelect');
-        if(!src || !lootTable[src]) { search.style.display = 'none'; sel.style.display = 'none'; return; }
-        search.style.display = 'block'; sel.style.display = 'block';
-        const query = search.value.toLowerCase();
-        sel.innerHTML = '<option value="">-- Wybierz przedmiot --</option>';
-        lootTable[src].filter(i => i.stats.split('||')[0].toLowerCase().includes(query)).forEach(i => {
-            let o = document.createElement('option'); o.value = JSON.stringify(i); o.innerText = i.stats.split('||')[0]; sel.appendChild(o);
-        });
-    };
+        allOffers.forEach(data => {
+            // 1. Sprawdzanie czy to Heros czy E2
+            const isHeros = monstersList.herosi.some(m => m.name === data.source);
+            const isE2 = monstersList.e2.some(m => m.name === data.source);
+            
+            // 2. Logika filtrów połączonych
+            const matchesType = currentFilters.type === 'all' || data.type === currentFilters.type;
+            
+            let matchesCat = true;
+            if (currentFilters.cat === 'herosi') matchesCat = isHeros;
+            if (currentFilters.cat === 'e2') matchesCat = isE2;
 
-    window.fillItemDetails = function() {
-        const val = document.getElementById('itemSelect').value;
-        if(!val) return;
-        const data = JSON.parse(val);
-        const name = data.stats.split('||')[0];
-        document.getElementById('itemName').value = name;
-        document.getElementById('itemImg').value = data.img;
-        document.getElementById('livePreview').style.display = 'flex';
-        document.getElementById('previewIcon').src = data.img;
-        document.getElementById('previewName').innerText = name;
-        document.getElementById('itemDesc').value = data.stats.split('||')[1]?.includes('opis=') ? data.stats.split('opis=')[1].split(';')[0].replaceAll('[br]', '\n') : "";
-    };
+            // 3. Logika wyszukiwarki (sprawdza nazwę przedmiotu)
+            const matchesSearch = data.name.toLowerCase().includes(searchStr);
+
+            if (matchesType && matchesCat && matchesSearch) {
+                count++;
+                const isOwner = currentUser && data.userId === currentUser.uid;
+                const isAdmin = (typeof ADMIN_NICK !== 'undefined' && currentNick === ADMIN_NICK);
+
+                let resHtml = data.reservedBy ? `<div class="reservation-box">🔒 Zarezerwowane przez: <b>${data.reservedBy}</b></div>` : "";
+                
+                let btnRes = "";
+                if (!data.reservedBy) {
+                    btnRes = `<button class="small-btn reserve-btn" onclick="reserveOffer('${data.id}')">ZAREZERWUJ</button>`;
+                } else if (isOwner || isAdmin) {
+                    btnRes = `<button class="small-btn unreserve-btn" onclick="cancelReservation('${data.id}')">COFNIJ REZ.</button>`;
+                }
+
+                list.innerHTML += `
+                    <div class="offer-card legendary-item">
+                        <div class="card-header">
+                            <div class="tag ${data.type}">${data.type.toUpperCase()}</div>
+                            <div class="item-title">${escapeHtml(data.name)}</div>
+                            ${window.isValidImageUrl(data.img) ? `<img src="${data.img}" class="item-img">` : ""}
+                        </div>
+                        <div class="item-source">
+                            ${data.sourceImg ? `<img src="${data.sourceImg}">` : ""} 
+                            <span>${escapeHtml(data.source)}</span>
+                        </div>
+                        <div class="price-tag">Cena: <span>${escapeHtml(data.price)}</span></div>
+                        ${resHtml}
+                        <div style="color:#aaa; font-size:0.8em; margin:10px 0; font-style:italic;" class="item-description">${escapeHtml(data.desc)}</div>
+                        <div class="seller-info">
+                            <div class="seller-left"><img src="${data.avatar}" class="tiny-avatar"><b>${escapeHtml(data.nick)}</b></div>
+                            <div class="btn-group">
+                                ${btnRes}
+                                ${isOwner ? `<button class="small-btn edit-added" onclick="openFullEdit('${data.id}','${escapeHtml(data.name)}','${escapeHtml(data.price)}','${escapeHtml(data.desc)}','${escapeHtml(data.img)}')">EDYTUJ</button>` : ""}
+                                ${isOwner || isAdmin ? `<button class="small-btn delete-btn" onclick="deleteOffer('${data.id}')">✕</button>` : ""}
+                            </div>
+                        </div>
+                    </div>`;
+            }
+        });
+        
+        const stats = document.getElementById('offerStats');
+        if (stats) stats.innerText = `Widocznych ofert: ${count}`;
+    }
 
     // LOGOWANIE
     document.getElementById('googleLoginBtn').addEventListener('click', () => signInWithPopup(auth, provider));
@@ -532,7 +581,7 @@ function escapeHtml(text) {
         renderOffers();
     });
 
-    function renderOffers() {
+    window.renderOffers = function() {
         const list = document.getElementById('offersList');
         const search = document.getElementById('globalSearch').value.toLowerCase();
         list.innerHTML = "";
@@ -606,5 +655,6 @@ function escapeHtml(text) {
 </script>
 </body>
 </html>
+
 
 
