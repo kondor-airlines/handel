@@ -3,15 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Targowisko Klanowe - Elite Edition</title>
+    <title>Targowisko Klanowe</title>
     <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
     <style>
         :root {
             --gold: #ffd700;
-            --gold-bright: #fff2a6;
-            --bg: #0f0f0f;
-            --card: #1a1a1a;
-            --border: #332b00;
+            --bg: #121212;
+            --card: #1e1e1e;
             --green: #2ecc71; --blue: #3498db; --red: #e74c3c;
             --purple: #9b59b6;
         }
@@ -19,155 +17,167 @@
         body {
             font-family: 'Montserrat', sans-serif;
             background: var(--bg);
-            background-image: radial-gradient(circle at top, #1a1500 0%, #0f0f0f 100%);
             color: #eee;
             margin: 0;
             padding: 20px;
             padding-bottom: 80px;
         }
 
-        .helper-btn {
-            background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
-            color: var(--gold);
-            border: 1px solid var(--border);
-            padding: 0 15px;
-            height: 42px;
-            cursor: pointer;
-            border-radius: 6px;
-            font-size: 1.2em;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.5);
-        }
-
-        .helper-btn:hover {
-            border-color: var(--gold);
-            background: linear-gradient(135deg, #332b00 0%, #1a1500 100%);
-            box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
-            transform: translateY(-1px);
-        }
-
         .container { max-width: 1200px; margin: 0 auto; }
 
         header {
             display: flex; justify-content: space-between; align-items: center;
-            border-bottom: 2px solid var(--border); padding-bottom: 20px; margin-bottom: 30px;
+            border-bottom: 2px solid #333; padding-bottom: 20px; margin-bottom: 30px;
             flex-wrap: wrap; gap: 10px;
         }
 
-        h1 { font-family: 'MedievalSharp', cursive; color: var(--gold); margin: 0; font-size: 2.5em; text-shadow: 0 0 15px rgba(255, 215, 0, 0.5); letter-spacing: 2px; }
+        h1 { font-family: 'MedievalSharp', cursive; color: var(--gold); margin: 0; font-size: 2em; text-shadow: 0 0 15px rgba(255, 215, 0, 0.4); }
 
         .login-btn {
-            background: rgba(255, 255, 255, 0.05);
-            color: #fff;
-            border: 1px solid var(--gold);
-            padding: 10px 20px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            transition: all 0.3s ease;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            font-size: 0.85em;
-            z-index: 10;
+            background-color: #fff; color: #333; border: none; padding: 10px 20px;
+            border-radius: 5px; cursor: pointer; font-weight: bold; display: flex; align-items: center; gap: 10px; transition: 0.3s;
         }
+        .login-btn:hover { background-color: #f1f1f1; }
 
-        .login-btn:hover {
-            background: var(--gold);
-            color: #000;
-            box-shadow: 0 0 20px rgba(255, 215, 0, 0.4);
-            transform: translateY(-2px);
-        }
+        .user-profile { display: none; align-items: center; gap: 10px; }
+        .user-avatar { width: 40px; height: 40px; border-radius: 50%; border: 2px solid var(--gold); }
+        .logout-link { color: #888; font-size: 0.8em; text-decoration: underline; cursor: pointer; }
 
-        .user-profile { display: none; align-items: center; gap: 12px; background: rgba(255,255,255,0.05); padding: 5px 15px; border-radius: 50px; border: 1px solid var(--border); }
-        .user-avatar { width: 35px; height: 35px; border-radius: 50%; border: 2px solid var(--gold); }
-        .logout-link { color: #ff6666; font-size: 0.75em; text-decoration: none; cursor: pointer; text-transform: uppercase; font-weight: bold; }
-
-        .filters { display: flex; gap: 10px; margin-bottom: 30px; justify-content: center; flex-wrap: wrap; align-items: center; }
+        .filters { display: flex; gap: 10px; margin-bottom: 20px; justify-content: center; flex-wrap: wrap; }
         .filter-btn {
-            background: #222; color: #888; border: 1px solid #444; padding: 8px 16px; 
-            border-radius: 5px; cursor: pointer; transition: 0.3s; font-family: 'MedievalSharp'; font-size: 1em;
+            background: #333; color: #aaa; border: 1px solid #444; padding: 8px 16px; 
+            border-radius: 20px; cursor: pointer; transition: 0.3s; font-size: 0.9em;
         }
-        .filter-btn:hover { border-color: var(--gold); color: #fff; }
-        .filter-btn.active { background: var(--gold); color: #000; border-color: var(--gold-bright); }
+        .filter-btn:hover { background: #444; color: #fff; }
+        .filter-btn.active { background: var(--gold); color: #000; border-color: var(--gold); font-weight: bold; }
 
         .panel {
-            background: var(--card); padding: 25px; border-radius: 12px; border: 1px solid var(--border);
-            margin-bottom: 40px; box-shadow: 0 10px 30px rgba(0,0,0,0.8); display: none;
+            background: var(--card); padding: 20px; border-radius: 10px; border: 1px solid #333;
+            margin-bottom: 30px; display: none; 
         }
 
-        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         .full-width { grid-column: 1 / -1; }
 
         input, select, textarea {
-            background: #0a0a0a; border: 1px solid #333; color: white;
-            padding: 12px; border-radius: 6px; width: 100%; box-sizing: border-box; outline: none;
+            background: #000; border: 1px solid #444; color: white;
+            padding: 10px; border-radius: 5px; width: 100%; box-sizing: border-box;
         }
         
-        .search-box { background: #151500; border-color: var(--border); color: var(--gold); }
+        select {
+            color: var(--gold);
+            border: 1px solid var(--purple);
+            background: #151515;
+            cursor: pointer;
+        }
+        option { background: #000; color: #fff; padding: 5px; }
+
+        #itemSelect {
+            border-color: #ffd700;
+            color: #ffd700;
+            display: none; 
+            background: #1a1500;
+        }
 
         .action-btn {
-            background: linear-gradient(to bottom, #ffd700, #b89b00); color: #000; border: none; padding: 15px;
-            font-weight: 800; width: 100%; cursor: pointer; border-radius: 6px; text-transform: uppercase; transition: 0.3s;
+            background: var(--gold); color: #000; border: none; padding: 12px;
+            font-weight: bold; width: 100%; cursor: pointer; border-radius: 5px;
         }
+        .action-btn:hover { background: #d4a000; }
 
-        .offers-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 25px; }
+        .helper-btn { background: #444; color: #fff; border: 1px solid #555; padding: 10px; cursor: pointer; border-radius: 5px; white-space: nowrap; }
+
+        .offers-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
 
         .offer-card {
-            background: #181818; border: 1px solid #2a2a2a; border-radius: 10px; padding: 20px; 
-            position: relative; transition: 0.4s; display: flex; flex-direction: column;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+            background: var(--card); border: 1px solid #333; border-radius: 8px; padding: 15px; position: relative; transition: transform 0.2s;
+            overflow: hidden;
         }
-        .offer-card:hover { transform: translateY(-5px); border-color: var(--gold); }
+        .offer-card:hover { transform: translateY(-3px); border-color: #555; }
 
-        .card-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
-        .tag { padding: 4px 10px; border-radius: 4px; font-size: 0.7em; font-weight: 800; text-transform: uppercase; }
-        .tag.sprzedam { background: var(--green); color: #000; }
-        .tag.kupie { background: var(--blue); color: #fff; }
-        .tag.zamienie { background: var(--red); color: #fff; }
-
-        .item-title { font-size: 1.1em; font-weight: bold; color: var(--gold); line-height: 1.2; flex-grow: 1; }
-        .item-img { width: 60px; height: 60px; object-fit: contain; filter: drop-shadow(0 0 5px rgba(255,215,0,0.3)); }
-        
-        .item-source { 
-            font-size: 0.85em; color: #cca3ff; margin: 12px 0; display: flex; align-items: center; gap: 10px;
-            background: rgba(155, 89, 182, 0.1); padding: 8px; border-radius: 6px; border: 1px solid rgba(155,89,182,0.2);
+        .legendary-item {
+            border: 1px solid #ffd700 !important;
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.2), inset 0 0 20px rgba(255, 215, 0, 0.05);
+            background: linear-gradient(145deg, #1e1e1e, #2a2105) !important;
+            animation: legendary-pulse 4s infinite ease-in-out;
         }
-        .item-source img { height: 35px; width: auto; }
-
-        .price-tag { font-size: 1.3em; color: #fff; font-weight: bold; margin: 10px 0; }
-        .price-tag span { color: var(--gold); }
-
-        .reservation-box {
-            background: rgba(46, 204, 113, 0.15); border: 1px dashed var(--green);
-            padding: 8px; border-radius: 6px; margin: 10px 0; font-size: 0.8em; color: var(--green);
-            display: flex; align-items: center; gap: 8px;
+        @keyframes legendary-pulse {
+            0% { box-shadow: 0 0 10px rgba(255, 215, 0, 0.2); border-color: #ffd700; }
+            50% { box-shadow: 0 0 25px rgba(255, 215, 0, 0.5); border-color: #ffeb3b; }
+            100% { box-shadow: 0 0 10px rgba(255, 215, 0, 0.2); border-color: #ffd700; }
         }
 
-        .seller-info { margin-top: auto; padding-top: 15px; border-top: 1px dotted #444; display: flex; align-items: center; justify-content: space-between; font-size: 0.85em; }
-        .seller-left { display: flex; align-items: center; gap: 10px; }
-        .tiny-avatar { width: 28px; height: 28px; border-radius: 50%; border: 2px solid var(--gold); }
-
-        .btn-group { display: flex; gap: 5px; }
-        .small-btn { padding: 4px 8px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 0.7em; border: 1px solid transparent; }
-        .reserve-btn { background: var(--green); color: #000; }
-        .unreserve-btn { background: #444; color: #fff; }
-        .edit-added { border: 1px solid var(--gold); color: var(--gold); background: none; }
-        .delete-btn { background: #333; color: #888; }
+        .legendary-item .item-source {
+            color: #ffd700;
+            background: rgba(255, 215, 0, 0.1);
+            border-color: rgba(255, 215, 0, 0.3);
+        }
 
         .preview-box {
-            grid-column: 1 / -1; display: none; align-items: center; justify-content: space-between; 
-            flex-direction: row-reverse; background: linear-gradient(270deg, #251f00 0%, #1a1a1a 100%);
-            border: 2px solid var(--gold); padding: 15px 25px; border-radius: 12px; margin: 10px 0;
+            grid-column: 1 / -1;
+            display: none;
+            align-items: center;
+            gap: 15px;
+            background: rgba(255, 215, 0, 0.05);
+            border: 1px solid #ffd700;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            animation: fadeIn 0.3s ease-in;
         }
-        .preview-content { display: flex; flex-direction: column; align-items: flex-start; }
-        .preview-text { font-size: 1.4em; color: var(--gold); font-family: 'MedievalSharp'; }
-        .preview-icon-wrapper { background: radial-gradient(circle, #333 0%, #000 100%); padding: 8px; border-radius: 10px; border: 1px solid var(--gold); }
+        @keyframes fadeIn { from { opacity:0; transform:translateY(-5px); } to { opacity:1; transform:translateY(0); } }
+        
+        .preview-box img {
+            width: 40px; height: 40px; 
+            border: 1px solid #555; 
+            background: #000;
+            border-radius: 4px;
+        }
+        .preview-text { font-size: 0.9em; color: #ffd700; font-weight: bold; }
+        .preview-label { font-size: 0.7em; color: #888; text-transform: uppercase; display: block; margin-bottom: 2px; }
+
+        .tag { display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 0.75em; font-weight: bold; margin-bottom: 10px; text-transform: uppercase; }
+        .tag.sprzedam { background: rgba(46, 204, 113, 0.2); color: var(--green); }
+        .tag.kupie { background: rgba(52, 152, 219, 0.2); color: var(--blue); }
+        .tag.zamienie { background: rgba(231, 76, 60, 0.2); color: var(--red); }
+
+        .item-img { width: 50px; height: 50px; float: right; object-fit: contain; }
+        
+        .item-source { 
+            font-size: 0.9em; color: #d1a3ff; margin-bottom: 12px; font-weight: 600; 
+            display: flex; align-items: center; gap: 12px; background: rgba(155, 89, 182, 0.15);
+            padding: 8px; border-radius: 6px; border: 1px solid rgba(155, 89, 182, 0.3);
+        }
+        .item-source img { height: 45px; width: auto; object-fit: contain; filter: drop-shadow(0 0 2px rgba(0,0,0,0.5)); }
+
+        .margo-link {
+            display: inline-block; font-size: 0.8em; color: #3498db; text-decoration: none; border: 1px solid #3498db; padding: 2px 8px; border-radius: 4px; margin-bottom: 10px; transition: 0.3s;
+        }
+        .margo-link:hover { background: #3498db; color: #fff; }
+
+        .seller-info { 
+            margin-top: 15px; padding-top: 10px; border-top: 1px solid #333; 
+            display: flex; align-items: center; justify-content: space-between; font-size: 0.9em; color: #aaa;
+        }
+        .seller-left { display: flex; align-items: center; gap: 8px; }
+        .tiny-avatar { width: 24px; height: 24px; border-radius: 50%; }
+
+        .copy-nick-btn { background: none; border: 1px solid #444; color: #888; cursor: pointer; padding: 2px 6px; border-radius: 4px; font-size: 0.8em; }
+        .copy-nick-btn:hover { color: var(--gold); border-color: var(--gold); }
+
+        .time-ago { font-size: 0.75em; color: #666; }
+        
+        .delete-btn {
+            position: absolute; top: 10px; right: 10px;
+            background: #333; color: #fff; border: none; cursor: pointer; font-size: 0.8em; padding: 2px 6px; border-radius: 3px;
+            z-index: 10;
+        }
+        .delete-btn:hover { background: red; }
+        
+        .admin-delete-btn { background: #800000; border-color: red; color: white; }
+        .admin-delete-btn:hover { background: red; }
+
+        .char-counter { font-size: 0.7em; color: #666; text-align: right; margin-top: -10px; margin-bottom: 10px; }
     </style>
 </head>
 <body>
@@ -176,85 +186,83 @@
     <header>
         <h1>⚔️ Targowisko Kondor Airlines</h1>
         <button id="googleLoginBtn" class="login-btn">
-            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/pwa_googleg_color_64dp.png" width="18">
-            <span>Zaloguj przez Google</span>
+            <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+            Zaloguj
         </button>
+
         <div id="userProfile" class="user-profile">
             <img id="userAvatar" class="user-avatar" src="" alt="">
             <div>
-                <div id="userNickDisplay" style="font-weight:bold; color:var(--gold); font-size:0.9em;">...</div>
+                <div id="userNickDisplay" style="font-weight:bold; color:var(--gold)">...</div>
                 <div class="logout-link" onclick="logout()">Wyloguj</div>
             </div>
         </div>
     </header>
 
     <div class="filters">
-        <button class="filter-btn active" id="f-all" onclick="setFilter('type', 'all')">Wszystkie</button>
-        <button class="filter-btn" id="f-sprzedam" onclick="setFilter('type', 'sprzedam')">Sprzedam</button>
-        <button class="filter-btn" id="f-kupie" onclick="setFilter('type', 'kupie')">Kupię</button>
-        <span style="color:#444; margin: 0 10px;">|</span>
-        <button class="filter-btn" id="f-herosi" onclick="setFilter('cat', 'herosi')">Herosi</button>
-        <button class="filter-btn" id="f-e2" onclick="setFilter('cat', 'e2')">Elity II</button>
-        <input type="text" id="globalSearch" class="search-box" placeholder="🔍 Szukaj na targu..." oninput="renderOffers()" style="max-width: 200px; padding: 8px;">
+        <button class="filter-btn active" onclick="filterOffers('all')">Wszystkie</button>
+        <button class="filter-btn" onclick="filterOffers('sprzedam')">Sprzedam</button>
+        <button class="filter-btn" onclick="filterOffers('kupie')">Kupię</button>
+        <button class="filter-btn" onclick="filterOffers('zamienie')">Zamienię</button>
     </div>
-    
-    <div id="offerStats" style="text-align:center; font-size:0.8em; color:#666; margin-bottom:20px;"></div>
 
     <div id="addOfferPanel" class="panel">
-        <h3 style="margin-top:0; color:var(--gold); font-family:'MedievalSharp';">Wystaw Artefakt</h3>
+        <h3 style="margin-top:0; color:#ffd700;">Dodaj Legendarne Ogłoszenie</h3>
+
         <div class="form-grid">
             <select id="offerType">
                 <option value="sprzedam">Sprzedam</option>
                 <option value="kupie">Kupię</option>
                 <option value="zamienie">Zamienię</option>
             </select>
-            <input type="text" id="itemPrice" placeholder="Cena (np. 150m)" maxlength="30">
+            <input type="text" id="itemPrice" placeholder="Cena (np. 50m)" maxlength="30">
+            
             <select id="sourceCategory" class="full-width" onchange="updateSourceList()">
                 <option value="">-- Wybierz Kategorię --</option>
                 <option value="herosi">Herosi</option>
                 <option value="e2">Elity II</option>
             </select>
-            <input type="text" id="sourceSearch" class="full-width search-box" placeholder="🔍 Szukaj przeciwnika..." oninput="updateSourceList()" style="display:none;">
-            <select id="itemSource" class="full-width" onchange="updateLootList()"><option value="">-- Przeciwnik --</option></select>
-            <input type="text" id="itemSearch" class="full-width search-box" placeholder="🔍 Szukaj przedmiotu..." oninput="updateLootList()" style="display:none;">
-            <select id="itemSelect" class="full-width" onchange="fillItemDetails()"><option value="">-- Przedmiot --</option></select>
+
+            <select id="itemSource" class="full-width" onchange="updateLootList()">
+                <option value="">-- Wybierz Przeciwnika --</option>
+            </select>
+
+            <select id="itemSelect" class="full-width" onchange="fillItemDetails()">
+                <option value="">-- Wybierz przedmiot legendarny --</option>
+            </select>
+
             <div id="livePreview" class="preview-box">
-                <div class="preview-content"><span class="preview-label">Wybrany artefakt</span><span id="previewName" class="preview-text">...</span></div>
-                <div class="preview-icon-wrapper"><img id="previewIcon" src="" alt="" style="width:55px; height:55px; display:block; object-fit: contain;"></div>
+                <img id="previewIcon" src="" alt="Ikona">
+                <div>
+                    <span class="preview-label">Wybrano:</span>
+                    <span id="previewName" class="preview-text">...</span>
+                </div>
             </div>
+
             <div style="display:flex; gap:10px; align-items:center;" class="full-width">
-                <input type="text" id="itemName" placeholder="Nazwa przedmiotu" maxlength="50">
-                <button class="helper-btn" onclick="searchMargo()" title="Sprawdź statystyki na MargoWorld">
-                    <span style="margin-right: 5px; font-size: 0.8em; font-family: 'Montserrat'; font-weight: 600;">STATY</span> 🔍
-                </button>
+                <input type="text" id="itemName" placeholder="Nazwa przedmiotu" style="margin:0;" maxlength="50">
+                <button class="helper-btn" onclick="searchMargo()" title="Szukaj na MargoWorld">🔍</button>
             </div>
+
+            <input type="text" id="itemMargoLink" placeholder="Link do statystyk (opcjonalne)" class="full-width">
             <input type="text" id="itemImg" placeholder="Link do obrazka" class="full-width">
-            <textarea id="itemDesc" placeholder="Dodatkowy opis..." class="full-width" maxlength="150" rows="2"></textarea>
-            <button class="action-btn full-width" onclick="addOffer()">Opublikuj na Targu</button>
+            
+            <textarea id="itemDesc" placeholder="Opis przedmiotu" class="full-width" maxlength="150" oninput="updateCharCount()"></textarea>
+            <div id="charCount" class="char-counter full-width">0/150</div>
+            
+            <button class="action-btn full-width" onclick="addOffer()">OPUBLIKUJ</button>
         </div>
     </div>
 
-    <div id="offersList" class="offers-grid"></div>
-</div>
-
-<div id="editModal" style="display: none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.95); align-items: center; justify-content: center; backdrop-filter: blur(5px);">
-    <div class="modal-content-full" style="background: #1a1a1a; padding: 30px; border: 2px solid #ffd700; border-radius: 15px; width: 95%; max-width: 600px;">
-        <h3 style="color:#ffd700; font-family:'MedievalSharp'; margin-top:0;">Modyfikuj Ogłoszenie</h3>
-        <input type="text" id="fullEditName" placeholder="Nazwa" style="margin-bottom:10px; width:100%; background:#000; color:white; border:1px solid #444; padding:10px;">
-        <input type="text" id="fullEditPrice" placeholder="Cena" style="margin-bottom:10px; width:100%; background:#000; color:white; border:1px solid #444; padding:10px;">
-        <input type="text" id="fullEditImg" placeholder="Link do obrazka" style="margin-bottom:10px; width:100%; background:#000; color:white; border:1px solid #444; padding:10px;">
-        <textarea id="fullEditDesc" rows="4" placeholder="Opis" style="width:100%; background:#000; color:white; border:1px solid #444; padding:10px;"></textarea>
-        <div style="display:flex; gap:15px; margin-top: 15px;">
-            <button onclick="confirmFullEdit()" style="flex:2; background:#ffd700; padding:10px; cursor:pointer; font-weight:bold; border:none;">ZATWIERDŹ ZMIANY</button>
-            <button onclick="closeFullEdit()" style="flex:1; background:#333; color:white; padding:10px; cursor:pointer; border:none;">ANULUJ</button>
-        </div>
+    <div id="offersList" class="offers-grid">
+        <div style="text-align:center; grid-column:1/-1;">Ładowanie ofert...</div>
     </div>
 </div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
     import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
-    import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, deleteDoc, doc, getDoc, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, deleteDoc, doc, getDoc, setDoc, serverTimestamp, where } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
     
     const firebaseConfig = {
       apiKey: "AIzaSyApFYFkAghXreeX_xptg-PTCSxtPdiXYdA",
@@ -270,13 +278,22 @@
     const db = getFirestore(app);
     const provider = new GoogleAuthProvider();
 
-    window.isValidImageUrl = (url) => url && /^https?:\/\/[^<>"]+\.(jpeg|jpg|gif|png|webp|bmp)$/i.test(url);
-    const ADMIN_NICK = "Stachu Drzymała";
     let currentUser = null;
     let currentNick = null;
     let allOffers = [];
-    let currentFilters = { type: 'all', cat: 'all' };
-    let currentEditId = null;
+    let currentFilter = 'all';
+    const ADMIN_NICK = "Stachu Drzymała"; 
+
+    function escapeHtml(text) {
+        if (!text) return "";
+        return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+    }
+
+    function isValidImageUrl(url) {
+        if (!url) return false;
+        const pattern = /^https?:\/\/[^<>"]+\.(jpeg|jpg|gif|png|webp|bmp)$/i;
+        return pattern.test(url);
+    }
 
     const monstersList = {
         herosi: [
@@ -356,271 +373,1057 @@
             { name: "Wójt Fistuła", img: "https://micc.garmory-cdn.cloud/obrazki/npc/e2/goral-e2-wojt-fistula.gif" },
             { name: "Teściowa Rumcajsa", img: "https://micc.garmory-cdn.cloud/obrazki/npc/e2/goral-e2-tesciowa-rumcajsa.gif" },
             { name: "Berserker Amuno", img: "https://micc.garmory-cdn.cloud/obrazki/npc/e2/amuno.gif" },
-            { name: "Fodug Zolash", img: "https://micc.garmory-cdn.cloud/obrazki/npc/e2/fodug_zolash.gif" },
-            { name: "Sheba Orcza Szamanka", img: "https://micc.garmory-cdn.cloud/obrazki/npc/e2/r_orc_sheba.gif" },
-            { name: "Burkog Lorulk", img: "https://micc.garmory-cdn.cloud/obrazki/npc/e2/orkczd.gif" },
-            { name: "Duch Władcy Klanów", img: "https://micc.garmory-cdn.cloud/obrazki/npc/e2/duch_wladcy_kl.gif" },
-            { name: "Bragarth Myśliwy Dusz", img: "https://micc.garmory-cdn.cloud/obrazki/npc/e2/praork_low_elita.gif" },
-            { name: "Fursharag Pożeracz Umysłów", img: "https://micc.garmory-cdn.cloud/obrazki/npc/e2/praork_mag_elita.gif" },
-            { name: "Ziuggrael Strażnik Królowej", img: "https://micc.garmory-cdn.cloud/obrazki/npc/e2/praork_woj_elita.gif" },
-            { name: "Królowa Śniegu", img: "https://micc.garmory-cdn.cloud/obrazki/npc/e2/krolowa-sniegu.gif" },
-            { name: "Lusgrathera Królowa Pramatka", img: "https://micc.garmory-cdn.cloud/obrazki/npc/e2/prakrolowa.gif" },
-            { name: "Wrzosera", img: "https://micc.garmory-cdn.cloud/obrazki/npc/e2/wrzosera-1b.gif" },
-            { name: "Chryzoprenia", img: "https://micc.garmory-cdn.cloud/obrazki/npc/e2/chryzoprenia-1a.gif" },
-            { name: "Cantedewia", img: "https://micc.garmory-cdn.cloud/obrazki/npc/e2/cantedewia-1a.gif" },
-            { name: "Ogr Stalowy Pazur", img: "https://micc.garmory-cdn.cloud/obrazki/npc/e2/ogr_stalowy_pazur-1a.gif" },
-            { name: "Toruńia Ankelwald", img: "https://micc.garmory-cdn.cloud/obrazki/npc/e2/thuz-patr1.gif" },
-            { name: "Pięknotka Mięsożerna", img: "https://micc.garmory-cdn.cloud/obrazki/npc/e2/zmutowana-roslinka.gif" },
-            { name: "Breheret Żelazny Łeb", img: "https://micc.garmory-cdn.cloud/obrazki/npc/e2/draki-breheret-1b.gif" },
-            { name: "Cerasus", img: "https://micc.garmory-cdn.cloud/obrazki/npc/e2/cerasus-1a.gif" },
-            { name: "Mysiur Myświórowy Król", img: "https://micc.garmory-cdn.cloud/obrazki/npc/e2/mysiur_myswiorowy_krol-1a.gif" },
-            { name: "Sadolia Nadzorczyni Hurys", img: "https://micc.garmory-cdn.cloud/obrazki/npc/e2/sekta-sadolia.gif" },
-            { name: "Bergermona Krwawa Hrabina", img: "https://micc.garmory-cdn.cloud/obrazki/npc/e2/sekta-bergermona.gif" },
-            { name: "Sataniel Skrytobójca", img: "https://micc.garmory-cdn.cloud/obrazki/npc/e2/sekta-sataniel.gif" },
-            { name: "Annaniel Wysysacz Marzeń", img: "https://micc.garmory-cdn.cloud/obrazki/npc/e2/sekta-annaniel.gif" },
-            { name: "Gothardus Kolekcjoner Głów", img: "https://micc.garmory-cdn.cloud/obrazki/npc/e2/sekta-gothardus.gif" },
-            { name: "Zufulus Smakosz Serc", img: "https://micc.garmory-cdn.cloud/obrazki/npc/e2/sekta-zufulus.gif" },
-            { name: "Czempion Furboli", img: "https://micc.garmory-cdn.cloud/obrazki/npc/e2/forbol03.gif" },
-            { name: "Arachniregina Colosseus", img: "https://micc.garmory-cdn.cloud/obrazki/npc/e2/regina-e2.gif" },
-            { name: "Al'diphrin Ilythirahel", img: "https://micc.garmory-cdn.cloud/obrazki/npc/e2/drow-aldiphrin-wladca.gif" },
-            { name: "Marlloth Malignitas", img: "https://micc.garmory-cdn.cloud/obrazki/npc/e2/drider-marlloth.gif" },
-            { name: "Arytodam olbrzymi", img: "https://micc.garmory-cdn.cloud/obrazki/npc/e2/arytodam_olbrzymi-1b.gif" },
-            { name: "Mocny Maddoks", img: "https://micc.garmory-cdn.cloud/obrazki/npc/e2/mocny_maddoks-1a.gif" },
-            { name: "Fangaj", img: "https://micc.garmory-cdn.cloud/obrazki/npc/e2/grzyb-humanoid-1b.gif" },
-            { name: "Dendroculus", img: "https://micc.garmory-cdn.cloud/obrazki/npc/e2/dendroculus.gif" },
-            { name: "Tolypeutes", img: "https://micc.garmory-cdn.cloud/obrazki/npc/e2/bolita.gif" },
-            { name: "Cuaitl Citlalin", img: "https://micc.garmory-cdn.cloud/obrazki/npc/e2/maho-cuaitl.gif" },
-            { name: "Yaotl", img: "https://micc.garmory-cdn.cloud/obrazki/npc/e2/mahoplowca.gif" },
-            { name: "Quetzalcoatl", img: "https://micc.garmory-cdn.cloud/obrazki/npc/e2/quetzalcoatl-1a.gif" },
-            { name: "Wabicielka", img: "https://micc.garmory-cdn.cloud/obrazki/npc/e2/trist2_wabicielka-1a.gif" },
-            { name: "Pogardliwa Sybilla", img: "https://micc.garmory-cdn.cloud/obrazki/npc/e2/tri2_witch_e2.gif" },
-            { name: "Chopesz", img: "https://micc.garmory-cdn.cloud/obrazki/npc/e2/chopesh2.gif" },
-            { name: "Neferkar Set", img: "https://micc.garmory-cdn.cloud/obrazki/npc/e2/szkiel_set.gif" },
-            { name: "Chaegd Agnrakh", img: "https://micc.garmory-cdn.cloud/obrazki/npc/e2/bar_smokoszef.gif" },
-            { name: "Vaenra Charkhaam", img: "https://micc.garmory-cdn.cloud/obrazki/npc/e2/bar_smoczyca.gif" },
-            { name: "Terrozaur", img: "https://micc.garmory-cdn.cloud/obrazki/npc/e2/terrorzaur_pus.gif" },
-            { name: "Nymphemonia", img: "https://micc.garmory-cdn.cloud/obrazki/npc/e2/nymphemonia.gif" },
-            { name: "Zorin", img: "https://micc.garmory-cdn.cloud/obrazki/npc/e2/wl-mrozu01.gif" },
+            { name: "Artenius", img: "https://micc.garmory-cdn.cloud/obrazki/npc/e2/wl-mrozu03.gif" },
             { name: "Furion", img: "https://micc.garmory-cdn.cloud/obrazki/npc/e2/wl-mrozu02.gif" },
-            { name: "Artenius", img: "https://micc.garmory-cdn.cloud/obrazki/npc/e2/wl-mrozu03.gif" }
+            { name: "Zorin", img: "https://micc.garmory-cdn.cloud/obrazki/npc/e2/wl-mrozu01.gif" },
+            { name: "Nymphemonia", img: "https://micc.garmory-cdn.cloud/obrazki/npc/e2/nymphemonia.gif" },
+            { name: "Terrozaur", img: "https://micc.garmory-cdn.cloud/obrazki/npc/e2/terrorzaur_pus.gif" },
+            { name: "Vaenra Charkhaam", img: "https://micc.garmory-cdn.cloud/obrazki/npc/e2/bar_smoczyca.gif" },
+            { name: "Chaegd Agnrakh", img: "https://micc.garmory-cdn.cloud/obrazki/npc/e2/bar_smokoszef.gif" },
+            { name: "Neferkar Set", img: "https://micc.garmory-cdn.cloud/obrazki/npc/e2/szkiel_set.gif" },
+            { name: "Chopesz", img: "https://micc.garmory-cdn.cloud/obrazki/npc/e2/chopesh2.gif" },
+            { name: "Pogardliwa Sybilla", img: "https://micc.garmory-cdn.cloud/obrazki/npc/e2/tri2_witch_e2.gif" },
+            { name: "Wabicielka", img: "https://micc.garmory-cdn.cloud/obrazki/npc/e2/trist2_wabicielka-1a.gif" },
+            { name: "Quetzalcoatl", img: "https://micc.garmory-cdn.cloud/obrazki/npc/e2/quetzalcoatl-1a.gif" },
+            { name: "Yaotl", img: "https://micc.garmory-cdn.cloud/obrazki/npc/e2/mahoplowca.gif" },
+            { name: "Cuaitl Citlalin", img: "https://micc.garmory-cdn.cloud/obrazki/npc/e2/maho-cuaitl.gif" },
+            { name: "Tolypeutes", img: "https://micc.garmory-cdn.cloud/obrazki/npc/e2/bolita.gif" },
+            { name: "Dendroculus", img: "https://micc.garmory-cdn.cloud/obrazki/npc/e2/dendroculus.gif" },
+            { name: "Fangaj", img: "https://micc.garmory-cdn.cloud/obrazki/npc/e2/grzyb-humanoid-1b.gif" },
+            { name: "Mocny Maddoks", img: "https://micc.garmory-cdn.cloud/obrazki/npc/e2/mocny_maddoks-1a.gif" },
+            { name: "Arytodam olbrzymi", img: "https://micc.garmory-cdn.cloud/obrazki/npc/e2/arytodam_olbrzymi-1b.gif" },
+            { name: "Marlloth Malignitas", img: "https://micc.garmory-cdn.cloud/obrazki/npc/e2/drider-marlloth.gif" },
+            { name: "Al'diphrin Ilythirahel", img: "https://micc.garmory-cdn.cloud/obrazki/npc/e2/drow-aldiphrin-wladca.gif" },
+            { name: "Arachniregina Colosseus", img: "https://micc.garmory-cdn.cloud/obrazki/npc/e2/regina-e2.gif" },
+            { name: "Czempion Furboli", img: "https://micc.garmory-cdn.cloud/obrazki/npc/e2/forbol03.gif" },
+            { name: "Zufulus Smakosz Serc", img: "https://micc.garmory-cdn.cloud/obrazki/npc/e2/sekta-zufulus.gif" },
+            { name: "Gothardus Kolekcjoner Głów", img: "https://micc.garmory-cdn.cloud/obrazki/npc/e2/sekta-gothardus.gif" },
+            { name: "Annaniel Wysysacz Marzeń", img: "https://micc.garmory-cdn.cloud/obrazki/npc/e2/sekta-annaniel.gif" },
+            { name: "Sataniel Skrytobójca", img: "https://micc.garmory-cdn.cloud/obrazki/npc/e2/sekta-sataniel.gif" },
+            { name: "Bergermona Krwawa Hrabina", img: "https://micc.garmory-cdn.cloud/obrazki/npc/e2/sekta-bergermona.gif" },
+            { name: "Sadolia Nadzorczyni Hurys", img: "https://micc.garmory-cdn.cloud/obrazki/npc/e2/sekta-sadolia.gif" },
+            { name: "Mysiur Myświórowy Król", img: "https://micc.garmory-cdn.cloud/obrazki/npc/e2/mysiur_myswiorowy_krol-1a.gif" },
+            { name: "Cerasus", img: "https://micc.garmory-cdn.cloud/obrazki/npc/e2/cerasus-1a.gif" },
+            { name: "Breheret Żelazny Łeb", img: "https://micc.garmory-cdn.cloud/obrazki/npc/e2/draki-breheret-1b.gif" },
+            { name: "Pięknotka Mięsożerna", img: "https://micc.garmory-cdn.cloud/obrazki/npc/e2/zmutowana-roslinka.gif" },
+            { name: "Toruńia Ankelwald", img: "https://micc.garmory-cdn.cloud/obrazki/npc/e2/thuz-patr1.gif" },
+            { name: "Ogr Stalowy Pazur", img: "https://micc.garmory-cdn.cloud/obrazki/npc/e2/ogr_stalowy_pazur-1a.gif" },
+            { name: "Cantedewia", img: "https://micc.garmory-cdn.cloud/obrazki/npc/e2/cantedewia-1a.gif" },
+            { name: "Chryzoprenia", img: "https://micc.garmory-cdn.cloud/obrazki/npc/e2/chryzoprenia-1a.gif" },
+            { name: "Wrzosera", img: "https://micc.garmory-cdn.cloud/obrazki/npc/e2/wrzosera-1b.gif" },
+            { name: "Lusgrathera Królowa Pramatka", img: "https://micc.garmory-cdn.cloud/obrazki/npc/e2/prakrolowa.gif" },
+            { name: "Królowa Śniegu", img: "https://micc.garmory-cdn.cloud/obrazki/npc/e2/krolowa-sniegu.gif" },
+            { name: "Ziuggrael Strażnik Królowej", img: "https://micc.garmory-cdn.cloud/obrazki/npc/e2/praork_woj_elita.gif" },
+            { name: "Fursharag Pożeracz Umysłów", img: "https://micc.garmory-cdn.cloud/obrazki/npc/e2/praork_mag_elita.gif" },
+            { name: "Bragarth Myśliwy Dusz", img: "https://micc.garmory-cdn.cloud/obrazki/npc/e2/praork_low_elita.gif" },
+            { name: "Duch Władcy Klanów", img: "https://micc.garmory-cdn.cloud/obrazki/npc/e2/duch_wladcy_kl.gif" },
+            { name: "Burkog Lorulk", img: "https://micc.garmory-cdn.cloud/obrazki/npc/e2/orkczd.gif" },
+            { name: "Sheba Orcza Szamanka", img: "https://micc.garmory-cdn.cloud/obrazki/npc/e2/r_orc_sheba.gif" },
+            { name: "Adariel", img: "https://micc.garmory-cdn.cloud/obrazki/npc/e2/tri_adariel.gif" },
+            { name: "Goons Asterus", img: "https://micc.garmory-cdn.cloud/obrazki/npc/e2/goons_asterus-1a.gif" },
+            { name: "Fodug Zolash", img: "https://micc.garmory-cdn.cloud/obrazki/npc/e2/fodug_zolash.gif" }
         ]
     };
 
     const lootTable = {
-        "Mroczny Patryk (35 lvl)": [{img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm749.gif", stats: "Kapelusz wiecznej udręki||rarity=legendary"},{img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm748.gif", stats: "Splot szaleństwa||rarity=legendary"},{img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm1365.gif", stats: "Korona tańczących płomieni||rarity=legendary"},{img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_06.gif.gif", stats: "Lekka skrytka mocy||rarity=legendary"}],
-        "Mushita": [{ img: "https://micc.garmory-cdn.cloud/obrazki/itemy/pie/pierscien361.gif", stats: "Nimb emanującego kła||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_01.gif", stats: "Lekka skrytka lodowej mocy||rarity=legendary" }],
-        "Kotołak Tropiciel": [{ img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm721.gif", stats: "Maska dziewięciu żywotów||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm720.gif", stats: "Kamuflaż przyczajonego kocura||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm719.gif", stats: "Kask wiedźmiego chowańca||rarity=legendary" }],
-        "Shae Phu": [{ img: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/naszyjnik1243.gif", stats: "Czaszka Przeznaczenia||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice805.gif", stats: "Nekromantki cmentarnej dziewicy||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice806.gif", stats: "Szpony Ciemnego Varga||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_02.gif.gif", stats: "Lekka skrytka fizycznej mocy||rarity=legendary" }],
-        "Zorg Jednooki Baron": [{ img: "https://micc.garmory-cdn.cloud/obrazki/itemy/but/buty1203.gif", stats: "Obuwie upadłego barona||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/but/buty1205.gif", stats: "Magiczne ciżemki Zorga||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/but/buty1204.gif", stats: "Buciory lidera szajki||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_05.gif.gif", stats: "Lekka skrytka jadowej mocy||rarity=legendary" }],
-        "Władca Rzek": [{ img: "https://micc.garmory-cdn.cloud/obrazki/itemy/pie/pierscien836.gif", stats: "Studnia Życzeń||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/pie/pierscien837.gif", stats: "Klejnot Wielkich Jezior||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/pie/pierscien835.gif", stats: "Rzeka Marzeń||rarity=legendary" }],
-        "Adariel": [{ img: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/naszyjnik1194.gif", stats: "Wiedźmi łapacz snów||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/naszyjnik1242.gif", stats: "Pieczęć czarnej magii||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/naszyjnik1193.gif", stats: "Ampułka brzydoty||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_03.gif.gif", stats: "Skrytka elektrycznej mocy||rarity=legendary" }],
-        "Goons Asterus": [{ img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm1352.gif", stats: "System celowniczy Asterusa||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/but/buty1185.gif", stats: "Goblińskie ustrojstwo||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/torba53.gif", stats: "Wielofunkcyjna torba goblina||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_05.gif.gif", stats: "Skrytka jadowej mocy||rarity=legendary" }],
-        "Fodug Zolash": [{ img: "https://micc.garmory-cdn.cloud/obrazki/itemy/pie/pierscien1209.gif", stats: "Sygnet łaski i zawahania||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/pie/pierscien1208.gif", stats: "Pieczęć pana twierdzy||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice1274.gif", stats: "Krwawe dyrygentki||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_02.gif.gif", stats: "Skrytka ognistej mocy||rarity=legendary" }],
-        "Sheba Orcza Szamanka": [{ img: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/naszyjnik1199.gif", stats: "Źródło wielkiego nieszczęścia||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/pie/pierscien1198.gif", stats: "Przebudzone ślepie demona||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/pie/pierscien1199.gif", stats: "Miniaturowy portal||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_02.gif.gif", stats: "Skrytka ognistej mocy||rarity=legendary" }],
-        "Burkog Lorulk": [{ img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice1208.gif", stats: "Odrąbana dłoń Burkoga||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/but/buty1099.gif", stats: "Skarb praorczej dynastii||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice1259.gif", stats: "Wyraz olbrzymiej pogardy||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_04.gif.gif", stats: "Skrytka stalowej mocy||rarity=legendary" }],
-        "Duch Władcy Klanów": [{ img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm1350.gif", stats: "Maska orczej wyroczni||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm1349.gif", stats: "Odznaczenie smokobija||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm1348.gif", stats: "Przyłbica wielkiego zaszczytu||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_01.gif", stats: "Skrytka lodowej mocy||rarity=legendary" }],
-        "Bragarth Myśliwy Dusz": [{ img: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/naszyjnik631.gif", stats: "Kolia Łowcy Dusz||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/pie/pierscien627.gif", stats: "Błysk smoczego oka||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_05.gif.gif", stats: "Skrytka jadowej mocy||rarity=legendary" }],
-        "Fursharag Pożeracz Umysłów": [{ img: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/naszyjnik636.gif", stats: "Ozdoba Pożeracza Umysłów||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm564.gif", stats: "Esencja smoczej tężyzny||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_03.gif.gif", stats: "Skrytka elektrycznej mocy||rarity=legendary" }],
-        "Ziuggrael Strażnik Królowej": [{ img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice644.gif", stats: "Rękawice ze smoczej skóry||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/naszyjnik635.gif", stats: "Naszyjnik Królewskiego Strażnika||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_04.gif.gif", stats: "Skrytka stalowej mocy||rarity=legendary" }],
-        "Królowa Śniegu": [{ img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice1230.gif", stats: "Skostniałe paluchy monarchini||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice1231.gif", stats: "Uścisk nieskończonej śnieżycy||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice1314.gif", stats: "Nienawistny chwyt królowej||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_01.gif", stats: "Skrytka lodowej mocy||rarity=legendary" }],
-        "Lusgrathera Królowa Pramatka": [{ img: "https://micc.garmory-cdn.cloud/obrazki/itemy/pie/pierscien638.gif", stats: "Ukryta potęga praorków||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/pie/pierscien637.gif", stats: "Królewski pierścień pramatki||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_02.gif.gif", stats: "Skrytka ognistej mocy||rarity=legendary" }],
-        "Wrzosera": [{ img: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/naszyjnik1270.gif", stats: "Wrzosowa plecionka driady||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/but/buty686.gif", stats: "Święta Dębina||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm1403.gif", stats: "Przyłbica pani wrzosowisk||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_04.gif.gif", stats: "Skrytka stalowej mocy||rarity=legendary" }],
-        "Chryzoprenia": [{ img: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/naszyjnik1264.gif", stats: "Pąk Wabiciel||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm1402.gif", stats: "Chryzantemowy diadem||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/but/buty1225.gif", stats: "Cholewy leśnej monarchii||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_03.gif.gif", stats: "Skrytka elektrycznej mocy||rarity=legendary" }],
-        "Cantedewia": [{ img: "https://micc.garmory-cdn.cloud/obrazki/itemy/but/buty1224.gif", stats: "Bezszelestny chód mchów||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm1401.gif", stats: "Korona życiodajnych kalii||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/tal/tal109.gif", stats: "Święte kwiecie driad||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_05.gif.gif", stats: "Skrytka jadowej mocy||rarity=legendary" }],
-        "Ogr Stalowy Pazur": [{ img: "https://micc.garmory-cdn.cloud/obrazki/itemy/pie/pierscien1246.gif", stats: "Stalowe pieścidełko||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm1382.gif", stats: "Hełm ogrzego szaleństwa||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/but/buty1218.gif", stats: "Buciory krwawego obłędu||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_01.gif.gif", stats: "Skrytka lodowej mocy||rarity=legendary" }],
-        "Toruńia Ankelwald": [{ img: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/naszyjnik1272.gif", stats: "Złoty księżyc Ankelwaldów||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/naszyjnik722.gif", stats: "Osiem Nóg Fortuny||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/naszyjnik723.gif", stats: "Oko Opatrzności||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_03.gif.gif", stats: "Skrytka elektrycznej mocy||rarity=legendary" }],
-        "Pięknotka Mięsożerna": [{ img: "https://micc.garmory-cdn.cloud/obrazki/itemy/pie/pierscien1263.gif", stats: "Wonne kwiecie dezynfekcji||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/pie/pierscien1262.gif", stats: "Trio mięsożernych pąków||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/pie/pierscien1264.gif", stats: "Piękno pełni rozkwitu||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_02.gif.gif", stats: "Skrytka ognistej mocy||rarity=legendary" }],
-        "Breheret Żelazny Łeb": [{ img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm1410.gif", stats: "Żelazna Twarz||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm1392.gif", stats: "Krwawa szczęka Valmira||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice1318.gif", stats: "Dekapitorki||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_04.gif.gif", stats: "Skrytka stalowej mocy||rarity=legendary" }],
-        "Cerasus": [{ img: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/naszyjnik1259.gif", stats: "Źródło leśnego mroku||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/but/buty1220.gif", stats: "Pnie wymuszonej symbiozy||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/but/buty1219.gif", stats: "Cholewy krwawego przebudzenia||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_05.gif.gif", stats: "Skrytka jadowej mocy||rarity=legendary" }],
-        "Mysiur Myświórowy Król": [{ img: "https://micc.garmory-cdn.cloud/obrazki/itemy/but/buty1221.gif", stats: "Szczurołapki||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/but/buty1223.gif", stats: "Pantofle opasłego gryzonia||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/but/buty1222.gif", stats: "Myświórowe kaprysy||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_02.gif.gif", stats: "Skrytka ognistej mocy||rarity=legendary" }],
-        "Sadolia Nadzorczyni Hurys": [{ img: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/naszyjnik684.gif", stats: "Tchnienie Nagłej Grozy||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/naszyjnik683.gif", stats: "Podmuch Wiecznie Potępionych||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/naszyjnik682.gif", stats: "Piekielny Nietoperz||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_01.gif.gif", stats: "Skrytka lodowej mocy||rarity=legendary" }],
-        "Bergermona Krwawa Hrabina": [{ img: "https://micc.garmory-cdn.cloud/obrazki/itemy/pie/pierscien697.gif", stats: "Pierścień Mistrzyni Tortur||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm1404.gif", stats: "Nawiedzona chusta hrabiny||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/pie/pierscien694.gif", stats: "Dłoń Diabła||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_03.gif.gif", stats: "Ciężka skrytka elektrycznej mocy||rarity=legendary" }],
-        "Sataniel Skrytobójca": [{ img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice1316.gif", stats: "Szpon krwawych przesłuchań||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice1313.gif", stats: "Łańcuchy ujarzmiania demonów||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice1317.gif", stats: "Kryjówka demonicznych sugestii||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_05.gif.gif", stats: "Ciężka skrytka jadowej mocy||rarity=legendary" }],
-        "Annaniel Wysysacz Marzeń": [{ img: "https://micc.garmory-cdn.cloud/obrazki/itemy/pie/pierscien699.gif", stats: "Szpon Bahaala||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/pie/pierscien695.gif", stats: "Ozdoba Piekielnego Portalu||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/tal/tal69.gif", stats: "Przenośny ołtarz Annaniela||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_02.gif.gif", stats: "Ciężka skrytka ognistej mocy||rarity=legendary" }],
-        "Gothardus Kolekcjoner Głów": [{ img: "https://micc.garmory-cdn.cloud/obrazki/itemy/but/buty679.gif", stats: "Powolny Puls Demona||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/pie/pierscien698.gif", stats: "Płomień Żywnej Wiary||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/pie/pierscien696.gif", stats: "Kościany Strażnik||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_04.gif.gif", stats: "Ciężka skrytka stalowej mocy||rarity=legendary"}],
-        "Zufulus Smakosz Serc": [{ img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm617.gif", stats: "Korona Wiecznej Gehenny||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm616.gif", stats: "Maska Smakosza Serc||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm615.gif", stats: "Diadem Tysiąca Świec||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_01.gif.gif", stats: "Ciężka skrytka lodowej mocy||rarity=legendary" }],
-        "Czempion Furboli": [{ img: "https://micc.garmory-cdn.cloud/obrazki/itemy/pie/pierscien1265.gif", stats: "Światło odstraszające pająki||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/naszyjnik1271.gif", stats: "Medalion doskonałości||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice1315.gif", stats: "Dziedzictwo linii czempionów||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_04.gif.gif", stats: "Ciężka skrytka stalowej mocy||rarity=legendary" }],
-        "Arachniregina Colosseus": [{ img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice1343.gif", stats: "Stalowe pająki||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice1342.gif", stats: "Pięści zawodowego bohatera||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice1344.gif", stats: "Muśnięcie powiewających pajęczyn||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_05.gif.gif", stats: "Ciężka skrytka jadowej mocy||rarity=legendary" }],
-        "Al'diphrin Ilythirahel": [{ img: "https://micc.garmory-cdn.cloud/obrazki/itemy/but/buty1342.gif", stats: "Podeszwy uzurpatora||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/but/buty1341.gif", stats: "Łup z Tass Zhil||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/but/buty1343.gif", stats: "Cholewy chwilowej ekscytacji||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_03.gif.gif", stats: "Ciężka skrytka elektrycznej mocy||rarity=legendary" }],
-        "Marlloth Malignitas": [{ img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm1441.gif", stats: "Wspomnienie sromotnej porażki||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/but/buty1333.gif", stats: "Stukot historii||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm1442.gif", stats: "Magazyn sił chaosu||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_02.gif.gif", stats: "Ciężka skrytka ognistej mocy||rarity=legendary" }],
-        "Arytodam olbrzymi": [{ img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice1357.gif", stats: "Pokraczne łapy Arytodama||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice1356.gif", stats: "Klamry degradacji środowiska||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice1355.gif", stats: "Kajdany bagiennego bulgotania||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_01.gif.gif", stats: "Ciężka skrytka lodowej mocy||rarity=legendary" }],
-        "Mocny Maddoks": [{ img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm1452.gif", stats: "Stary Żabiec||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm1453.gif", stats: "Smakosz Ambrozji Maddoków||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm1451.gif", stats: "Genealogiczne Algi||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_01.gif.gif", stats: "Ciężka skrytka lodowej mocy||rarity=legendary" }],
-        "Fangaj": [{ img: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/naszyjnik1366.gif", stats: "Źródło grzybowej zarazy||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/naszyjnik1368.gif", stats: "Sznur psylocybków||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/naszyjnik1367.gif", stats: "Najbardziej wyjątkowy okaz||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_03.gif.gif", stats: "Ciężka skrytka elektrycznej mocy||rarity=legendary" }],
-        "Dendroculus": [{ img: "https://micc.garmory-cdn.cloud/obrazki/itemy/but/buty1383.gif", stats: "Żywiczne korzonki||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/naszyjnik1342.gif", stats: "Oculus||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/but/buty1382.gif", stats: "Konarowce||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_05.gif.gif", stats: "Ciężka skrytka jadowej mocy||rarity=legendary" }],
-        "Tolypeutes": [{ img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice1404.gif", stats: "Rękawice ze skóry Tolypeutesa||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice1402.gif", stats: "Mankiety obrońcy bogów||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice1403.gif", stats: "Gest Teomama||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_04.gif.gif", stats: "Ciężka skrytka stalowej mocy||rarity=legendary" }],
-        "Cuaitl Citlalin": [{ img: "https://micc.garmory-cdn.cloud/obrazki/itemy/pie/pierscien1365.gif", stats: "Sygnet z kości konkwistadorów||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/pie/pierscien1366.gif", stats: "Ollin||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_02.gif.gif", stats: "Ciężka skrytka ognistej mocy||rarity=legendary" }],
-        "Yaotl": [{ img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm420.gif", stats: "Pozłacana podobizna bóstwa||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm419.gif", stats: "Płomienna maska kapłana||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm418.gif", stats: "Czaszka Huitzilopochtli||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_05.gif.gif", stats: "Ciężka skrytka jadowej mocy||rarity=legendary" }],
-        "Quetzalcoatl": [{ img: "https://micc.garmory-cdn.cloud/obrazki/itemy/but/buty1400.gif", stats: "Wyobrażenie Mictlantecuhtliego||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/but/buty1401.gif", stats: "Stąpanie Dwóch Słońc||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/but/buty1402.gif", stats: "Cholewy boskiego lśnienia||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_01.gif.gif", stats: "Ciężka skrytka lodowej mocy||rarity=legendary" }],
-        "Wabicielka": [{ img: "https://micc.garmory-cdn.cloud/obrazki/itemy/pie/pierscien1375.gif", stats: "Zalążek Chaosu||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice1414.gif", stats: "Szałowe pazury Wabicielki||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice1413.gif", stats: "Dłoń władcy podziemi||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_04.gif.gif", stats: "Ciężka skrytka stalowej mocy||rarity=legendary" }],
-        "Pogardliwa Sybilla": [{ img: "https://micc.garmory-cdn.cloud/obrazki/itemy/but/buty1423.gif", stats: "Wszechstronne obcasy Sybilli||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/but/buty1422.gif", stats: "Pantofle infiltracji umysłów||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/but/buty1421.gif", stats: "Buciory wiedźmiej potęgi||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_02.gif.gif", stats: "Ciężka skrytka ognistej mocy||rarity=legendary" }],
-        "Chopesz": [{ img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_04.gif.gif", stats: "Ciężka skrytka stalowej mocy||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/but/buty514.gif", stats: "Lazur wód Wernoradu||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/but/buty515.gif", stats: "Bojowe obuwie Chopesza||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/but/buty516.gif", stats: "Skarb antycznych||rarity=legendary" }],
-        "Neferkar Set": [{ img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_03.gif.gif", stats: "Ciężka skrytka elektrycznej mocy||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/but/set_but3.gif", stats: "Magia mrocznego Seta||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/but/set_but2.gif", stats: "Furia potężnego Seta||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/but/set_but1.gif", stats: "Niezłomność bezlitosnego Seta||rarity=legendary" }],
-        "Chaegd Agnrakh": [{ img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_05.gif.gif", stats: "Ciężka skrytka jadowej mocy||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/naszyjnik736.gif", stats: "Obroża Przeistoczenia||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/naszyj446.gif", stats: "Klejnot królewski||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/pie/pierscien201.gif", stats: "Kryształ w obrączce Agnrakha||rarity=legendary" }],
-        "Vaenra Charkhaam": [{ img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_03.gif.gif", stats: "Ciężka skrytka elektrycznej mocy||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/naszyjnik447.gif", stats: "Klejnot świątynny||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/pie/pierscien197.gif", stats: "Kryształ w obrączce Vaenry||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/but/buty731.gif", stats: "Smocze Kroki||rarity=legendary" }],
-        "Terrozaur": [{ img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_02.gif.gif", stats: "Ciężka skrytka ognistej mocy||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice580.gif", stats: "Uścisk wirujących piasków||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice581.gif", stats: "Pancerna pięść wojownika Shaiharrud||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice579.gif", stats: "Szpony gadzik jeźdźców||rarity=legendary" }],
-        "Nymphemonia": [{ img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_01.gif.gif", stats: "Ciężka skrytka lodowej mocy||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/naszyjnik700.gif", stats: "Skarb Królestwa Driad||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice711.gif", stats: "Palce wymuszonej symbiozy||rarity=legendary" }, { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice712.gif", stats: "Szpony leśnego runa||rarity=legendary" }],
-        "Zorin": [{ img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_04.gif.gif", stats: "Ciężka skrytka stalowej mocy||rarity=legendary" }],
-        "Furion": [{ img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_05.gif.gif", stats: "Ciężka skrytka jadowej mocy||rarity=legendary" }],
-        "Artenius": [{ img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_02.gif.gif", stats: "Ciężka skrytka ognistej mocy||rarity=legendary" }]
+        "Mroczny Patryk (35 lvl)": [
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm749.gif", stats: "Kapelusz wiecznej udręki||rarity=legendary"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm748.gif", stats: "Splot szaleństwa||rarity=legendary"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm1365.gif", stats: "Korona tańczących płomieni||rarity=legendary"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_06.gif.gif", stats: "Lekka skrytka mocy||rarity=legendary"}
+        ],
+        "Karmazynowy Mściciel (45 lvl)": [
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice854.gif", stats: "Stalowe szpony zemsty||rarity=legendary"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice853.gif", stats: "Chwyt niestygnącej krwi||rarity=legendary"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice855.gif", stats: "Kajdany gniewnej tułaczki||rarity=legendary"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_06.gif.gif", stats: "Lekka skrytka mocy||rarity=legendary"}
+        ],
+        "Złodziej (51 lvl)": [
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/but/buty535.gif", stats: "Pantofle Madame Baterflaj||rarity=legendary"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/but/buty872.gif", stats: "Podwójne podeszwy złodzieja||rarity=legendary"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/but/buty871.gif", stats: "Pamiątka z Tuzmer||rarity=legendary"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_06.gif.gif", stats: "Lekka skrytka mocy||rarity=legendary"}
+        ],
+        "Zły Przewodnik (63 lvl)": [
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice893.gif", stats: "Dwulicowy chwyt mnicha||rarity=legendary"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice891.gif", stats: "Dotyk zwodniczych mgieł||rarity=legendary"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice892.gif", stats: "Zamach wybitnego łgarza||rarity=legendary"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_06.gif.gif", stats: "Lekka skrytka mocy||rarity=legendary"}
+        ],
+        "Opętany Paladyn (74 lvl)": [
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm847.gif", stats: "Zęby klasztornego postrachu||rarity=legendary"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm845.gif", stats: "Złota maska opętańca||rarity=legendary"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm846.gif", stats: "Przyłbica przeklętego umysłu||rarity=legendary"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_06.gif.gif", stats: "Lekka skrytka mocy||rarity=legendary"}
+        ],
+        "Piekielny Kościej (85 lvl)": [
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/naszyjnik918.gif", stats: "Cząstka siły Azelatho||rarity=legendary"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/naszyjnik920.gif", stats: "Pamiątka poprzedniego życia||rarity=legendary"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/naszyjnik919.gif", stats: "Manifestacja mocy Shurako||rarity=legendary"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_06.gif.gif", stats: "Lekka skrytka mocy||rarity=legendary"}
+        ],
+        "Koziec Mąciciel Ścieżek (94lvl)": [
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/sur/koziec_craft_02.gif", stats: "Kwiecista narzuta Koźca||rarity=legendary"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/sur/koziec_craft_03.gif", stats: "Trzeci róg mąciciela||rarity=legendary"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/sur/koziec_craft_01.gif", stats: "Bukiet kryształowych bazi||rarity=legendary"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_06.gif.gif", stats: "Lekka skrytka mocy||rarity=legendary"}
+        ],
+        "Kochanka Nocy (102 lvl)": [
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm851.gif", stats: "Oblicze smutku||rarity=legendary"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm853.gif", stats: "Hełm kochanka Nocnej Kochanki||rarity=legendary"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm852.gif", stats: "Maska nocnego szlochu||rarity=legendary"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_06.gif.gif", stats: "Skrytka mocy||rarity=legendary"}
+        ],
+        "Książę Kasim (116 lvl)": [
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice1010.gif", stats: "Klątwa tysiąca i jednej nocy||rarity=legendary"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice1009.gif", stats: "Szpony utraconej nadziei||rarity=legendary"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice1011.gif", stats: "Rękawy z pustynnych krain||rarity=legendary"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_06.gif.gif", stats: "Skrytka mocy||rarity=legendary"}
+        ],
+        "Święty Braciszek (123 lvl)": [
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/naszyjnik1133.gif", stats: "Medalion smakosza trunków||rarity=legendary"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/naszyjnik1135.gif", stats: "Tabernakulum z sekretną recepturą||rarity=legendary"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/naszyjnik1134.gif", stats: "Krzyż wiary w trunki||rarity=legendary"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_06.gif.gif", stats: "Skrytka mocy||rarity=legendary"}
+        ],
+        "Złoty Roger (135 lvl)": [
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice1189.gif", stats: "Złowrogie czaszki Rogera||rarity=legendary"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice1188.gif", stats: "Pirackie rękawice||rarity=legendary"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice1190.gif", stats: "Skrab kapitana||rarity=legendary"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_06.gif.gif", stats: "Skrytka mocy||rarity=legendary"}
+        ],
+        "Baca bez łowiec (144 lvl)": [
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/naszyjnik1163.gif", stats: "Serowe wahadełko||rarity=heroic"}, 
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/naszyjnik1164.gif", stats: "Sztuczka doświadczonego bacy||rarity=legendary"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/naszyjnik1162.gif", stats: "Eteryczny baran||rarity=legendary"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_06.gif.gif", stats: "Skrytka mocy||rarity=legendary"}
+        ],
+        "Czarująca Atalia (157 lvl)": [
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/pie/pierscien1196.gif", stats: "Otok rodzinnych niesnasek||rarity=legendary"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/pie/pierscien1197.gif", stats: "Pamiątka rodu czarownic||rarity=legendary"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/pie/pierscien1195.gif", stats: "Pożeracz zmarszczek||rarity=legendary"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_06.gif.gif", stats: "Skrytka mocy||rarity=legendary"}
+        ],
+        "Obłąkany Łowca Orków (165 lvl)": [
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice1211.gif", stats: "Stalowa pięść obłąkańca||rarity=legendary"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice1213.gif", stats: "Mankiety z zerwanych sztandarów||rarity=legendary"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice1212.gif", stats: "Miażdżyciele orczych serc||rarity=legendary"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_06.gif.gif", stats: "Skrytka mocy||rarity=legendary"}
+        ],
+        "Lichwiarz Grauhaz (177 lvl)": [
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/naszyjnik1165.gif", stats: "Sopel z porzuconych kopalni||rarity=legendary"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/naszyjnik1167.gif", stats: "Kolia dumnego rodu||rarity=legendary"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/naszyjnik1166.gif", stats: "Klejnot smoczej choroby||rarity=legendary"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_06.gif.gif", stats: "Skrytka mocy||rarity=legendary"}
+        ],
+        "Viviana Nandin (185 lvl)": [
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm627.gif", stats: "Eteryczny wieniec Viviany||rarity=legendary"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm626.gif", stats: "Poroże leśnej bestii||rarity=legendary"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm628.gif", stats: "Kaptur strażniczki kniei||rarity=legendary"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_06.gif.gif", stats: "Skrytka mocy||rarity=legendary"}
+        ],
+        "Przeraza (194 lvl)": [
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice1371.gif", stats: "Bransolety kwitnącej aberracji||rarity=legendary"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice1370.gif", stats: "Dłonie wielu osobowości||rarity=legendary"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice1372.gif", stats: "Mankiety powiernika woli||rarity=legendary"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_06.gif.gif", stats: "Skrytka mocy||rarity=legendary"}
+        ],
+        "Demonis Pan Nicości (205 lvl)": [
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/pie/pierscien1284.gif", stats: "Czarne Słońce||rarity=legendary"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/pie/pierscien1285.gif", stats: "Krwawa relikwia||rarity=legendary"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/pie/pierscien1286.gif", stats: "Nerw wzrokowy demona||rarity=legendary"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_06.gif.gif", stats: "Ciężka skrytka mocy||rarity=legendary"}
+        ],
+        "Mulher Ma (214 lvl)": [
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_06.gif.gif", stats: "Ciężka skrytka mocy||rarity=legendary"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/naszyjnik1300.gif", stats: "Kołnierz dekapitacji||rarity=legendary"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/naszyjnik1299.gif", stats: "Obręcz Najwyższej Kapłanki||rarity=legendary"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/naszyjnik1301.gif", stats: "Wdzięczność Pajęczycy||rarity=legendary"}
+        ],
+        "Vapor Veneno (231 lvl)": [
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_06.gif.gif", stats: "Ciężka skrytka mocy||rarity=legendary"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/pie/pierscien1319.gif", stats: "Błyskotka humanoidalnej natury||rarity=legendary"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/pie/pierscien1320.gif", stats: "Pierścionek toksycznej fascynacji||rarity=legendary"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/pie/pierscien1318.gif", stats: "Symbol wodnych narodzin||rarity=legendary"}
+        ],
+        "Dęborożec (244 lvl)": [
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm1487.gif", stats: "Czaszka wielkiego nieszczęśnika||rarity=legendary"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm1488.gif", stats: "Gniew strażnika kniei||rarity=legendary"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm1489.gif", stats: "Maska Puryfikacji||rarity=legendary"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_06.gif.gif", stats: "Ciężka skrytka mocy||rarity=legendary"}
+        ],
+        "Tepeyollotl (258 lvl)": [
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/naszyjnik1358.gif", stats: "Brama do zaświatów||rarity=legendary"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/naszyjnik1357.gif", stats: "Kręgosłupy boskich bliźniąt||rarity=legendary"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/naszyjnik1356.gif", stats: "Symbol Wieczności||rarity=legendary"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_06.gif.gif", stats: "Ciężka skrytka mocy||rarity=legendary"}
+        ],
+        "Widmo Triady (265 lvl)": [
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm1501.gif", stats: "Kaptur wyzwolenia ducha||rarity=legendary"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm1502.gif", stats: "Ofiara eliksiru hydrofilowego||rarity=legendary"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm1503.gif", stats: "Przeklęta klatka na ptaki||rarity=legendary"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_06.gif.gif", stats: "Ciężka skrytka mocy||rarity=legendary"}
+        ],
+        "Negthotep Czarny Kapłan (271 lvl)": [
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice521.gif", stats: "Palce demonicznego kompozytora||rarity=legendary"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice520.gif", stats: "Dłonie Czarnego Kapłana||rarity=legendary"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice519.gif", stats: "Złoty chwyt generała||rarity=legendary"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_06.gif.gif", stats: "Ciężka skrytka mocy||rarity=legendary"}
+        ],
+        "Młody Smok (282 lvl)": [
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/tal/tal32.gif", stats: "Talizman smoczego boga||rarity=legendary"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm658.gif", stats: "Maska gniewu Shaiharrud||rarity=legendary"}, 
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm659.gif", stats: "Skupisko smoczej magii||rarity=legendary"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm657.gif", stats: "Więzienie gadzich płomieni||rarity=legendary"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_06.gif.gif", stats: "Ciężka skrytka mocy||rarity=legendary"}
+        ],
+
+        // --- ELITY II ---
+        "Mushita": [
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/pie/pierscien361.gif", stats: "Nimb emanującego kła||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_01.gif", stats: "Lekka skrytka lodowej mocy||rarity=legendary" }
+        ],
+        "Kotołak Tropiciel": [
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm721.gif", stats: "Maska dziewięciu żywotów||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm720.gif", stats: "Kamuflaż przyczajonego kocura||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm719.gif", stats: "Kask wiedźmiego chowańca||rarity=legendary" }
+        ],
+        "Shae Phu": [
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/naszyjnik1243.gif", stats: "Czaszka Przeznaczenia||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice805.gif", stats: "Nekromantki cmentarnej dziewicy||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice806.gif", stats: "Szpony Ciemnego Varga||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_02.gif", stats: "Lekka skrytka ognistej mocy||rarity=legendary" }
+        ],
+        "Zorg Jednooki Baron": [
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/but/buty1203.gif", stats: "Obuwie upadłego barona||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/but/buty1205.gif", stats: "Magiczne ciżemki Zorga||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/but/buty1204.gif", stats: "Buciory lidera szajki||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_05.gif", stats: "Lekka skrytka jadowej mocy||rarity=legendary" }
+        ],
+        "Władca Rzek": [
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/pie/pierscien836.gif", stats: "Studnia Życzeń||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/pie/pierscien837.gif", stats: "Klejnot Wielkich Jezior||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/pie/pierscien835.gif", stats: "Rzeka Marzeń||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_01.gif", stats: "Lekka skrytka lodowej mocy||rarity=legendary" }
+        ],
+        "Gobbos": [
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/naszyjnik812.gif", stats: "Element Mroku||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/naszyjnik813.gif", stats: "Dusza Światła||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hat/maska5.gif", stats: "Maska Akumu||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_05.gif", stats: "Lekka skrytka jadowej mocy||rarity=legendary" }
+        ],
+        "Tyrtajos": [
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice828.gif", stats: "Naramienniki przywódcy watahy||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice827.gif", stats: "Chrumkająca ozdoba dzika||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/but/buty842.gif", stats: "Dzikie ryjki||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_03.gif", stats: "Lekka skrytka elektrycznej mocy||rarity=legendary" }
+        ],
+        "Szczet alias Gładki": [
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/naszyjnik414.gif", stats: "Zbójeckie złotko||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/but/buty852.gif", stats: "Towar pierwszej klasy||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/mug_mask01.gif", stats: "Maska złodzieja||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_04.gif", stats: "Lekka skrytka stalowej mocy||rarity=legendary" }
+        ],
+        "Tollok Shimager": [
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/pie/pierscien856.gif", stats: "Sygnet przyzwania nietoperzy||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/pie/pierscien855.gif", stats: "Błękitna duma tolloka||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/pie/pierscien857.gif", stats: "Nasiono burzy||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_03.gif", stats: "Lekka skrytka elektrycznej mocy||rarity=legendary" }
+        ],
+        "Razuglag Oklash": [
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm773.gif", stats: "Maska mrocznego sługi||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm362.gif", stats: "Kaptur Magii Początku||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/pie/pierscien1234.gif", stats: "Zaklęty płomień||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_02.gif", stats: "Lekka skrytka ognistej mocy||rarity=legendary" }
+        ],
+        "Agar": [
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/neu/gal_l-naszyj.gif", stats: "Plugawe przekleństwo wiedźmy||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/neu/gal_l-naszyj3.gif", stats: "Splamiona kapitańska obręcz||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/neu/gal_l-naszyj2.gif", stats: "Sprofanowany rdzeń świadomości||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_01.gif", stats: "Lekka skrytka lodowej mocy||rarity=legendary" }
+        ],
+        "Foverk Turrim": [
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/naszyjnik871.gif", stats: "Klejnot Turrimu||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/naszyjnik870.gif", stats: "Rozłupana czaszka Foverka||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_04.gif", stats: "Lekka skrytka stalowej mocy||rarity=legendary" }
+        ],
+        "Owadzia Matka": [
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice815.gif", stats: "Paskudzące żądła Matki||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice817.gif", stats: "Bransolety lakowego terroru||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice816.gif", stats: "Objęcia propolisu||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_05.gif", stats: "Lekka skrytka jadowej mocy||rarity=legendary" }
+        ],
+        "Vari Kruger": [
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/pie/piersc94.gif", stats: "Sygnet szmaragdowej potęgi||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/pie/pierscien1331.gif", stats: "Klejnot ognistej pożogi||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/tal/tal112.gif", stats: "Zweglona maska gnolla||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_03.gif", stats: "Lekka skrytka elektrycznej mocy||rarity=legendary" }
+        ],
+        "Furruk Kozug": [
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm1469.gif", stats: "Przyłbica filtracyjna||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm662.gif", stats: "Futrzana czapa szaleńca||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice1377.gif", stats: "Klamry przewrotowca||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_02.gif", stats: "Lekka skrytka ognistej mocy||rarity=legendary" }
+        ],
+        "Fodug Zolash": [
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_02.gif", stats: "Skrytka ognistej mocy||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/pie/pierscien1209.gif", stats: "Sygnet łaski i zawahania||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/pie/pierscien1208.gif", stats: "Pieczęć pana twierdzy||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice1274.gif", stats: "Krwawe dyrygentki||rarity=legendary" }
+        ],
+        "Jotun": [
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/but/buty866.gif", stats: "Mrozoodporne kamasze Jotuna||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/but/buty1202.gif", stats: "Podeszwy magicznej wyniosłości||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/but/buty1206.gif", stats: "Kamienne trzewiki||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_01.gif", stats: "Lekka skrytka lodowej mocy||rarity=legendary" }
+        ],
+        "Tollok Atamatu": [
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm1362.gif", stats: "Rogaty łeb tolloka||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice72.gif", stats: "Brylantowe rękawice tolloka||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/naszyjnik892.gif", stats: "Chluba jaskiniowych tolloków||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_05.gif", stats: "Lekka skrytka jadowej mocy||rarity=legendary" }
+        ],
+        "Lisz": [
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/naszyjnik882.gif", stats: "Czaszka pośmiertnego stężenia||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/naszyjnik884.gif", stats: "Pieczęć dusz śniegu||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/naszyjnik883.gif", stats: "Naczynie odizolowanej duszy||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_03.gif", stats: "Lekka skrytka elektrycznej mocy||rarity=legendary" }
+        ],
+        "Grabarz Świątynny": [
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/but/buty888.gif", stats: "Krok żałobnych orszaków||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice902.gif", stats: "Cacko ze splądrowanego grobowca||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice903.gif", stats: "Pneumatyczny chwyt grabarza||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_02.gif", stats: "Lekka skrytka ognistej mocy||rarity=legendary" }
+        ],
+        "Podły zbrojmistrz": [
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm1472.gif", stats: "Rogi niewzruszonej podłości||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm1470.gif", stats: "Oblicze dokuczliwych biesów||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm1471.gif", stats: "Więzienie obsesyjnych żądz||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_04.gif", stats: "Lekka skrytka stalowej mocy||rarity=legendary" }
+        ],
+        "Wielka Stopa": [
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/pie/pierscien910.gif", stats: "Błyskotka Wielkiej Stopy||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/pie/pierscien912.gif", stats: "Sygnet szczypiącego mrozu||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/pie/pierscien911.gif", stats: "Skumulowane światło lodowca||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_01.gif", stats: "Lekka skrytka lodowej mocy||rarity=legendary" }
+        ],
+        "Choukker": [
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/but/buty878.gif", stats: "Popis zapomnianego kowala||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/but/buty879.gif", stats: "Cudeńko ze skarbca dławiaczy||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/but/buty880.gif", stats: "Łup jaskiniowej hordy||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_03.gif", stats: "Lekka skrytka elektrycznej mocy||rarity=legendary" }
+        ],
+        "Nadzorczyni krasnoludów": [
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm861.gif", stats: "Przesłona rządów strachu||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm859.gif", stats: "Wspomnienie Wojny Magów||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm860.gif", stats: "Podarek krasnoludzkiego monarchy||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_02.gif", stats: "Lekka skrytka ognistej mocy||rarity=legendary" }
+        ],
+        "Morthen": [
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/but/buty932.gif", stats: "Zapomniany skarb krasnoludów||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/but/buty934.gif", stats: "Odlew najwyższej próby||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/but/buty1207.gif", stats: "Symbol obsesji||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_04.gif", stats: "Lekka skrytka stalowej mocy||rarity=legendary" }
+        ],
+        "Żelazoręki Ohydziarz": [
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm874.gif", stats: "Anihilator||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/naszyjnik946.gif", stats: "Pochłaniająca duma urgrapów||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/naszyjnik945.gif", stats: "Mistyczna błyskotka volmatów||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_05.gif", stats: "Lekka skrytka jadowej mocy||rarity=legendary" }
+        ],
+        "Leśne Widmo": [
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice955.gif", stats: "Skarb borowych||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice954.gif", stats: "Trofeum z Leśnego Widma||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice1286.gif", stats: "Strzelające palce kniei||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_04.gif", stats: "Lekka skrytka stalowej mocy||rarity=legendary" }
+        ],
+        "Gnom Figlid": [
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice942.gif", stats: "Potęga wielkiego Figlida||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/but/buty917.gif", stats: "Kamasze gnomiego honoru||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/pie/piescien1233.gif", stats: "Okazała gnomijagoda||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_03.gif", stats: "Lekka skrytka mocy||rarity=legendary" }
+        ],
+        "Kambion": [
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/but/buty966.gif", stats: "Stalowe zmiażdżenie||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/but/buty967.gif", stats: "Miękkie racice bandyty||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/but/buty968.gif", stats: "Kopyta demonicznej manifestacji||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_03.gif", stats: "Skrytka elektrycznej mocy||rarity=legendary" }
+        ],
+        "Jertek Moxos": [
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/pie/pierscien980.gif", stats: "Krwawy płomień bluźnierstwa||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm937.gif", stats: "Karminowe opętanie||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/pie/pierscien981.gif", stats: "Ozdoba fałszywego bożka||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_02.gif", stats: "Skrytka ognistej mocy||rarity=legendary" }
+        ],
+        "Miłośnik łowców": [
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice1006.gif", stats: "Łapka w górę||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/pie/pierscien1332.gif", stats: "Symbol uwielbienia łowców||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_05.gif", stats: "Skrytka jadowej mocy||rarity=legendary" }
+        ],
+        "Miłośnik rycerzy": [
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm959.gif", stats: "Cuchnąca przyłbica miłośnika||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/pie/pierscien1334.gif", stats: "Symbol uwielbienia rycerzy||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_04.gif", stats: "Skrytka stalowej mocy||rarity=legendary" }
+        ],
+        "Miłośnik magii": [
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm958.gif", stats: "Zaczarowane bryle||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/pie/pierscien1333.gif", stats: "Symbol uwielbienia magii||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_01.gif", stats: "Skrytka lodowej mocy||rarity=legendary" }
+        ],
+        "Łowca czaszek": [
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice1008.gif", stats: "Pięści uderzających meteorytów||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice1007.gif", stats: "Pazury wiecznej ekshumacji||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/naszyjnik984.gif", stats: "Zasuszona twarz ożywieńca||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_02.gif", stats: "Skrytka ognistej mocy||rarity=legendary" }
+        ],
+        "Ozirus Władca Hieroglifów": [
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/but/buty760.gif", stats: "Obmierzłe cholewy Ozirusa||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/but/buty762.gif", stats: "Opieka Skarabeuszy||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/but/buty761.gif", stats: "Buty Króla Skorpiona||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_03.gif", stats: "Skrytka elektrycznej mocy||rarity=legendary" }
+        ],
+        "Morski potwór": [
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm983.gif", stats: "Tęczowa ośmiorniczka||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm1364.gif", stats: "Galaretowate ślepia||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm981.gif", stats: "Macki władzy||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_01.gif", stats: "Skrytka lodowej mocy||rarity=legendary" }
+        ],
+        "Krab pustelnik": [
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/sur/krab_craft_02.gif", stats: "Koralowy karapaks||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/sur/krab_craft_03.gif", stats: "Osłona pustelnika||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_05.gif", stats: "Skrytka jadowej mocy||rarity=legendary" }
+        ],
+        "Borgoros Garamir III": [
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice1218.gif", stats: "Okowy boskiego pochodzenia||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice1217.gif", stats: "Kajtany ziemi obiecanej||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice1216.gif", stats: "Klamry dziejotwórczego porozumienia||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_04.gif", stats: "Skrytka stalowej mocy||rarity=legendary" }
+        ],
+        "Stworzyciel": [
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/but/buty1109.gif", stats: "Cholewy z piaskowego czerwia||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/pie/pierscien1144.gif", stats: "Cacko wielkiego kreatora||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/pie/pierscien1143.gif", stats: "Miniaturowe szczęki Stworzyciela||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_01.gif", stats: "Skrytka lodowej mocy||rarity=legendary" }
+        ],
+        "Ifryt": [
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm970.gif", stats: "Korona Politraki||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/naszyjnik1011.gif", stats: "Formacja stygnącej lawy||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm1363.gif", stats: "Turban płonących języków||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_02.gif", stats: "Skrytka ognistej mocy||rarity=legendary" }
+        ],
+        "Henry Kaprawe Oko": [
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice1165.gif", stats: "Dostojne rękawy Henrego||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/pie/pierscien1080.gif", stats: "Pazur abordażowy||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/naszyjnik1025.gif", stats: "Duma Mackomordego||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_04.gif", stats: "Skrytka stalowej mocy||rarity=legendary" }
+        ],
+        "Helga Opiekunka Rumu": [
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/but/buty1042.gif", stats: "Ciężka stopa Helgi||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/but/buty1040.gif", stats: "Kozaki zza siedmiu mórz||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/naszyjnik1024.gif", stats: "Pijacka busola||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_03.gif", stats: "Skrytka elektrycznej mocy||rarity=legendary" }
+        ],
+        "Młody Jack Truciciel": [
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/naszyjnik1023.gif", stats: "Szczęśliwa Kotwica||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/but/buty1041.gif", stats: "Pneumatyczna noga Jacka||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice1164.gif", stats: "Złoty hak przyszłości||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_05.gif", stats: "Skrytka jadowej mocy||rarity=legendary" }
+        ],
+        "Eol": [
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm1073.gif", stats: "Szyszak czterech wiatrów||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm1071.gif", stats: "Przyłbica wojennych piasków||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm1072.gif", stats: "Chusta pustynnych koszmarów||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_01.gif", stats: "Skrytka lodowej mocy||rarity=legendary" }
+        ],
+        "Grubber Ochlaj": [
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/pie/pierscien993.gif", stats: "Nagroda najmocniejszej głowy||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/pie/pierscien991.gif", stats: "Oczko mistrza fermentacji||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/pie/pierscien992.gif", stats: "Błysk chmielowych szyszek||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_05.gif", stats: "Skrytka jadowej mocy||rarity=legendary" }
+        ],
+        "Mistrz Worundriel": [
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/naszyjnik1216.gif", stats: "Serowe wahadełko||rarity=heroic" }, 
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/but/buty1209.gif", stats: "Wytwór niemal doskonały||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_02.gif", stats: "Skrytka ognistej mocy||rarity=legendary" }
+        ],
+        "Wójt Fistuła": [
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice1240.gif", stats: "Łapy krótkiego rozumu||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice1239.gif", stats: "Pięści dobrostanu żony||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice1241.gif", stats: "Dłonie górskich wstrząsów||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_04.gif", stats: "Skrytka stalowej mocy||rarity=legendary" }
+        ],
+        "Teściowa Rumcajsa": [
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/pie/pierscien1157.gif", stats: "Obrączka matczynej miłości||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm1096.gif", stats: "Odświętny bibelot świekry||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm1095.gif", stats: "Prawdziwe oblicze teściowej||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_03.gif", stats: "Skrytka elektrycznej mocy||rarity=legendary" }
+        ],
+        "Berserker Amuno": [
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/but/buty1173.gif", stats: "Cholewy z zachodu||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/but/buty1208.gif", stats: "Podeszwy braterskiej więzi||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/but/buty1201.gif", stats: "Niezniszczalne trepy Amuno||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_01.gif", stats: "Skrytka lodowej mocy||rarity=legendary" }
+        ],
+        "Artenius": [
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_02.gif", stats: "Ciężka skrytka ognistej mocy||rarity=legendary" }
+        ],
+        "Furion": [
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_05.gif", stats: "Ciężka skrytka jadowej mocy||rarity=legendary" }
+        ],
+        "Zorin": [
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_04.gif", stats: "Ciężka skrytka stalowej mocy||rarity=legendary" }
+        ],
+        "Nymphemonia": [
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_01.gif", stats: "Ciężka skrytka lodowej mocy||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/naszyjnik700.gif", stats: "Skarb Królestwa Driad||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice711.gif", stats: "Palce wymuszonej symbiozy||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice712.gif", stats: "Szpony leśnego runa||rarity=legendary" }
+        ],
+        "Terrozaur": [
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_02.gif", stats: "Ciężka skrytka ognistej mocy||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice580.gif", stats: "Uścisk wirujących piasków||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice581.gif", stats: "Pancerna pięść wojownika Shaiharrud||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice579.gif", stats: "Szpony gadzik jeźdźców||rarity=legendary" }
+        ],
+        "Vaenra Charkhaam": [
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_03.gif", stats: "Ciężka skrytka elektrycznej mocy||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/naszyjnik447.gif", stats: "Klejnot świątynny||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/pie/pierscien197.gif", stats: "Kryształ w obrączce Vaenry||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/but/buty731.gif", stats: "Smocze Kroki||rarity=legendary" }
+        ],
+        "Chaegd Agnrakh": [
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_05.gif", stats: "Ciężka skrytka jadowej mocy||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/naszyjnik736.gif", stats: "Obroża Przeistoczenia||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/naszyj446.gif", stats: "Klejnot królewski||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/pie/pierscien201.gif", stats: "Kryształ w obrączce Agnrakha||rarity=legendary" }
+        ],
+        "Neferkar Set": [
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_03.gif", stats: "Ciężka skrytka elektrycznej mocy||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/but/set_but3.gif", stats: "Magia mrocznego Seta||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/but/set_but2.gif", stats: "Furia potężnego Seta||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/but/set_but1.gif", stats: "Niezłomność bezlitosnego Seta||rarity=legendary" }
+        ],
+        "Chopesz": [
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_04.gif", stats: "Ciężka skrytka stalowej mocy||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/but/buty514.gif", stats: "Lazur wód Wernoradu||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/but/buty515.gif", stats: "Bojowe obuwie Chopesza||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/but/buty516.gif", stats: "Skarb antycznych||rarity=legendary" }
+        ],
+        "Pogardliwa Sybilla": [
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/but/buty1423.gif", stats: "Wszechstronne obcasy Sybilli||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/but/buty1422.gif", stats: "Pantofle infiltracji umysłów||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/but/buty1421.gif", stats: "Buciory wiedźmiej potęgi||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_02.gif", stats: "Ciężka skrytka ognistej mocy||rarity=legendary" }
+        ],
+        "Wabicielka": [
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/pie/pierscien1375.gif", stats: "Zalążek Chaosu||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice1414.gif", stats: "Szałowe pazury Wabicielki||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice1413.gif", stats: "Dłoń władcy podziemi||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_04.gif", stats: "Ciężka skrytka stalowej mocy||rarity=legendary" }
+        ],
+        "Quetzalcoatl": [
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/but/buty1400.gif", stats: "Wyobrażenie Mictlantecuhtliego||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/but/buty1401.gif", stats: "Stąpanie Dwóch Słońc||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/but/buty1402.gif", stats: "Cholewy boskiego lśnienia||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_01.gif", stats: "Ciężka skrytka lodowej mocy||rarity=legendary" }
+        ],
+        "Yaotl": [
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm420.gif", stats: "Pozłacana podobizna bóstwa||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm419.gif", stats: "Płomienna maska kapłana||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm418.gif", stats: "Czaszka Huitzilopochtli||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_05.gif", stats: "Ciężka skrytka jadowej mocy||rarity=legendary" }
+        ],
+        "Cuaitl Citlalin": [
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/pie/pierscien1365.gif", stats: "Sygnet z kości konkwistadorów||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/pie/pierscien1366.gif", stats: "Ollin||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_02.gif", stats: "Ciężka skrytka ognistej mocy||rarity=legendary" }
+        ],
+        "Tolypeutes": [
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice1404.gif", stats: "Rękawice ze skóry Tolypeutesa||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice1402.gif", stats: "Mankiety obrońcy bogów||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice1403.gif", stats: "Gest Teomama||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_04.gif", stats: "Ciężka skrytka stalowej mocy||rarity=legendary" }
+        ],
+        "Dendroculus": [
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/but/buty1383.gif", stats: "Żywiczne korzonki||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/naszyjnik1342.gif", stats: "Oculus||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/but/buty1382.gif", stats: "Konarowce||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_05.gif", stats: "Ciężka skrytka jadowej mocy||rarity=legendary" }
+        ],
+        "Fangaj": [
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/naszyjnik1366.gif", stats: "Źródło grzybowej zarazy||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/naszyjnik1368.gif", stats: "Sznur psylocybków||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/naszyjnik1367.gif", stats: "Najbardziej wyjątkowy okaz||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_03.gif", stats: "Ciężka skrytka elektrycznej mocy||rarity=legendary" }
+        ],
+        "Mocny Maddoks": [
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm1452.gif", stats: "Stary Żabiec||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm1453.gif", stats: "Smakosz Ambrozji Maddoków||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm1451.gif", stats: "Genealogiczne Algi||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_01.gif", stats: "Ciężka skrytka lodowej mocy||rarity=legendary" }
+        ],
+        "Arytodam olbrzymi": [
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice1357.gif", stats: "Pokraczne łapy Arytodama||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice1356.gif", stats: "Klamry degradacji środowiska||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice1355.gif", stats: "Kajdany bagiennego bulgotania||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_01.gif", stats: "Ciężka skrytka lodowej mocy||rarity=legendary" }
+        ],
+        "Marlloth Malignitas": [
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm1441.gif", stats: "Wspomnienie sromotnej porażki||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/but/buty1333.gif", stats: "Stukot historii||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm1442.gif", stats: "Magazyn sił chaosu||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_02.gif", stats: "Ciężka skrytka ognistej mocy||rarity=legendary" }
+        ],
+        "Al'diphrin Ilythirahel": [
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/but/buty1342.gif", stats: "Podeszwy uzurpatora||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/but/buty1341.gif", stats: "Łup z Tass Zhil||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/but/buty1343.gif", stats: "Cholewy chwilowej ekscytacji||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_03.gif", stats: "Ciężka skrytka elektrycznej mocy||rarity=legendary" }
+        ],
+        "Arachniregina Colosseus": [
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice1343.gif", stats: "Stalowe pająki||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice1342.gif", stats: "Pięści zawodowego bohatera||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice1344.gif", stats: "Muśnięcie powiewających pajęczyn||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_05.gif", stats: "Ciężka skrytka jadowej mocy||rarity=legendary" }
+        ],
+        "Czempion Furboli": [
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/pie/pierscien1265.gif", stats: "Światło odstraszające pająki||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/naszyjnik1271.gif", stats: "Medalion doskonałości||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice1315.gif", stats: "Dziedzictwo linii czempionów||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_04.gif", stats: "Ciężka skrytka stalowej mocy||rarity=legendary" }
+        ],
+        "Zufulus Smakosz Serc": [
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm617.gif", stats: "Korona Wiecznej Gehenny||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm616.gif", stats: "Maska Smakosza Serc||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm615.gif", stats: "Diadem Tysiąca Świec||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_01.gif", stats: "Ciężka skrytka lodowej mocy||rarity=legendary" }
+        ],
+        "Gothardus Kolekcjoner Głów": [
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/but/buty679.gif", stats: "Powolny Puls Demona||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/pie/pierscien698.gif", stats: "Płomień Żywnej Wiary||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/pie/pierscien696.gif", stats: "Kościany Strażnik||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_04.gif", stats: "Ciężka skrytka stalowej mocy||rarity=legendary" }
+        ],
+        "Annaniel Wysysacz Marzeń": [
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/pie/pierscien699.gif", stats: "Szpon Bahaala||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/pie/pierscien695.gif", stats: "Ozdoba Piekielnego Portalu||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/tal/tal69.gif", stats: "Przenośny ołtarz Annaniela||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_02.gif", stats: "Ciężka skrytka ognistej mocy||rarity=legendary" }
+        ],
+        "Sataniel Skrytobójca": [
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice1316.gif", stats: "Szpon krwawych przesłuchań||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice1313.gif", stats: "Łańcuchy ujarzmiania demonów||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice1317.gif", stats: "Kryjówka demonicznych sugestii||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_05.gif", stats: "Ciężka skrytka jadowej mocy||rarity=legendary" }
+        ],
+        "Bergermona Krwawa Hrabina": [
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/pie/pierscien697.gif", stats: "Pierścień Mistrzyni Tortur||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm1404.gif", stats: "Nawiedzona chusta hrabiny||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/pie/pierscien694.gif", stats: "Dłoń Diabła||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_03.gif", stats: "Ciężka skrytka elektrycznej mocy||rarity=legendary" }
+        ],
+        "Sadolia Nadzorczyni Hurys": [
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/naszyjnik684.gif", stats: "Tchnienie Nagłej Grozy||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/naszyjnik683.gif", stats: "Podmuch Wiecznie Potępionych||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/naszyjnik682.gif", stats: "Piekielny Nietoperz||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_01.gif", stats: "Skrytka lodowej mocy||rarity=legendary" }
+        ],
+        "Mysiur Myświórowy Król": [
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/but/buty1221.gif", stats: "Szczurołapki||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/but/buty1223.gif", stats: "Pantofle opasłego gryzonia||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/but/buty1222.gif", stats: "Myświórowe kaprysy||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_02.gif", stats: "Skrytka ognistej mocy||rarity=legendary" }
+        ],
+        "Cerasus": [
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/naszyjnik1259.gif", stats: "Źródło leśnego mroku||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/but/buty1220.gif", stats: "Pnie wymuszonej symbiozy||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/but/buty1219.gif", stats: "Cholewy krwawego przebudzenia||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_05.gif", stats: "Skrytka jadowej mocy||rarity=legendary" }
+        ],
+        "Breheret Żelazny Łeb": [
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm1410.gif", stats: "Żelazna Twarz||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm1392.gif", stats: "Krwawa szczęka Valmira||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice1318.gif", stats: "Dekapitorki||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_04.gif", stats: "Skrytka stalowej mocy||rarity=legendary" }
+        ],
+        "Pięknotka Mięsożerna": [
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/pie/pierscien1263.gif", stats: "Wonne kwiecie dezynfekcji||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/pie/pierscien1262.gif", stats: "Trio mięsożernych pąków||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/pie/pierscien1264.gif", stats: "Piękno pełni rozkwitu||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_02.gif", stats: "Skrytka ognistej mocy||rarity=legendary" }
+        ],
+        "Toruńia Ankelwald": [
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/naszyjnik1272.gif", stats: "Złoty księżyc Ankelwaldów||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/naszyjnik722.gif", stats: "Osiem Nóg Fortuny||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/naszyjnik723.gif", stats: "Oko Opatrzności||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_03.gif", stats: "Skrytka elektrycznej mocy||rarity=legendary" }
+        ],
+        "Ogr Stalowy Pazur": [
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/pie/pierscien1246.gif", stats: "Stalowe pieścidełko||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm1382.gif", stats: "Hełm ogrzego szaleństwa||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/but/buty1218.gif", stats: "Buciory krwawego obłędu||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_01.gif", stats: "Skrytka lodowej mocy||rarity=legendary" }
+        ],
+        "Cantedewia": [
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/but/buty1224.gif", stats: "Bezszelestny chód mchów||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm1401.gif", stats: "Korona życiodajnych kalii||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/tal/tal109.gif", stats: "Święte kwiecie driad||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_05.gif", stats: "Skrytka jadowej mocy||rarity=legendary" }
+        ],
+        "Chryzoprenia": [
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/naszyjnik1264.gif", stats: "Pąk Wabiciel||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm1402.gif", stats: "Chryzantemowy diadem||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/but/buty1225.gif", stats: "Cholewy leśnej monarchii||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_03.gif", stats: "Skrytka elektrycznej mocy||rarity=legendary" }
+        ],
+        "Wrzosera": [
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/naszyjnik1270.gif", stats: "Wrzosowa plecionka driady||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/but/buty686.gif", stats: "Święta Dębina||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm1403.gif", stats: "Przyłbica pani wrzosowisk||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_04.gif", stats: "Skrytka stalowej mocy||rarity=legendary" }
+        ],
+        "Lusgrathera Królowa Pramatka": [
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/pie/pierscien638.gif", stats: "Ukryta potęga praorków||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/pie/pierscien637.gif", stats: "Królewski pierścień pramatki||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_02.gif", stats: "Skrytka ognistej mocy||rarity=legendary" }
+        ],
+        "Królowa Śniegu": [
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice1230.gif", stats: "Skostniałe paluchy monarchini||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice1231.gif", stats: "Uścisk nieskończonej śnieżycy||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice1314.gif", stats: "Nienawistny chwyt królowej||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_01.gif", stats: "Skrytka lodowej mocy||rarity=legendary" }
+        ],
+        "Ziuggrael Strażnik Królowej": [
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice644.gif", stats: "Rękawice ze smoczej skóry||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/naszyjnik635.gif", stats: "Naszyjnik Królewskiego Strażnika||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_04.gif", stats: "Skrytka stalowej mocy||rarity=legendary" }
+        ],
+        "Fursharag Pożeracz Umysłów": [
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/naszyjnik636.gif", stats: "Ozdoba Pożeracza Umysłów||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm564.gif", stats: "Esencja smoczej tężyzny||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_03.gif", stats: "Skrytka elektrycznej mocy||rarity=legendary" }
+        ],
+        "Bragarth Myśliwy Dusz": [
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/naszyjnik631.gif", stats: "Kolia Łowcy Dusz||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/pie/pierscien627.gif", stats: "Błysk smoczego oka||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_05.gif", stats: "Skrytka jadowej mocy||rarity=legendary" }
+        ],
+        "Duch Władcy Klanów": [
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm1348.gif", stats: "Przyłbica wielkiego zaszczytu||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm1349.gif", stats: "Odznaczenie smokobija||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm1350.gif", stats: "Maska orczej wyroczni||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_01.gif", stats: "Skrytka lodowej mocy||rarity=legendary" }
+        ],
+        "Burkog Lorulk": [
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice1259.gif", stats: "Wyraz olbrzymiej pogardy||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/but/buty1099.gif", stats: "Skarb praorczej dynastii||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice1208.gif", stats: "Odrąbana dłoń Burkoga||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_04.gif", stats: "Skrytka stalowej mocy||rarity=legendary" }
+        ],
+        "Sheba Orcza Szamanka": [
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/naszyjnik1199.gif", stats: "Źródło wielkiego nieszczęścia||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/pie/pierscien1198.gif", stats: "Przebudzone ślepie demona||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/pie/pierscien1199.gif", stats: "Miniaturowy portal||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_02.gif", stats: "Skrytka ognistej mocy||rarity=legendary" }
+        ],
+        "Adariel": [
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/naszyjnik1194.gif", stats: "Wiedźmi łapacz snów||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/naszyjnik1242.gif", stats: "Pieczęć czarnej magii||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/naszyjnik1193.gif", stats: "Ampułka brzydoty||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_03.gif", stats: "Skrytka elektrycznej mocy||rarity=legendary" }
+        ],
+        "Goons Asterus": [
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm1352.gif", stats: "System celowniczy Asterusa||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/but/buty1185.gif", stats: "Goblińskie ustrojstwo||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/torba53.gif", stats: "Wielofunkcyjna torba goblina||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_05.gif", stats: "Skrytka jadowej mocy||rarity=legendary" }
+        ],
+        "Fodug Zolash": [
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/pie/pierscien1209.gif", stats: "Sygnet łaski i zawahania||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/pie/pierscien1208.gif", stats: "Pieczęć pana twierdzy||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice1274.gif", stats: "Krwawe dyrygentki||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_02.gif", stats: "Skrytka ognistej mocy||rarity=legendary" }
+        ],
+        "Mushita": [
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/pie/pierscien361.gif", stats: "Nimb emanującego kła||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_01.gif", stats: "Lekka skrytka lodowej mocy||rarity=legendary" }
+        ],
+        "Kotołak Tropiciel": [
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm721.gif", stats: "Maska dziewięciu żywotów||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm720.gif", stats: "Kamuflaż przyczajonego kocura||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm719.gif", stats: "Kask wiedźmiego chowańca||rarity=legendary" }
+        ],
+        "Shae Phu": [
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/naszyjnik1243.gif", stats: "Czaszka Przeznaczenia||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_02.gif.gif", stats: "Lekka skrytka fizycznej mocy||rarity=legendary" }
+        ],
+        "Zorg Trójoki": [
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_04.gif.gif", stats: "Skrytka mocy ognia||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/pie/pierscien1198.gif", stats: "Przekleństwo morskiego oka||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/pie/pierscien1199.gif", stats: "Pierścień trójokiego potwora||rarity=legendary" }
+        ],
+        "Władca Rzek": [
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/pie/pierscien836.gif", stats: "Studnia Życzeń||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/pie/pierscien837.gif", stats: "Klejnot Wielkich Jezior||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/pie/pierscien835.gif", stats: "Rzeka Marzeń||rarity=legendary" }
+        ],
+        "Gobbos": [
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/naszyjnik812.gif", stats: "Element Mroku||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/naszyjnik813.gif", stats: "Dusza Światła||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hat/maska5.gif", stats: "Maska Akumu||rarity=legendary" }
+        ],
+        "Tyrtajos": [
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice828.gif", stats: "Naramienniki przywódcy watahy||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice827.gif", stats: "Chrumkająca ozdoba dzika||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/but/buty842.gif", stats: "Dzikie ryjki||rarity=legendary" }
+        ],
+        "Szczet alias Gładki": [
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/naszyjnik414.gif", stats: "Zbójeckie złotko||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/but/buty852.gif", stats: "Towar pierwszej klasy||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/mug_mask01.gif", stats: "Maska złodzieja||rarity=legendary" }
+        ],
+        "Tollok Shimager": [
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/pie/pierscien856.gif", stats: "Sygnet przyzwania nietoperzy||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/pie/pierscien855.gif", stats: "Błękitna duma tolloka||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/pie/pierscien857.gif", stats: "Nasiono burzy||rarity=legendary" }
+        ],
+        "Razuglag Oklash": [
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm773.gif", stats: "Maska mrocznego sługi||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm362.gif", stats: "Kaptur Magii Początku||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/pie/pierscien1234.gif", stats: "Zaklęty płomień||rarity=legendary" }
+        ],
+        "Agar": [
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/neu/gal_l-naszyj.gif", stats: "Plugawe przekleństwo wiedźmy||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/neu/gal_l-naszyj3.gif", stats: "Splamiona kapitańska obręcz||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/neu/gal_l-naszyj2.gif", stats: "Sprofanowany rdzeń świadomości||rarity=legendary" }
+        ],
+        "Foverk Turrim": [
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/naszyjnik871.gif", stats: "Klejnot Turrimu||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/naszyjnik870.gif", stats: "Rozłupana czaszka Foverka||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/but/buty99.gif", stats: "Skradzione chodaki Jana||rarity=legendary" }
+        ],
+        "Owadzia Matka": [
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice815.gif", stats: "Paskudzące żądła Matki||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice817.gif", stats: "Bransolety lakowego terroru||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice816.gif", stats: "Objęcia propolisu||rarity=legendary" }
+        ],
+        "Vari Kruger": [
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/pie/piersc94.gif", stats: "Sygnet szmaragdowej potęgi||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/pie/pierscien1331.gif", stats: "Klejnot ognistej pożogi||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/tal/tal112.gif", stats: "Zweglona maska gnolla||rarity=legendary" }
+        ],
+        "Furruk Kozug": [
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm1469.gif", stats: "Przyłbica filtracyjna||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm662.gif", stats: "Futrzana czapa szaleńca||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice1377.gif", stats: "Klamry przewrotowca||rarity=legendary" }
+        ],
+        "Fodug Zolash": [
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/pie/pierscien1209.gif", stats: "Sygnet łaski i zawahania||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/pie/pierscien1208.gif", stats: "Pieczęć pana twierdzy||rarity=legendary" },
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice1274.gif", stats: "Krwawe dyrygentki||rarity=legendary" }
+        ]
     };
 
-function escapeHtml(text) { return text ? text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;") : ""; }
+    // Funkcja aktualizująca listę przeciwników w zależności od wybranej kategorii (Herosi/E2)
+    window.updateSourceList = function() {
+        const category = document.getElementById('sourceCategory').value;
+        const sourceSelect = document.getElementById('itemSource');
+        sourceSelect.innerHTML = '<option value="">-- Wybierz Przeciwnika --</option>';
+        if (category && monstersList[category]) {
+            monstersList[category].forEach(mob => {
+                let opt = document.createElement('option');
+                opt.value = mob.name; 
+                opt.dataset.img = mob.img; 
+                opt.innerText = mob.name;
+                sourceSelect.appendChild(opt);
+            });
+        }
+        document.getElementById('itemSelect').style.display = 'none';
+        document.getElementById('livePreview').style.display = 'none';
+    };
 
-    window.setFilter = (type, val) => {
-        if (type === 'cat' && currentFilters.cat === val) currentFilters.cat = 'all';
-        else currentFilters[type] = val;
+    // Funkcja ładująca listę przedmiotów po wyborze przeciwnika
+    window.updateLootList = function() {
+        const heroName = document.getElementById('itemSource').value;
+        const itemSelect = document.getElementById('itemSelect');
+        itemSelect.innerHTML = '<option value="">-- Wybierz przedmiot legendarny --</option>'; 
         
-        document.querySelectorAll('.filter-btn').forEach(b => {
-            const id = b.id.replace('f-', '');
-            if (type === 'type' && ['all','sprzedam','kupie'].includes(id)) b.classList.toggle('active', id === currentFilters.type);
-            if (type === 'cat' && ['herosi','e2'].includes(id)) b.classList.toggle('active', id === currentFilters.cat);
-        });
-        window.renderOffers();
+        if (heroName && lootTable[heroName]) {
+            itemSelect.style.display = 'block'; 
+            lootTable[heroName].forEach(item => {
+                let opt = document.createElement('option');
+                opt.value = JSON.stringify(item); 
+                opt.innerText = item.stats.split('||')[0];
+                itemSelect.appendChild(opt);
+            });
+        } else { 
+            itemSelect.style.display = 'none'; 
+        }
     };
 
-    window.updateSourceList = () => {
-        const cat = document.getElementById('sourceCategory').value;
-        const sel = document.getElementById('itemSource');
-        const search = document.getElementById('sourceSearch');
-        if(!cat) { search.style.display = 'none'; return; }
-        search.style.display = 'block';
-        sel.innerHTML = '<option value="">-- Przeciwnik --</option>';
-        monstersList[cat].filter(m => m.name.toLowerCase().includes(search.value.toLowerCase())).forEach(m => {
-            let o = document.createElement('option'); o.value = m.name; o.dataset.img = m.img; o.innerText = m.name; sel.appendChild(o);
-        });
-    };
+    // Wypełnianie pól formularza po wyborze przedmiotu
+    window.fillItemDetails = function() {
+        const selectedValue = document.getElementById('itemSelect').value;
+        if (!selectedValue) return;
 
-    window.updateLootList = () => {
-        const src = document.getElementById('itemSource').value;
-        const sel = document.getElementById('itemSelect');
-        const search = document.getElementById('itemSearch');
-        if(!src || !lootTable[src]) { search.style.display = 'none'; sel.style.display = 'none'; return; }
-        search.style.display = 'block'; sel.style.display = 'block';
-        sel.innerHTML = '<option value="">-- Przedmiot --</option>';
-        lootTable[src].filter(i => i.stats.split('||')[0].toLowerCase().includes(search.value.toLowerCase())).forEach(i => {
-            let o = document.createElement('option'); o.value = JSON.stringify(i); o.innerText = i.stats.split('||')[0]; sel.appendChild(o);
-        });
-    };
+        const itemData = JSON.parse(selectedValue);
+        const namePart = itemData.stats.split('||')[0];
+        const statsPart = itemData.stats.split('||')[1] || "";
 
-    window.fillItemDetails = () => {
-        const val = document.getElementById('itemSelect').value;
-        if(!val) return;
-        const data = JSON.parse(val);
-        const name = data.stats.split('||')[0];
-        document.getElementById('itemName').value = name;
-        document.getElementById('itemImg').value = data.img;
+        document.getElementById('itemName').value = namePart;
+        document.getElementById('itemImg').value = itemData.img;
+
+        // Podgląd na żywo
         document.getElementById('livePreview').style.display = 'flex';
-        document.getElementById('previewIcon').src = data.img;
-        document.getElementById('previewName').innerText = name;
-        const statsPart = data.stats.split('||')[1];
-        if (statsPart && statsPart.includes('opis=')) {
-            document.getElementById('itemDesc').value = statsPart.split('opis=')[1].split(';')[0].replaceAll('[br]', '\n');
-        } else { document.getElementById('itemDesc').value = ""; }
+        document.getElementById('previewIcon').src = itemData.img;
+        document.getElementById('previewName').innerText = namePart;
+
+        // Wyciąganie opisu
+        let description = "";
+        if (statsPart.includes('opis=')) {
+            description = statsPart.split('opis=')[1].split(';')[0].replaceAll('[br]', '\n');
+        }
+        document.getElementById('itemDesc').value = description;
+        updateCharCount();
     };
 
+    window.updateCharCount = function() {
+        const val = document.getElementById('itemDesc').value.length;
+        document.getElementById('charCount').innerText = val + "/150";
+    };
+
+    // Obsługa logowania i stanów użytkownika
     onAuthStateChanged(auth, async (user) => {
         currentUser = user;
-        if(user) {
-            const ref = doc(db, "users", user.uid);
-            const snap = await getDoc(ref);
-            if(snap.exists()) currentNick = snap.data().nick;
-            else {
-                let n = prompt("Podaj swój nick z gry:");
-                if(n && n.trim()) { currentNick = n.trim(); await setDoc(ref, {nick:currentNick}); } else { await signOut(auth); return; }
+        if (user) {
+            const userRef = doc(db, "users", user.uid);
+            const userSnap = await getDoc(userRef);
+
+            if (userSnap.exists()) {
+                currentNick = userSnap.data().nick;
+            } else {
+                let nick = prompt("Podaj swój nick z gry:");
+                if(nick && nick.trim()) {
+                    currentNick = nick.trim();
+                    await setDoc(userRef, { nick: currentNick });
+                } else {
+                    logout(); return;
+                }
             }
-            document.getElementById('googleLoginBtn').style.setProperty('display', 'none', 'important');
+            document.getElementById('googleLoginBtn').style.display = 'none';
             document.getElementById('userProfile').style.display = 'flex';
             document.getElementById('addOfferPanel').style.display = 'block';
             document.getElementById('userNickDisplay').innerText = currentNick;
             document.getElementById('userAvatar').src = user.photoURL;
         } else {
-            document.getElementById('googleLoginBtn').style.setProperty('display', 'flex', 'important');
+            document.getElementById('googleLoginBtn').style.display = 'flex';
             document.getElementById('userProfile').style.display = 'none';
             document.getElementById('addOfferPanel').style.display = 'none';
+            currentNick = null;
         }
-        window.renderOffers();
+        renderOffers();
     });
 
-    window.renderOffers = () => {
+    window.searchMargo = () => {
+        const name = document.getElementById('itemName').value;
+        window.open(`https://margoworld.pl/item?name=${encodeURIComponent(name)}&minLvl=&maxLvl=&cl=`, '_blank');
+    };
+
+    window.addOffer = async () => {
+        if (!currentUser) return alert("Zaloguj się!");
+        
+        const type = document.getElementById('offerType').value;
+        const name = escapeHtml(document.getElementById('itemName').value);
+        const price = escapeHtml(document.getElementById('itemPrice').value);
+        const desc = escapeHtml(document.getElementById('itemDesc').value);
+        const img = escapeHtml(document.getElementById('itemImg').value);
+
+        const sel = document.getElementById('itemSource');
+        const sourceName = sel.value; 
+        const sourceImg = sel.selectedIndex > 0 ? sel.options[sel.selectedIndex].dataset.img : "";
+
+        if(!name || !price) return alert("Brakuje nazwy lub ceny!");
+
+        try {
+            await addDoc(collection(db, "oferty"), {
+                userId: currentUser.uid, nick: currentNick, avatar: currentUser.photoURL,
+                type, name, price, source: sourceName, sourceImg: sourceImg, desc, img,
+                date: new Date().toISOString()
+            });
+            location.reload();
+        } catch(e) { alert("Błąd: " + e.message); }
+    };
+
+    window.deleteOffer = async (id) => {
+        if(confirm("Czy na pewno usunąć?")) await deleteDoc(doc(db, "oferty", id));
+    };
+
+    window.copyNick = (nick) => {
+        navigator.clipboard.writeText(`/t ${nick} `).then(() => alert("Skopiowano nick!"));
+    };
+
+    window.logout = () => signOut(auth);
+
+    // Pobieranie ofert w czasie rzeczywistym
+    onSnapshot(query(collection(db, "oferty"), orderBy("date", "desc")), (snapshot) => {
+        allOffers = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        renderOffers();
+    });
+
+    function renderOffers() {
         const list = document.getElementById('offersList');
-        const searchInput = document.getElementById('globalSearch');
-        const searchStr = searchInput ? searchInput.value.toLowerCase().trim() : "";
         list.innerHTML = "";
-        let count = 0;
-
+        
         allOffers.forEach(data => {
-            // SPRAWDZANIE KATEGORII (Heros / E2)
-            const isHeros = monstersList.herosi.some(m => m.name === data.source);
-            const isE2 = monstersList.e2.some(m => m.name === data.source);
-            
-            if(currentFilters.type !== 'all' && data.type !== currentFilters.type) return;
-            if(currentFilters.cat === 'herosi' && !isHeros) return;
-            if(currentFilters.cat === 'e2' && !isE2) return;
-            if(!data.name.toLowerCase().includes(searchStr)) return;
+            if (currentFilter !== 'all' && data.type !== currentFilter) return;
 
-            count++;
-            const isOwner = currentUser && data.userId === currentUser.uid;
-            const isAdmin = currentNick === ADMIN_NICK;
-            let resHtml = data.reservedBy ? `<div class="reservation-box">🔒 Zarezerwowane przez: <b>${data.reservedBy}</b></div>` : "";
-            let btnRes = !data.reservedBy ? `<button class="small-btn reserve-btn" onclick="reserveOffer('${data.id}')">ZAREZERWUJ</button>` : (isOwner || isAdmin ? `<button class="small-btn unreserve-btn" onclick="cancelReservation('${data.id}')">COFNIJ REZ.</button>` : "");
-            
+            const isAdmin = (currentNick === ADMIN_NICK);
+            const isOwner = currentUser && (data.userId === currentUser.uid);
+
+            let deleteBtn = "";
+            if (isOwner || isAdmin) {
+                let btnClass = (isAdmin && !isOwner) ? "delete-btn admin-delete-btn" : "delete-btn";
+                let label = (isAdmin && !isOwner) ? "USUŃ (Admin)" : "✕";
+                deleteBtn = `<button class="${btnClass}" onclick="deleteOffer('${data.id}')">${label}</button>`;
+            }
+
+            let imgHtml = "";
+            if (isValidImageUrl(data.img)) {
+                imgHtml = `<img src="${escapeHtml(data.img)}" class="item-img" onerror="this.style.display='none'">`;
+            } else if (data.img) {
+                imgHtml = `<span style="float:right; font-size:20px;" title="Błędny format">⚠️</span>`;
+            }
+
             list.innerHTML += `
                 <div class="offer-card legendary-item">
-                    <div class="card-header">
-                        <div class="tag ${data.type}">${data.type.toUpperCase()}</div>
-                        <div class="item-title">${escapeHtml(data.name)}</div>
-                        ${window.isValidImageUrl(data.img) ? `<img src="${data.img}" class="item-img">` : ""}
+                    ${deleteBtn}
+                    <div class="tag ${data.type}">${data.type.toUpperCase()}</div>
+                    ${imgHtml}
+                    <div style="font-size:1.1em; font-weight:bold; margin-bottom:5px;">${escapeHtml(data.name)}</div>
+                    <div class="item-source">
+                        ${data.sourceImg ? `<img src="${data.sourceImg}">` : ""} 
+                        <span>${escapeHtml(data.source)}</span>
                     </div>
-                    <div class="item-source"><img src="${data.sourceImg}"> <span>${data.source}</span></div>
-                    <div class="price-tag">Cena: <span>${escapeHtml(data.price)}</span></div>
-                    ${resHtml}
-                    <div style="color:#aaa; font-size:0.85em; margin:10px 0; font-style:italic;" class="item-description">
-                        ${escapeHtml(data.desc)}
-                    </div>
+                    <div style="color:var(--gold); margin-bottom:10px;">Cena: ${escapeHtml(data.price)}</div>
+                    <div style="color:#aaa; font-size:0.9em; margin-bottom:15px; font-style:italic;">${escapeHtml(data.desc)}</div>
                     <div class="seller-info">
-                        <div class="seller-left"><img src="${data.avatar}" class="tiny-avatar"><b>${escapeHtml(data.nick)}</b></div>
-                        <div class="btn-group">
-                            ${btnRes}
-                            ${isOwner ? `<button class="small-btn edit-added" onclick="openFullEdit('${data.id}','${escapeHtml(data.name)}','${escapeHtml(data.price)}','${escapeHtml(data.desc)}','${escapeHtml(data.img)}')">EDYTUJ</button>` : ""}
-                            ${isOwner || isAdmin ? `<button class="small-btn delete-btn" onclick="deleteOffer('${data.id}')">✕</button>` : ""}
+                        <div class="seller-left">
+                            <img src="${data.avatar}" class="tiny-avatar"> 
+                            <b>${escapeHtml(data.nick)}</b>
+                            <button class="copy-nick-btn" onclick="copyNick('${data.nick}')">✉️</button>
                         </div>
                     </div>
                 </div>`;
         });
-        document.getElementById('offerStats').innerText = `Widocznych ofert: ${count}`;
-    };
+    }
 
-    window.addOffer = async () => {
-        const sel = document.getElementById('itemSource');
-        if(!sel.value) return alert("Wybierz przeciwnika!");
-        await addDoc(collection(db, "oferty"), {
-            userId: currentUser.uid, nick: currentNick, avatar: currentUser.photoURL,
-            type: document.getElementById('offerType').value,
-            name: document.getElementById('itemName').value,
-            price: document.getElementById('itemPrice').value,
-            source: sel.value, sourceImg: sel.options[sel.selectedIndex].dataset.img,
-            desc: document.getElementById('itemDesc').value,
-            img: document.getElementById('itemImg').value,
-            date: new Date().toISOString(), reservedBy: null
+    window.filterOffers = (type) => {
+        currentFilter = type;
+        document.querySelectorAll('.filter-btn').forEach(b => {
+            b.classList.toggle('active', b.innerText.toLowerCase() === type || (type === 'all' && b.innerText === 'Wszystkie'));
         });
-        location.reload();
+        renderOffers();
     };
-
-    window.reserveOffer = async (id) => { if(!currentNick) return alert("Zaloguj się!"); await updateDoc(doc(db, "oferty", id), { reservedBy: currentNick }); };
-    window.cancelReservation = async (id) => { await updateDoc(doc(db, "oferty", id), { reservedBy: null }); };
-    window.deleteOffer = async (id) => { if(confirm("Usunąć?")) await deleteDoc(doc(db, "oferty", id)); };
-    window.logout = () => signOut(auth);
-    window.searchMargo = () => window.open(`https://margoworld.pl/item?name=${encodeURIComponent(document.getElementById('itemName').value)}`);
-    window.openFullEdit = (id, n, p, d, i) => { currentEditId = id; document.getElementById('fullEditName').value=n; document.getElementById('fullEditPrice').value=p; document.getElementById('fullEditDesc').value=d; document.getElementById('fullEditImg').value=i; document.getElementById('editModal').style.display='flex'; };
-    window.closeFullEdit = () => document.getElementById('editModal').style.display='none';
-    window.confirmFullEdit = async () => { await updateDoc(doc(db, "oferty", currentEditId), { name: document.getElementById('fullEditName').value, price: document.getElementById('fullEditPrice').value, desc: document.getElementById('fullEditDesc').value, img: document.getElementById('fullEditImg').value }); window.closeFullEdit(); };
-    window.updateCharCount = () => {};
-
-    onSnapshot(query(collection(db, "oferty"), orderBy("date", "desc")), (snap) => {
-        allOffers = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-        window.renderOffers();
-    });
 </script>
 </body>
 </html>
-
