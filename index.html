@@ -135,6 +135,22 @@
         }
         .delete-btn:hover { background: var(--red); color: #fff; }
         .admin-delete-btn { width: auto; padding: 0 10px; background: #500; color: #fff; }
+
+        /* NOWY STYL PREVIEW */
+        .preview-box {
+            grid-column: 1 / -1;
+            display: none;
+            align-items: center;
+            gap: 20px;
+            background: linear-gradient(to right, #251f00, #1a1a1a);
+            border: 2px solid var(--gold);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 10px 0;
+            box-shadow: inset 0 0 15px rgba(255, 215, 0, 0.2);
+        }
+        .preview-text { font-size: 1.1em; color: var(--gold); font-family: 'MedievalSharp'; }
+        .preview-label { color: #888; font-size: 0.7em; letter-spacing: 1px; }
     </style>
 </head>
 <body>
@@ -176,11 +192,11 @@
             
             <select id="sourceCategory" class="full-width" onchange="updateSourceList()">
                 <option value="">-- Wybierz Kategorię Przeciwnika --</option>
-                <option value="herosi">Herosi (Wszyscy)</option>
-                <option value="e2">Elity II (Pełna Baza)</option>
+                <option value="herosi">Herosi</option>
+                <option value="e2">Elity II</option>
             </select>
 
-            <input type="text" id="sourceSearch" class="full-width search-box" placeholder="🔍 Szukaj przeciwnika na liście..." oninput="updateSourceList()" style="display:none;">
+            <input type="text" id="sourceSearch" class="full-width search-box" placeholder="🔍 Szukaj przeciwnika..." oninput="updateSourceList()" style="display:none;">
 
             <select id="itemSource" class="full-width" onchange="updateLootList()">
                 <option value="">-- Wybierz konkretną E2 / Herosa --</option>
@@ -193,9 +209,9 @@
             </select>
 
             <div id="livePreview" class="preview-box">
-                <img id="previewIcon" src="" alt="">
+                <img id="previewIcon" src="" alt="" style="width:50px; height:50px; filter: drop-shadow(0 0 5px gold);">
                 <div>
-                    <span class="preview-label">Wybrany artefakt:</span>
+                    <span class="preview-label">Wybrany artefakt:</span><br>
                     <span id="previewName" class="preview-text">...</span>
                 </div>
             </div>
@@ -205,9 +221,9 @@
                 <button class="helper-btn" onclick="searchMargo()" title="Sprawdź w MargoWorld">🔍</button>
             </div>
 
-            <input type="text" id="itemImg" placeholder="Link do obrazka przedmiotu (automatyczny)" class="full-width">
+            <input type="text" id="itemImg" placeholder="Link do obrazka" class="full-width">
             
-            <textarea id="itemDesc" placeholder="Dodatkowy opis lub statystyki..." class="full-width" maxlength="150" oninput="updateCharCount()" rows="3"></textarea>
+            <textarea id="itemDesc" placeholder="Dodatkowy opis..." class="full-width" maxlength="150" oninput="updateCharCount()" rows="3"></textarea>
             <div id="charCount" class="char-counter full-width">0/150</div>
             
             <button class="action-btn full-width" onclick="addOffer()">Opublikuj ogłoszenie</button>
@@ -1196,7 +1212,7 @@
         ]
     };
 
-  window.updateSourceList = function() {
+ window.updateSourceList = function() {
         const category = document.getElementById('sourceCategory').value;
         const sourceSearch = document.getElementById('sourceSearch');
         const sourceSelect = document.getElementById('itemSource');
@@ -1213,7 +1229,6 @@
             });
         } else {
             sourceSearch.style.display = 'none';
-            sourceSelect.innerHTML = '<option value="">-- Wybierz Przeciwnika --</option>';
         }
         document.getElementById('itemSelect').style.display = 'none';
         document.getElementById('itemSearch').style.display = 'none';
@@ -1270,11 +1285,14 @@
         if (user) {
             const userRef = doc(db, "users", user.uid);
             const userSnap = await getDoc(userRef);
-            if (userSnap.exists()) { currentNick = userSnap.data().nick; }
-            else {
-                let nick = prompt("Nick z gry:");
-                if(nick && nick.trim()) { currentNick = nick.trim(); await setDoc(userRef, { nick: currentNick }); }
-                else { logout(); return; }
+            if (userSnap.exists()) {
+                currentNick = userSnap.data().nick;
+            } else {
+                let nick = prompt("Podaj swój nick z gry:");
+                if(nick && nick.trim()) {
+                    currentNick = nick.trim();
+                    await setDoc(userRef, { nick: currentNick });
+                } else { logout(); return; }
             }
             document.getElementById('googleLoginBtn').style.display = 'none';
             document.getElementById('userProfile').style.display = 'flex';
@@ -1300,7 +1318,7 @@
         const img = escapeHtml(document.getElementById('itemImg').value);
         const sel = document.getElementById('itemSource');
         const sourceName = sel.value; 
-        const sourceImg = sel.selectedIndex >= 0 ? sel.options[sel.selectedIndex].dataset.img : "";
+        const sourceImg = sel.selectedIndex >= 0 && sel.options[sel.selectedIndex] ? sel.options[sel.selectedIndex].dataset.img : "";
         if(!name || !price) return alert("Brakuje nazwy lub ceny!");
         try {
             await addDoc(collection(db, "oferty"), {
