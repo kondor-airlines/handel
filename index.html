@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Targowisko Klanowe v8.0</title>
+    <title>Targowisko Klanowe v9.0</title>
     <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -212,7 +212,7 @@
     let allOffers = [];
     let currentFilter = 'all';
 
-    // --- BAZA HEROSÓW (DANE Z TWOJEJ LISTY) ---
+    // --- BAZA HEROSÓW (POPRAWIONE NAZWY PLIKÓW I HTTPS) ---
     const monstersList = [
         { name: "Domina Ecclesiae (21 lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/her/domina.gif" },
         { name: "Mietek Żul (25 lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/mas/mietek_zul.gif" },
@@ -230,7 +230,7 @@
         { name: "Baca bez łowiec (144 lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/her/baca.gif" },
         { name: "Czarująca Atalia (157 lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/her/atalia.gif" },
         { name: "Obłąkany Łowca Orków (165 lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/her/lowca_orkow.gif" },
-        { name: "Lichwiarz Grauhaz (177 lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/wt/k_grauhaz.gif" },
+        { name: "Lichwiarz Grauhaz (177 lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/her/lichwiarz_grauhaz.gif" },
         { name: "Viviana Nandin (185 lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/her/viviana.gif" },
         { name: "Przeraza (194 lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/her/przeraza.gif" },
         { name: "Demonis Pan Nicości (205 lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/e2/demonis.gif" },
@@ -247,7 +247,7 @@
     const sourceSelect = document.getElementById('itemSource');
     monstersList.forEach(mob => {
         let opt = document.createElement('option');
-        opt.value = mob.name; // Zapisze całą nazwę z levelem, np "Mietek Żul (25 lvl)"
+        opt.value = mob.name; 
         opt.dataset.img = mob.img; 
         opt.innerText = mob.name;
         sourceSelect.appendChild(opt);
