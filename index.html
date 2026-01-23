@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Targowisko Klanowe v12.0</title>
+    <title>Targowisko Klanowe v13.0</title>
     <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -67,13 +67,20 @@
             padding: 10px; border-radius: 5px; width: 100%; box-sizing: border-box;
         }
         
-        select#itemSource {
+        select {
             color: var(--gold);
             border: 1px solid var(--purple);
             background: #151515;
             cursor: pointer;
         }
-        select#itemSource option { background: #000; color: #fff; padding: 5px; }
+        option { background: #000; color: #fff; padding: 5px; }
+
+        /* Specjalny styl dla listy przedmiotów */
+        #itemSelect {
+            border-color: var(--blue);
+            color: var(--blue);
+            display: none; /* Ukryty domyślnie */
+        }
 
         .action-btn {
             background: var(--gold); color: #000; border: none; padding: 12px;
@@ -98,27 +105,12 @@
 
         .item-img { width: 50px; height: 50px; float: right; object-fit: contain; }
         
-        /* STYL DLA HEROSA (POPRAWIONY) */
         .item-source { 
-            font-size: 0.9em; 
-            color: #d1a3ff; /* Jasny fiolet */
-            margin-bottom: 12px; 
-            font-weight: 600; 
-            display: flex; 
-            align-items: center; 
-            gap: 12px; 
-            background: rgba(155, 89, 182, 0.15); /* Tło */
-            padding: 8px; 
-            border-radius: 6px; 
-            border: 1px solid rgba(155, 89, 182, 0.3);
+            font-size: 0.9em; color: #d1a3ff; margin-bottom: 12px; font-weight: 600; 
+            display: flex; align-items: center; gap: 12px; background: rgba(155, 89, 182, 0.15);
+            padding: 8px; border-radius: 6px; border: 1px solid rgba(155, 89, 182, 0.3);
         }
-        
-        .item-source img {
-            height: 45px; /* DUŻY HEROS */
-            width: auto;
-            object-fit: contain;
-            filter: drop-shadow(0 0 2px rgba(0,0,0,0.5));
-        }
+        .item-source img { height: 45px; width: auto; object-fit: contain; filter: drop-shadow(0 0 2px rgba(0,0,0,0.5)); }
 
         .margo-link {
             display: inline-block; font-size: 0.8em; color: #3498db; text-decoration: none; border: 1px solid #3498db; padding: 2px 8px; border-radius: 4px; margin-bottom: 10px; transition: 0.3s;
@@ -136,7 +128,6 @@
         .copy-nick-btn:hover { color: var(--gold); border-color: var(--gold); }
 
         .time-ago { font-size: 0.75em; color: #666; }
-        
         .delete-btn {
             position: absolute; top: 10px; right: 10px;
             background: #333; color: #fff; border: none; cursor: pointer; font-size: 0.8em; padding: 2px 6px; border-radius: 3px;
@@ -180,18 +171,22 @@
             </select>
             <input type="text" id="itemPrice" placeholder="Cena (np. 50m)">
             
-            <select id="itemSource" class="full-width">
+            <select id="itemSource" class="full-width" onchange="updateLootList()">
                 <option value="">-- Wybierz Herosa/Tytana (Lista klanowa) --</option>
             </select>
 
+            <select id="itemSelect" class="full-width" onchange="fillItemDetails()">
+                <option value="">-- Wybierz przedmiot, który wypadł --</option>
+            </select>
+
             <div style="display:flex; gap:10px; align-items:center;" class="full-width">
-                <input type="text" id="itemName" placeholder="Nazwa przedmiotu (dokładna)" style="margin:0;">
+                <input type="text" id="itemName" placeholder="Nazwa przedmiotu (wpisz lub wybierz powyżej)" style="margin:0;">
                 <button class="helper-btn" onclick="searchMargo()" title="Pomocnik - otwiera wyszukiwarkę">🔍 Znajdź link</button>
             </div>
 
             <input type="text" id="itemMargoLink" placeholder="Link do statystyk (np. https://margoworld.pl/item/view/...)" class="full-width">
             <input type="text" id="itemImg" placeholder="Link do obrazka (opcjonalne)" class="full-width">
-            <textarea id="itemDesc" placeholder="Dodatkowy opis (ulepszenie, uwagi)" class="full-width"></textarea>
+            <textarea id="itemDesc" placeholder="Opis przedmiotu (automatyczny lub własny)" class="full-width"></textarea>
             
             <button class="action-btn full-width" onclick="addOffer()">OPUBLIKUJ</button>
         </div>
@@ -228,7 +223,8 @@
     let allOffers = [];
     let currentFilter = 'all';
 
-    // --- BAZA HEROSÓW ---
+    // --- BAZA DANYCH (HEROSI + PRZEDMIOTY) ---
+    // Klucz: Nazwa herosa z levels, Wartość: Lista przedmiotów (img, stats)
     const monstersList = [
         { name: "Domina Ecclesiae (21 lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/her/domina.gif" },
         { name: "Mietek Żul (25 lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/her/zulek.gif" },
@@ -252,14 +248,69 @@
         { name: "Demonis Pan Nicości (205 lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/her/sekta_demon_cz_s.gif" },
         { name: "Mulher Ma (214 lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/her/mulher_ma.gif" },
         { name: "Vapor Veneno (231 lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/her/joziniec_bagienny.gif" },
-        { name: "Dęborożec (244 lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/tyt/deborozec.gif" },
+        { name: "Dęborożec (244 lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/her/zwierz_kniei.gif" },
         { name: "Tepeyollotl (258 lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/her/tep_35ecb966.gif" },
         { name: "Widmo Triady (265 lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/her/trist2_widmo_triady.gif" },
         { name: "Negthotep Czarny Kapłan (271 lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/her/negthotep.gif" },
         { name: "Młody Smok (282 lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/her/smokbarb.gif" }
     ];
 
-    // Ładowanie listy
+    // Baza przedmiotów wyciągnięta z Twojego skryptu
+    const lootTable = {
+        "Domina Ecclesiae (21 lvl)": [
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/dom_szpila1.gif", stats: "Krótka szpilka władzy||ac=21;binds;da=14;evade=2;lvl=23;rarity=common"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/but/dom_buty2.gif", stats: "Jedwabne trzewiki despoty||absorb=35;absorbm=18;ac=16;act=4;binds;di=17;heal=31;lvl=23;rarity=common;reqp=mpt;reslight=8"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/kaf/dom_zbro2.gif", stats: "Szata panowania||absorb=118;absorbm=59;ac=53;act=4;binds;da=14;heal=40;lvl=23;manabon=4;rarity=common;reqp=mpt;reslight=8"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/but/dom_buty1.gif", stats: "Lekkie pantofle tyrana||ac=20;act=8;binds;da=14;evade=2;lvl=23;rarity=common;reqp=bhw;reslight=2"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/dom_naszyj1.gif", stats: "Codzienna harmonia||binds;crit=1;critmval=6;di=17;heal=40;lvl=23;rarity=common;reqp=mpt;sa=14;slow=15"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/pie/dom_pier1.gif", stats: "Zręczność skrytobójcy||acdmg=2;binds;crit=1;critval=6;da=14;lvl=23;rarity=common;reqp=bhw;sa=14"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/kaf/dom_zbro1.gif", stats: "Szata przewagi||ac=65;act=8;binds;hp=139;lvl=23;rarity=common;reqp=bhw;reslight=2;sa=14"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/dom_naszyj2.gif", stats: "Niezwykła zręczność||binds;crit=2;critval=6;evade=2;lowevade=2;lvl=23;rarity=common;reqp=bhw;sa=14"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/pie/dom_pier4.gif", stats: "Harmonia duszy||acdmg=2;binds;crit=1;critmval=6;da=14;lvl=23;rarity=common;reqp=mpt;sa=14"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/sur/smocza_runa1.gif", stats: "Smocza Runa||permbound;rarity=unique;runes=375"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/tal/dom_taliz.gif", stats: "Talizman o-mamori||afterheal=35,350;binds;lvl=20;rarity=unique;respred=23"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/dom_naszyj4.gif", stats: "Naszyjnik kapitulacji||binds;crit=3;da=20;heal=40;hp=139;lowevade=2;lvl=23;rarity=unique;sa=20"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/roz/dom_rozg.gif", stats: "Różdżka ognistej władzy||binds;da=14;fire=211;lvl=23;rarity=unique;reqp=m;resdmg=1;sa=14"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/arr/dom_strzal.gif", stats: "Strzały uległości||acdmg=3;binds;dz=28;lvl=22;pdmg=19;rarity=unique;reqp=ht;slow=14"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/dom_szpila2.gif", stats: "Długa szpilka przebiegłości||ac=28;act=1;binds;ds=17;hp=110;lowevade=2;lvl=23;rarity=unique;reqp=pw;reslight=4;sa=14"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/luk/dom_luk.gif", stats: "Łuk ognistego podporządkowania||binds;da=14;dmg=133,162;fire=150;lvl=23;pierce=20;rarity=unique;reqp=t;sa=14"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/dom_rece1.gif", stats: "Rękawice czynu||ac=19;binds;da=14;heal=30;lvl=23;rarity=unique;sa=14;slow=15"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/mie/dom_dwure.gif", stats: "Ciężki oręż pognębienia||acdmg=2;binds;da=14;dmg=332,406;lvl=23;rarity=unique;reqp=w;sa=14"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bro/dom_wachla.gif", stats: "Wachlarz kokieterii||binds;dmg=201,246;ds=17;evade=2;lvl=23;rarity=unique;reqp=b;sa=14"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/pap/dom_tp.gif", stats: "Magnetyczna dominacja||amount=1;cansplit=1;capacity=3;lvl=23;permbound;rarity=unique;teleport=1,28,77,Ithan"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/sur/smocza_runa2.gif", stats: "Smocza Runa||permbound;rarity=heroic;runes=750"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/kaf/dom_zbro3.gif", stats: "Szata niezwykłej dominacji||absorb=275;absorbm=138;ac=46;binds;da=14;heal=40;hp=139;lvl=23;manabon=8;rarity=heroic;reqp=m;resdmg=1;reslight=14;sa=14;slow=15"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/dom_szpila3.gif", stats: "Grzebyk twórczości||ac=31;binds;da=14;heal=31;hp=195;lowevade=2;lvl=23;rarity=heroic;sa=20"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/but/dom_buty3.gif", stats: "Trzewiki bezwzględności||ac=25;binds;da=14;evade=5;hp=108;lowevade=2;lvl=23;rarity=heroic;sa=20;slow=15"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/pie/dom_pier3.gif", stats: "Wzmocnienie stanowczości||binds;crit=3;da=25;evade=5;heal=40;lvl=23;rarity=heroic;reqp=hmt;sa=25;slow=15"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/pie/dom_pier2.gif", stats: "Siła spełnienia||acdmg=2;binds;crit=3;critval=12;da=14;hp=253;lowevade=2;lvl=23;rarity=heroic;reqp=bpw;sa=25"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/sur/smocza_runa3.gif", stats: "Smocza Runa||permbound;rarity=legendary;runes=2250"}
+        ],
+        "Mietek Żul (25 lvl)": [
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/kon/sur43.gif", stats: "Wino Mietka||amount=10;cansplit=0;leczy=50;lvl=18;rarity=common"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/but/zul_skarpety.gif", stats: "Skarpety Mietka||ac=24;binds;da=21;lvl=25;opis=Mietkowi będzie teraz zimno[br]w nogi bez tych skarpetek.;rarity=unique;sa=21"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/kaf/lachmany.gif", stats: "Płaszcz Mietka||ac=72;act=12;binds;da=14;evade=4;lvl=25;opis=Mietkowi bez tego płaszcza będzie[br]zimno w nocy.;rarity=unique;reqp=bht;resfrost=6;sa=27"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bro/tulipan.gif", stats: "Tulipan Mietka||binds;dmg=156,190;dz=18;lvl=25;rarity=unique;reqp=b;sa=21"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/pot/kubek.gif", stats: "Kubek Mietka||fullheal=25000;opis=Czuć alkoholem.;rarity=unique"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/neu/et_kielichokoc.gif", stats: "Kielich śliwkowy||amount=1;cansplit=1;capacity=3;opis=do Karczmy pod Fioletowym Kryształem p.1.[br][br]Niezmiernie wyborne wino z silnym aromatem aksamitnych śliwek.[br][br]13%;rarity=unique;teleport=63,2,9"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/neu/et_wino.gif", stats: "Wino owocowe||amount=1;cansplit=1;capacity=3;opis=do Karczmy pod posępnym Czerepem p.1.[br][br]Mało szlachetny trunek silnie zajeżdżający siarką.[br][br]9,5%;rarity=unique;teleport=41,14,3"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/neu/et_scherrywisn.gif", stats: "Cherry wiśniowe||amount=1;cansplit=1;capacity=3;opis=do Zajazdu Umbara p.1.[br][br]Nalewka 18%.;rarity=unique;teleport=553,1,10"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/neu/et_patyk.gif", stats: "Wino Patyk||amount=1;cansplit=1;capacity=3;opis=do Domu Schadzek p.1.[br][br]Owocowe, białe, słodkie.[br][br]13%;rarity=unique;teleport=164,10,3"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/neu/et_komand.gif", stats: "Komandos Strong||amount=1;cansplit=1;capacity=3;opis=do Knajpy pod Czarnym Tulipanem p.1.[br][br]Wino koloru słomkowego, dla prawdziwych twardzieli i twardzielek.[br][br]10%;rarity=unique;teleport=830,19,3"}
+        ],
+        "Mroczny Patryk (35 lvl)": [
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/neu/skrz_patryk1.gif", stats: "Skrzynia Mrocznego Patryka||amount=1;canpreview;cansplit=1;capacity=500;lootbox2=2034;opis=Zawiera jedną losową część przebrania Mrocznego Patryka.;rarity=common"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/sur/smocza_runa1.gif", stats: "Smocza Runa||permbound;rarity=unique;runes=375"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bro/sztylet236.gif", stats: "Wola mrocznego pana||acdmg=3;binds;dmg=176,215;hp=204;lvl=35;rarity=unique;reqp=b;sa=17;wound=23,38"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/orb/orb236.gif", stats: "Podstawka rytualnej świecy||binds;crit=1;heal=59;light=126,189;lvl=35;rarity=unique;reqp=m;sa=17"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm744.gif", stats: "Kapelusz pierwszej zbrodni||ac=44;act=6;binds;blok=5;crit=1;da=17;lvl=35;rarity=unique;reqp=pw;resfire=1;sa=17"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/pie/pierscien838.gif", stats: "Pamiątka familii de Patu||binds;crit=2;da=26;heal=59;lvl=35;rarity=unique;resfire=-6;resfrost=-3;reslight=12;sa=17;slow=28"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice832.gif", stats: "Rękawice byłego kultysty||ac=24;acdmg=3;act=14;binds;dz=23;evade=4;lvl=35;rarity=unique;reqp=ht;resfrost=7;sa=17"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice831.gif", stats: "Uścisk matkobójcy||absorb=97;absorbm=48;ac=16;binds;di=23;hp=150;lvl=35;rarity=unique;reqp=m;resdmg=1;resfrost=12;sa=17"}
+        ]
+    };
+
+    // Ładowanie listy herosów do selecta
     const sourceSelect = document.getElementById('itemSource');
     monstersList.forEach(mob => {
         let opt = document.createElement('option');
@@ -268,6 +319,59 @@
         opt.innerText = mob.name;
         sourceSelect.appendChild(opt);
     });
+
+    // --- FUNKCJE OBSŁUGI ---
+
+    // 1. Po wybraniu herosa, ładujemy listę jego przedmiotów
+    window.updateLootList = function() {
+        const heroName = document.getElementById('itemSource').value;
+        const itemSelect = document.getElementById('itemSelect');
+        itemSelect.innerHTML = '<option value="">-- Wybierz przedmiot, który wypadł --</option>'; // Reset
+        
+        if (heroName && lootTable[heroName]) {
+            itemSelect.style.display = 'block'; // Pokaż listę
+            lootTable[heroName].forEach(item => {
+                // Wyciągamy samą nazwę przedmiotu (przed znakami ||)
+                const realName = item.stats.split('||')[0];
+                let opt = document.createElement('option');
+                opt.value = JSON.stringify(item); // Zapisujemy cały obiekt item w value
+                opt.innerText = realName;
+                itemSelect.appendChild(opt);
+            });
+        } else {
+            itemSelect.style.display = 'none'; // Ukryj jak nie ma danych
+        }
+    }
+
+    // 2. Po wybraniu przedmiotu, uzupełniamy formularz
+    window.fillItemDetails = function() {
+        const selectedValue = document.getElementById('itemSelect').value;
+        if (!selectedValue) return;
+
+        const itemData = JSON.parse(selectedValue);
+        const namePart = itemData.stats.split('||')[0];
+        const statsPart = itemData.stats.split('||')[1];
+
+        // Wstawiamy dane
+        document.getElementById('itemName').value = namePart;
+        document.getElementById('itemImg').value = itemData.img;
+
+        // Próbujemy wyciągnąć opis (szukamy "opis=...")
+        let description = "";
+        if (statsPart.includes('opis=')) {
+            // Parsowanie opisu
+            const parts = statsPart.split(';');
+            for (let p of parts) {
+                if (p.startsWith('opis=')) {
+                    description = p.replace('opis=', '').replaceAll('[br]', '\n');
+                    break;
+                }
+            }
+        }
+        document.getElementById('itemDesc').value = description;
+    }
+
+    // --- STANDARDOWY KOD ---
 
     document.getElementById('googleLoginBtn').addEventListener('click', () => {
         signInWithPopup(auth, provider).catch(e => alert(e.message));
@@ -321,7 +425,6 @@
         const desc = document.getElementById('itemDesc').value;
         const img = document.getElementById('itemImg').value;
 
-        // Pobieramy dane z selecta
         const sel = document.getElementById('itemSource');
         const sourceName = sel.value; 
         const sourceImg = sel.selectedIndex > 0 ? sel.options[sel.selectedIndex].dataset.img : "";
@@ -336,7 +439,8 @@
             });
             document.getElementById('itemName').value = "";
             document.getElementById('itemPrice').value = "";
-            document.getElementById('itemSource').value = ""; // Reset selecta
+            document.getElementById('itemSource').value = "";
+            document.getElementById('itemSelect').style.display = 'none'; // Ukryj listę przedmiotów
             document.getElementById('itemMargoLink').value = "";
             document.getElementById('itemDesc').value = "";
             document.getElementById('itemImg').value = "";
@@ -409,7 +513,6 @@
             
             let sourceHtml = "";
             if (data.source) {
-                // Wyświetla grafikę herosa BEZ LIMITU 20PX (teraz w CSS jest 45px)
                 let mobIcon = data.sourceImg ? `<img src="${data.sourceImg}">` : "🕷️ ";
                 sourceHtml = `<div class="item-source">${mobIcon} <span>${data.source}</span></div>`;
             }
