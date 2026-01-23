@@ -1390,105 +1390,6 @@
 </script>
 
 <style>
-    /* Styl dla okna edycji */
-    #editModal {
-        display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%;
-        background-color: rgba(0,0,0,0.9); align-items: center; justify-content: center;
-    }
-    .modal-content {
-        background: var(--card); padding: 25px; border: 2px solid var(--gold);
-        border-radius: 12px; width: 90%; max-width: 500px; box-shadow: 0 0 30px rgba(255,215,0,0.2);
-    }
-    .edit-btn {
-        background: #444; color: var(--gold); border: 1px solid var(--gold);
-        padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8em; margin-right: 5px;
-    }
-    .edit-btn:hover { background: var(--gold); color: #000; }
-</style>
-
-<div id="editModal">
-    <div class="modal-content">
-        <h3 style="color:var(--gold); font-family:'MedievalSharp'; margin-top:0;">Edytuj Ogłoszenie</h3>
-        <label style="font-size:0.8em; color:#888;">Nowa Cena:</label>
-        <input type="text" id="editPrice" style="margin-bottom:15px;">
-        <label style="font-size:0.8em; color:#888;">Nowy Opis:</label>
-        <textarea id="editDesc" rows="4" style="margin-bottom:15px;"></textarea>
-        <div style="display:flex; gap:10px;">
-            <button class="action-btn" onclick="saveEdit()" style="flex:2;">ZAPISZ ZMIANY</button>
-            <button class="action-btn" onclick="closeEdit()" style="flex:1; background: #555;">ANULUJ</button>
-        </div>
-    </div>
-</div>
-
-<script type="module">
-    import { getFirestore, doc, updateDoc } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
-    const db = getFirestore();
-    let currentEditId = null;
-
-    // Funkcja otwierająca okno edycji
-    window.openEdit = (id, price, desc) => {
-        currentEditId = id;
-        document.getElementById('editPrice').value = price;
-        document.getElementById('editDesc').value = desc;
-        document.getElementById('editModal').style.display = 'flex';
-    };
-
-    window.closeEdit = () => {
-        document.getElementById('editModal').style.display = 'none';
-    };
-
-    window.saveEdit = async () => {
-        if (!currentEditId) return;
-        const newPrice = document.getElementById('editPrice').value;
-        const newDesc = document.getElementById('editDesc').value;
-        
-        try {
-            const offerRef = doc(db, "oferty", currentEditId);
-            await updateDoc(offerRef, {
-                price: newPrice,
-                desc: newDesc
-            });
-            closeEdit();
-            alert("Ogłoszenie zaktualizowane!");
-        } catch (e) {
-            alert("Błąd edycji: " + e.message);
-        }
-    };
-
-    // "Hack" wstrzykujący przyciski edycji do Twojego renderera
-    const originalRender = window.filterOffers;
-    window.filterOffers = (type) => {
-        originalRender(type);
-        injectEditButtons();
-    };
-
-    function injectEditButtons() {
-        const cards = document.querySelectorAll('.offer-card');
-        cards.forEach((card, index) => {
-            // Szukamy ofert należących do zalogowanego użytkownika
-            // Wykorzystujemy fakt, że Twoja funkcja renderOffers tworzy listę w czasie rzeczywistym
-            const deleteBtn = card.querySelector('.delete-btn');
-            if (deleteBtn && !deleteBtn.classList.contains('admin-delete-btn')) {
-                const id = deleteBtn.getAttribute('onclick').match(/'([^']+)'/)[1];
-                const price = card.querySelector('.price-tag span').innerText;
-                const desc = card.querySelector('[style*="font-style:italic"]').innerText;
-
-                if (!card.querySelector('.edit-btn')) {
-                    const editBtn = document.createElement('button');
-                    editBtn.className = 'edit-btn';
-                    editBtn.innerText = 'EDYTUJ';
-                    editBtn.onclick = () => openEdit(id, price, desc);
-                    deleteBtn.parentNode.insertBefore(editBtn, deleteBtn);
-                }
-            }
-        });
-    }
-
-    // Odpalenie wstrzykiwania przy starcie i zmianach
-    setInterval(injectEditButtons, 1000);
-</script>
-
-<style>
     /* Styl dla okna edycji pełnej */
     #editModal {
         display: none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%;
@@ -1620,6 +1521,7 @@
     
 </body>
 </html>
+
 
 
 
