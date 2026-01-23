@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Targowisko Klanowe - Admin</title>
+    <title>Targowisko Klanowe</title>
     <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -20,7 +20,6 @@
             color: #eee;
             margin: 0;
             padding: 20px;
-            padding-bottom: 80px;
         }
 
         .container { max-width: 1200px; margin: 0 auto; }
@@ -178,37 +177,6 @@
         }
         .admin-delete-btn:hover { background: red; }
 
-        /* Pasek Online */
-        .bottom-bar {
-            position: fixed; bottom: 0; left: 0; width: 100%;
-            background: rgba(15, 15, 15, 0.95);
-            border-top: 1px solid var(--gold);
-            padding: 8px 20px;
-            display: flex; align-items: center; gap: 15px;
-            z-index: 1000;
-            backdrop-filter: blur(5px);
-            box-shadow: 0 -5px 15px rgba(0,0,0,0.5);
-        }
-        .online-label { color: #888; font-size: 0.8em; font-weight: bold; text-transform: uppercase; }
-        .online-list { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 5px; }
-        
-        .online-user { position: relative; cursor: help; }
-        .online-user img { 
-            width: 32px; height: 32px; border-radius: 50%; 
-            border: 2px solid var(--green); 
-            transition: 0.3s;
-        }
-        .online-user:hover img { transform: scale(1.1); border-color: var(--gold); }
-        
-        .online-user::after {
-            content: attr(data-nick);
-            position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%);
-            background: #000; color: #fff; padding: 4px 8px; border-radius: 4px;
-            font-size: 0.75em; white-space: nowrap; opacity: 0; pointer-events: none;
-            transition: 0.2s; margin-bottom: 5px; border: 1px solid #444;
-        }
-        .online-user:hover::after { opacity: 1; margin-bottom: 8px; }
-        
         .char-counter { font-size: 0.7em; color: #666; text-align: right; margin-top: -10px; margin-bottom: 10px; }
     </style>
 </head>
@@ -285,15 +253,10 @@
     </div>
 </div>
 
-<div class="bottom-bar">
-    <div class="online-label">Online (15 min):</div>
-    <div id="onlineUsersList" class="online-list"></div>
-</div>
-
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
     import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
-    import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, deleteDoc, doc, getDoc, setDoc, serverTimestamp, where } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, deleteDoc, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
     
     // --- ⚠️ WKLEJ TU SWOJĄ KONFIGURACJĘ ⚠️ ---
     const firebaseConfig = {
@@ -321,6 +284,8 @@
 
     // --- BAZA HEROSÓW ---
     const monstersList = [
+        { name: "Domina Ecclesiae (21 lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/her/domina.gif" },
+        { name: "Mietek Żul (25 lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/mas/mietek_zul.gif" },
         { name: "Mroczny Patryk (35 lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/her/bardzozlypatryk.gif" },
         { name: "Karmazynowy Mściciel (45 lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/klanowe/heros_karm_msc.gif" },
         { name: "Złodziej (51 lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/her/zlodziej.gif" },
@@ -350,6 +315,18 @@
 
     // --- PEŁNA BAZA LEGEND ---
     const lootTable = {
+        "Domina Ecclesiae (21 lvl)": [
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/sur/smocza_runa3.gif", stats: "Smocza Runa (Legenda)||rarity=legendary;runes=2250"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_06.gif", stats: "Lekka skrytka mocy||rarity=legendary"},
+            {img: "", stats: "Legendarny Przedmiot 3 (Brak w pliku)||rarity=legendary"},
+            {img: "", stats: "Legendarny Przedmiot 4 (Brak w pliku)||rarity=legendary"}
+        ],
+        "Mietek Żul (25 lvl)": [
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_06.gif", stats: "Lekka skrytka mocy||rarity=legendary"},
+            {img: "", stats: "Legendarny Przedmiot 2 (Brak w pliku)||rarity=legendary"},
+            {img: "", stats: "Legendarny Przedmiot 3 (Brak w pliku)||rarity=legendary"},
+            {img: "", stats: "Legendarny Przedmiot 4 (Brak w pliku)||rarity=legendary"}
+        ],
         "Mroczny Patryk (35 lvl)": [
             {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm749.gif", stats: "Kapelusz wiecznej udręki||rarity=legendary;opis=Chociaż poprzednia właścicielka tego kapelusza powiązana była z ciemną stroną mocy..."},
             {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm748.gif", stats: "Splot szaleństwa||rarity=legendary;opis=Ostre kolce boleśnie wbijały się w skroń..."},
@@ -459,16 +436,16 @@
             {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_06.gif.gif", stats: "Ciężka skrytka mocy||rarity=legendary"}
         ],
         "Mulher Ma (214 lvl)": [
-            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_06.gif", stats: "Ciężka skrytka mocy||rarity=legendary"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_06.gif.gif", stats: "Ciężka skrytka mocy||rarity=legendary"},
             {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/naszyjnik1300.gif", stats: "Kołnierz dekapitacji||rarity=legendary"},
             {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/naszyjnik1299.gif", stats: "Obręcz Najwyższej Kapłanki||rarity=legendary"},
-            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_06.gif.gif", stats: "Wdzięczność Pajęczycy||rarity=legendary"}
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/naszyjnik1301.gif", stats: "Wdzięczność Pajęczycy||rarity=legendary"}
         ],
         "Vapor Veneno (231 lvl)": [
-            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_06.gif", stats: "Ciężka skrytka mocy||rarity=legendary"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_06.gif.gif", stats: "Ciężka skrytka mocy||rarity=legendary"},
             {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/pie/pierscien1319.gif", stats: "Błyskotka humanoidalnej natury||rarity=legendary"},
             {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/pie/pierscien1320.gif", stats: "Pierścionek toksycznej fascynacji||rarity=legendary"},
-            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_06.gif.gif", stats: "Symbol wodnych narodzin||rarity=legendary"}
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/pie/pierscien1318.gif", stats: "Symbol wodnych narodzin||rarity=legendary"}
         ],
         "Dęborożec (244 lvl)": [
             {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm1487.gif", stats: "Czaszka wielkiego nieszczęśnika||rarity=legendary;opis=Trofeum z potężnego strażnika lasu."},
@@ -512,6 +489,43 @@
         opt.innerText = mob.name;
         sourceSelect.appendChild(opt);
     });
+
+    // Parser kodu
+    window.parseItemCode = function() {
+        const raw = document.getElementById('pasteCode').value;
+        if (!raw) return alert("Wklej kod!");
+        const imgMatch = raw.match(/src="([^"]+)"/);
+        if (imgMatch) document.getElementById('itemImg').value = imgMatch[1];
+        const statsMatch = raw.match(/stats="([^"|]+)/);
+        if (statsMatch) document.getElementById('itemName').value = statsMatch[1];
+        const opisMatch = raw.match(/opis=([^;"]+)/);
+        if (opisMatch) {
+            document.getElementById('itemDesc').value = opisMatch[1].replace(/\[br\]/g, "\n");
+        } else {
+            document.getElementById('itemDesc').value = "Brak opisu.";
+        }
+    }
+
+    // Wybór herosa - ładowanie listy przedmiotów
+    window.updateLootList = function() {
+        const heroName = document.getElementById('itemSource').value;
+        const itemSelect = document.getElementById('itemSelect');
+        itemSelect.innerHTML = '<option value="">-- Wybierz przedmiot legendarny --</option>'; 
+        
+        if (heroName && lootTable[heroName] && lootTable[heroName].length > 0) {
+            itemSelect.style.display = 'block'; 
+            lootTable[heroName].forEach(item => {
+                const realName = item.stats.split('||')[0];
+                let opt = document.createElement('option');
+                opt.value = JSON.stringify(item); 
+                opt.innerText = realName;
+                itemSelect.appendChild(opt);
+            });
+        } else {
+            itemSelect.style.display = 'none'; 
+            if(heroName) alert("Wybrany heros nie posiada przedmiotów legendarnych w bazie.");
+        }
+    }
 
     // Uzupełnienie formularza po wyborze przedmiotu
     window.fillItemDetails = function() {
@@ -557,55 +571,6 @@
         document.getElementById('charCount').innerText = val + "/150";
     }
 
-    // Wybór herosa - ładowanie listy przedmiotów
-    window.updateLootList = function() {
-        const heroName = document.getElementById('itemSource').value;
-        const itemSelect = document.getElementById('itemSelect');
-        itemSelect.innerHTML = '<option value="">-- Wybierz przedmiot legendarny --</option>'; 
-        
-        if (heroName && lootTable[heroName] && lootTable[heroName].length > 0) {
-            itemSelect.style.display = 'block'; 
-            lootTable[heroName].forEach(item => {
-                const realName = item.stats.split('||')[0];
-                let opt = document.createElement('option');
-                opt.value = JSON.stringify(item); 
-                opt.innerText = realName;
-                itemSelect.appendChild(opt);
-            });
-        } else {
-            itemSelect.style.display = 'none'; 
-            if(heroName) alert("Wybrany heros nie posiada przedmiotów legendarnych w bazie.");
-        }
-    }
-
-    // --- FUNKCJA OBECNOŚCI ONLINE ---
-    async function updatePresence() {
-        if (!currentUser) return;
-        const userRef = doc(db, "users", currentUser.uid);
-        try {
-            await setDoc(userRef, {
-                lastSeen: serverTimestamp(),
-                nick: currentNick,
-                photo: currentUser.photoURL
-            }, { merge: true });
-        } catch (e) { console.error("Błąd presence:", e); }
-    }
-
-    function renderOnlineUsers(snapshot) {
-        const listDiv = document.getElementById('onlineUsersList');
-        listDiv.innerHTML = "";
-        snapshot.forEach(docSnap => {
-            const data = docSnap.data();
-            const userDiv = document.createElement('div');
-            userDiv.className = 'online-user';
-            userDiv.dataset.nick = data.nick;
-            const img = document.createElement('img');
-            img.src = data.photo || "https://micc.garmory-cdn.cloud/obrazki/postacie//hum_m_001.gif";
-            userDiv.appendChild(img);
-            listDiv.appendChild(userDiv);
-        });
-    }
-
     document.getElementById('googleLoginBtn').addEventListener('click', () => {
         signInWithPopup(auth, provider).catch(e => alert(e.message));
     });
@@ -634,9 +599,6 @@
             document.getElementById('addOfferPanel').style.display = 'block';
             document.getElementById('userNickDisplay').innerText = currentNick;
             document.getElementById('userAvatar').src = user.photoURL;
-
-            updatePresence();
-            setInterval(updatePresence, 60000);
         } else {
             document.getElementById('googleLoginBtn').style.display = 'flex';
             document.getElementById('userProfile').style.display = 'none';
@@ -645,11 +607,6 @@
         }
         renderOffers();
     });
-
-    // ONLINE QUERY
-    const fifteenMinutesAgo = new Date(Date.now() - 15 * 60 * 1000);
-    const qOnline = query(collection(db, "users"), where("lastSeen", ">", fifteenMinutesAgo));
-    onSnapshot(qOnline, (snapshot) => { renderOnlineUsers(snapshot); });
 
     window.searchMargo = () => {
         const name = document.getElementById('itemName').value;
@@ -678,7 +635,6 @@
                 type, name, price, source: sourceName, sourceImg: sourceImg, margoLink, desc, img,
                 date: new Date().toISOString()
             });
-            // Reset formularza
             document.getElementById('itemName').value = "";
             document.getElementById('itemPrice').value = "";
             document.getElementById('itemSource').value = "";
@@ -751,11 +707,9 @@
             // --- LOGIKA ADMINA ---
             let deleteBtn = "";
             const isOwner = currentUser && data.userId === currentUser.uid;
-            // Admin "Stachu Drzymała" może usuwać wszystko
             const isAdmin = currentNick === ADMIN_NICK;
 
             if (isOwner || isAdmin) {
-                // Jeśli admin usuwa cudze, przycisk jest czerwony
                 let btnClass = (isAdmin && !isOwner) ? "delete-btn admin-delete-btn" : "delete-btn";
                 let label = (isAdmin && !isOwner) ? "USUŃ (Admin)" : "✕";
                 deleteBtn = `<button class="${btnClass}" onclick="deleteOffer('${data.id}')">${label}</button>`;
@@ -803,5 +757,3 @@
 
 </body>
 </html>
-
-
