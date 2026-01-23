@@ -34,14 +34,7 @@
             flex-wrap: wrap; gap: 10px;
         }
 
-        h1 { 
-            font-family: 'MedievalSharp', cursive; 
-            color: var(--gold); 
-            margin: 0; 
-            font-size: 2.5em; 
-            text-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
-            letter-spacing: 2px;
-        }
+        h1 { font-family: 'MedievalSharp', cursive; color: var(--gold); margin: 0; font-size: 2.5em; text-shadow: 0 0 15px rgba(255, 215, 0, 0.5); letter-spacing: 2px; }
 
         .login-btn {
             background: linear-gradient(to bottom, #fff, #ccc); color: #333; border: none; padding: 10px 20px;
@@ -53,17 +46,17 @@
         .user-avatar { width: 35px; height: 35px; border-radius: 50%; border: 2px solid var(--gold); }
         .logout-link { color: #ff6666; font-size: 0.75em; text-decoration: none; cursor: pointer; text-transform: uppercase; font-weight: bold; }
 
-        .filters { display: flex; gap: 12px; margin-bottom: 30px; justify-content: center; flex-wrap: wrap; }
+        .filters { display: flex; gap: 10px; margin-bottom: 30px; justify-content: center; flex-wrap: wrap; align-items: center; }
         .filter-btn {
-            background: #222; color: #888; border: 1px solid #444; padding: 10px 20px; 
-            border-radius: 5px; cursor: pointer; transition: 0.3s; font-family: 'MedievalSharp'; font-size: 1.1em;
+            background: #222; color: #888; border: 1px solid #444; padding: 8px 16px; 
+            border-radius: 5px; cursor: pointer; transition: 0.3s; font-family: 'MedievalSharp'; font-size: 1em;
         }
-        .filter-btn.active { background: var(--gold); color: #000; border-color: var(--gold-bright); box-shadow: 0 0 15px rgba(255,215,0,0.3); }
+        .filter-btn:hover { border-color: var(--gold); color: #fff; }
+        .filter-btn.active { background: var(--gold); color: #000; border-color: var(--gold-bright); }
 
         .panel {
             background: var(--card); padding: 25px; border-radius: 12px; border: 1px solid var(--border);
-            margin-bottom: 40px; box-shadow: 0 10px 30px rgba(0,0,0,0.8);
-            display: none; position: relative;
+            margin-bottom: 40px; box-shadow: 0 10px 30px rgba(0,0,0,0.8); display: none;
         }
 
         .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
@@ -71,77 +64,68 @@
 
         input, select, textarea {
             background: #0a0a0a; border: 1px solid #333; color: white;
-            padding: 12px; border-radius: 6px; width: 100%; box-sizing: border-box;
-            transition: 0.3s; outline: none;
+            padding: 12px; border-radius: 6px; width: 100%; box-sizing: border-box; outline: none;
         }
-        input:focus, select:focus { border-color: var(--gold); box-shadow: 0 0 8px rgba(255,215,0,0.2); }
         
-        .search-box { background: #151500; border-color: var(--border); color: var(--gold); font-weight: bold; }
+        .search-box { background: #151500; border-color: var(--border); color: var(--gold); }
 
         .action-btn {
             background: linear-gradient(to bottom, #ffd700, #b89b00); color: #000; border: none; padding: 15px;
-            font-weight: 800; width: 100%; cursor: pointer; border-radius: 6px; text-transform: uppercase;
-            letter-spacing: 1px; font-family: 'Montserrat'; transition: 0.3s;
+            font-weight: 800; width: 100%; cursor: pointer; border-radius: 6px; text-transform: uppercase; transition: 0.3s;
         }
 
-        .offers-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 25px; }
+        .offers-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 25px; }
 
         .offer-card {
             background: #181818; border: 1px solid #2a2a2a; border-radius: 10px; padding: 20px; 
-            position: relative; transition: 0.4s; overflow: hidden;
+            position: relative; transition: 0.4s; display: flex; flex-direction: column;
             box-shadow: 0 5px 15px rgba(0,0,0,0.5);
-            display: flex; flex-direction: column;
         }
-        .offer-card:hover { transform: translateY(-5px); border-color: var(--gold); box-shadow: 0 8px 25px rgba(255,215,0,0.15); }
+        .offer-card:hover { transform: translateY(-5px); border-color: var(--gold); }
 
-        .legendary-item {
-            background: linear-gradient(135deg, #1a1a1a 0%, #251f00 100%);
-            border: 1px solid var(--border);
-        }
-
-        .card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; gap: 10px; }
-        .tag { padding: 4px 10px; border-radius: 4px; font-size: 0.7em; font-weight: 800; text-transform: uppercase; white-space: nowrap; }
+        .card-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+        .tag { padding: 4px 10px; border-radius: 4px; font-size: 0.7em; font-weight: 800; text-transform: uppercase; }
         .tag.sprzedam { background: var(--green); color: #000; }
         .tag.kupie { background: var(--blue); color: #fff; }
         .tag.zamienie { background: var(--red); color: #fff; }
 
         .item-title { font-size: 1.1em; font-weight: bold; color: var(--gold); line-height: 1.2; flex-grow: 1; }
-        .item-img { width: 60px; height: 60px; object-fit: contain; filter: drop-shadow(0 0 5px rgba(255,215,0,0.3)); margin-left: 10px; }
+        .item-img { width: 60px; height: 60px; object-fit: contain; filter: drop-shadow(0 0 5px rgba(255,215,0,0.3)); }
         
         .item-source { 
-            font-size: 0.85em; color: #cca3ff; margin: 10px 0; display: flex; align-items: center; gap: 10px;
+            font-size: 0.85em; color: #cca3ff; margin: 12px 0; display: flex; align-items: center; gap: 10px;
             background: rgba(155, 89, 182, 0.1); padding: 8px; border-radius: 6px; border: 1px solid rgba(155,89,182,0.2);
         }
         .item-source img { height: 35px; width: auto; }
 
-        .price-tag { font-size: 1.3em; color: #fff; font-weight: bold; margin: 10px 0; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
+        .price-tag { font-size: 1.3em; color: #fff; font-weight: bold; margin: 10px 0; }
         .price-tag span { color: var(--gold); }
+
+        .reservation-box {
+            background: rgba(46, 204, 113, 0.15); border: 1px dashed var(--green);
+            padding: 8px; border-radius: 6px; margin: 10px 0; font-size: 0.8em; color: var(--green);
+            display: flex; align-items: center; gap: 8px;
+        }
 
         .seller-info { margin-top: auto; padding-top: 15px; border-top: 1px dotted #444; display: flex; align-items: center; justify-content: space-between; font-size: 0.85em; }
         .seller-left { display: flex; align-items: center; gap: 10px; }
         .tiny-avatar { width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--gold); }
 
-        .delete-btn { background: #333; color: #888; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 0.8em; }
-        .delete-btn:hover { background: var(--red); color: #fff; }
+        .btn-group { display: flex; gap: 5px; }
+        .small-btn { padding: 4px 8px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 0.7em; border: 1px solid transparent; }
+        .reserve-btn { background: var(--green); color: #000; }
+        .unreserve-btn { background: #444; color: #fff; }
+        .edit-added { border: 1px solid var(--gold); color: var(--gold); background: none; }
+        .delete-btn { background: #333; color: #888; }
 
         .preview-box {
-            grid-column: 1 / -1;
-            display: none;
-            align-items: center;
-            justify-content: space-between; 
-            flex-direction: row-reverse;
-            background: linear-gradient(270deg, #251f00 0%, #1a1a1a 100%);
-            border: 2px solid var(--gold);
-            padding: 15px 25px;
-            border-radius: 12px;
-            margin: 10px 0;
-            box-shadow: 0 0 25px rgba(255, 215, 0, 0.15), inset 0 0 15px rgba(255, 215, 0, 0.1);
-            animation: slideDown 0.3s ease-out;
+            grid-column: 1 / -1; display: none; align-items: center; justify-content: space-between; 
+            flex-direction: row-reverse; background: linear-gradient(270deg, #251f00 0%, #1a1a1a 100%);
+            border: 2px solid var(--gold); padding: 15px 25px; border-radius: 12px; margin: 10px 0;
         }
-        .preview-content { display: flex; flex-direction: column; align-items: flex-start; text-align: left; }
-        .preview-text { font-size: 1.4em; color: var(--gold); font-family: 'MedievalSharp'; text-shadow: 2px 2px 4px #000; margin-top: 5px; }
-        .preview-label { color: #aaa; font-size: 0.8em; text-transform: uppercase; letter-spacing: 3px; font-weight: 600; }
-        .preview-icon-wrapper { background: radial-gradient(circle, #333 0%, #000 100%); padding: 8px; border-radius: 10px; border: 1px solid var(--gold); box-shadow: 0 0 15px rgba(255,215,0,0.3); }
+        .preview-content { display: flex; flex-direction: column; align-items: flex-start; }
+        .preview-text { font-size: 1.4em; color: var(--gold); font-family: 'MedievalSharp'; }
+        .preview-icon-wrapper { background: radial-gradient(circle, #333 0%, #000 100%); padding: 8px; border-radius: 10px; border: 1px solid var(--gold); }
     </style>
 </head>
 <body>
@@ -153,7 +137,6 @@
             <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/pwa_googleg_color_64dp.png" width="18">
             Zaloguj przez Google
         </button>
-
         <div id="userProfile" class="user-profile">
             <img id="userAvatar" class="user-avatar" src="" alt="">
             <div>
@@ -164,11 +147,16 @@
     </header>
 
     <div class="filters">
-        <button class="filter-btn active" onclick="filterOffers('all')">Wszystkie</button>
-        <button class="filter-btn" onclick="filterOffers('sprzedam')">Sprzedam</button>
-        <button class="filter-btn" onclick="filterOffers('kupie')">Kupię</button>
-        <button class="filter-btn" onclick="filterOffers('zamienie')">Zamienię</button>
+        <button class="filter-btn active" id="f-all" onclick="setFilter('type', 'all')">Wszystkie</button>
+        <button class="filter-btn" id="f-sprzedam" onclick="setFilter('type', 'sprzedam')">Sprzedam</button>
+        <button class="filter-btn" id="f-kupie" onclick="setFilter('type', 'kupie')">Kupię</button>
+        <span style="color:#444; margin: 0 10px;">|</span>
+        <button class="filter-btn" id="f-h" onclick="setFilter('cat', 'herosi')">Herosi</button>
+        <button class="filter-btn" id="f-e2" onclick="setFilter('cat', 'e2')">Elity II</button>
+        <input type="text" id="globalSearch" class="search-box" placeholder="🔍 Szukaj na targu..." oninput="renderOffers()" style="max-width: 200px; padding: 8px;">
     </div>
+    
+    <div id="offerStats" style="text-align:center; font-size:0.8em; color:#666; margin-bottom:20px;"></div>
 
     <div id="addOfferPanel" class="panel">
         <h3 style="margin-top:0; color:var(--gold); font-family:'MedievalSharp';">Wystaw Artefakt</h3>
@@ -186,11 +174,11 @@
             </select>
             <input type="text" id="sourceSearch" class="full-width search-box" placeholder="🔍 Szukaj przeciwnika..." oninput="updateSourceList()" style="display:none;">
             <select id="itemSource" class="full-width" onchange="updateLootList()"><option value="">-- Przeciwnik --</option></select>
-            <input type="text" id="itemSearch" class="full-width search-box" placeholder="🔍 Szukaj przedmiotu w dropie..." oninput="updateLootList()" style="display:none;">
+            <input type="text" id="itemSearch" class="full-width search-box" placeholder="🔍 Szukaj przedmiotu..." oninput="updateLootList()" style="display:none;">
             <select id="itemSelect" class="full-width" onchange="fillItemDetails()"><option value="">-- Przedmiot --</option></select>
             <div id="livePreview" class="preview-box">
-                <div class="preview-icon-wrapper"><img id="previewIcon" src="" alt="" style="width:55px; height:55px; display:block; object-fit: contain;"></div>
                 <div class="preview-content"><span class="preview-label">Wybrany artefakt</span><span id="previewName" class="preview-text">...</span></div>
+                <div class="preview-icon-wrapper"><img id="previewIcon" src="" alt="" style="width:55px; height:55px; display:block; object-fit: contain;"></div>
             </div>
             <div style="display:flex; gap:10px; align-items:center;" class="full-width">
                 <input type="text" id="itemName" placeholder="Nazwa przedmiotu" maxlength="50">
@@ -198,23 +186,24 @@
             </div>
             <input type="text" id="itemImg" placeholder="Link do obrazka" class="full-width">
             <textarea id="itemDesc" placeholder="Dodatkowy opis..." class="full-width" maxlength="150" oninput="updateCharCount()" rows="2"></textarea>
-            <div id="charCount" style="font-size:0.7em; text-align:right; margin-top:-10px; color:#666;" class="full-width">0/150</div>
             <button class="action-btn full-width" onclick="addOffer()">Opublikuj na Targu</button>
         </div>
     </div>
+
     <div id="offersList" class="offers-grid"></div>
 </div>
 
 <div id="editModal" style="display: none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.95); align-items: center; justify-content: center; backdrop-filter: blur(5px);">
-    <div class="modal-content-full" style="background: #1a1a1a; padding: 30px; border: 2px solid #ffd700; border-radius: 15px; width: 95%; max-width: 600px; box-shadow: 0 0 50px rgba(255,215,0,0.15);">
-        <h3 style="color:#ffd700; font-family:'MedievalSharp'; margin-top:0; font-size: 1.8em;">Modyfikuj Artefakt</h3>
-        <div style="margin-bottom: 15px;"><span style="display: block; font-size: 0.7em; color: #ffd700; text-transform: uppercase; margin-bottom: 5px;">Nazwa Przedmiotu</span><input type="text" id="fullEditName" style="width:100%; padding:8px; background:#222; border:1px solid #444; color:white;"></div>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
-            <div><span style="display: block; font-size: 0.7em; color: #ffd700; text-transform: uppercase; margin-bottom: 5px;">Cena</span><input type="text" id="fullEditPrice" style="width:100%; padding:8px; background:#222; border:1px solid #444; color:white;"></div>
-            <div><span style="display: block; font-size: 0.7em; color: #ffd700; text-transform: uppercase; margin-bottom: 5px;">Link do obrazka</span><input type="text" id="fullEditImg" style="width:100%; padding:8px; background:#222; border:1px solid #444; color:white;"></div>
+    <div class="modal-content-full" style="background: #1a1a1a; padding: 30px; border: 2px solid #ffd700; border-radius: 15px; width: 95%; max-width: 600px;">
+        <h3 style="color:#ffd700; font-family:'MedievalSharp'; margin-top:0;">Modyfikuj Ogłoszenie</h3>
+        <input type="text" id="fullEditName" placeholder="Nazwa" style="margin-bottom:10px;">
+        <input type="text" id="fullEditPrice" placeholder="Cena" style="margin-bottom:10px;">
+        <input type="text" id="fullEditImg" placeholder="Link do obrazka" style="margin-bottom:10px;">
+        <textarea id="fullEditDesc" rows="4" placeholder="Opis"></textarea>
+        <div style="display:flex; gap:15px; margin-top: 15px;">
+            <button onclick="confirmFullEdit()" style="flex:2; background:#ffd700; padding:10px; cursor:pointer; font-weight:bold;">ZATWIERDŹ</button>
+            <button onclick="closeFullEdit()" style="flex:1; background:#333; color:white; padding:10px; cursor:pointer;">ANULUJ</button>
         </div>
-        <div style="margin-bottom: 15px;"><span style="display: block; font-size: 0.7em; color: #ffd700; text-transform: uppercase; margin-bottom: 5px;">Opis / Statystyki</span><textarea id="fullEditDesc" rows="4" style="width:100%; padding:8px; background:#222; border:1px solid #444; color:white;"></textarea></div>
-        <div style="display:flex; gap:15px; margin-top: 10px;"><button onclick="confirmFullEdit()" style="flex:2; background:#ffd700; color:black; border:none; padding:10px; cursor:pointer; font-weight:bold;">ZATWIERDŹ ZMIANY</button><button onclick="closeFullEdit()" style="flex:1; background:#333; color:white; border:none; padding:10px; cursor:pointer;">ANULUJ</button></div>
     </div>
 </div>
 
@@ -237,22 +226,14 @@
     const db = getFirestore(app);
     const provider = new GoogleAuthProvider();
 
-    window.isValidImageUrl = (url) => {
-        if (!url) return false;
-        return /^https?:\/\/[^<>"]+\.(jpeg|jpg|gif|png|webp|bmp)$/i.test(url);
-    };
-
+    // GLOBALNE FUNKCJE
+    window.isValidImageUrl = (url) => url && /^https?:\/\/[^<>"]+\.(jpeg|jpg|gif|png|webp|bmp)$/i.test(url);
+    
     let currentUser = null;
     let currentNick = null;
     let allOffers = [];
-    let currentFilter = 'all';
+    let currentFilters = { type: 'all', cat: 'all' };
     let currentEditId = null;
-    const ADMIN_NICK = "Stachu Drzymała"; 
-
-    function escapeHtml(text) {
-        if (!text) return "";
-        return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
-    }
 
     const monstersList = {
         herosi: [
@@ -440,87 +421,66 @@
         "Artenius": [{ img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_02.gif.gif", stats: "Ciężka skrytka ognistej mocy||rarity=legendary" }]
     };
 
-    window.updateSourceList = function() {
-        const category = document.getElementById('sourceCategory').value;
-        const sourceSearch = document.getElementById('sourceSearch');
-        const sourceSelect = document.getElementById('itemSource');
-        const queryStr = sourceSearch.value.toLowerCase();
+// LOGIKA FILTRÓW
+    window.setFilter = (type, val) => {
+        currentFilters[type] = val;
+        document.querySelectorAll(`.filters .filter-btn`).forEach(b => {
+            if(b.onclick.toString().includes(type) && b.onclick.toString().includes(val)) b.classList.add('active');
+            else if(b.onclick.toString().includes(type)) b.classList.remove('active');
+        });
+        renderOffers();
+    };
 
-        if (category) {
-            sourceSearch.style.display = 'block';
-            sourceSelect.innerHTML = '<option value="">-- Wybierz Przeciwnika --</option>';
-            const filtered = monstersList[category].filter(mob => mob.name.toLowerCase().includes(queryStr));
-            filtered.forEach(mob => {
-                let opt = document.createElement('option');
-                opt.value = mob.name; opt.dataset.img = mob.img; opt.innerText = mob.name;
-                sourceSelect.appendChild(opt);
-            });
-        } else {
-            sourceSearch.style.display = 'none';
-        }
-        document.getElementById('itemSelect').style.display = 'none';
-        document.getElementById('itemSearch').style.display = 'none';
-        document.getElementById('livePreview').style.display = 'none';
+    window.updateSourceList = function() {
+        const cat = document.getElementById('sourceCategory').value;
+        const search = document.getElementById('sourceSearch');
+        const sel = document.getElementById('itemSource');
+        if(!cat) { search.style.display = 'none'; return; }
+        search.style.display = 'block';
+        const query = search.value.toLowerCase();
+        sel.innerHTML = '<option value="">-- Wybierz Przeciwnika --</option>';
+        monstersList[cat].filter(m => m.name.toLowerCase().includes(query)).forEach(m => {
+            let o = document.createElement('option'); o.value = m.name; o.dataset.img = m.img; o.innerText = m.name; sel.appendChild(o);
+        });
     };
 
     window.updateLootList = function() {
-        const heroName = document.getElementById('itemSource').value;
-        const itemSearch = document.getElementById('itemSearch');
-        const itemSelect = document.getElementById('itemSelect');
-        const queryStr = itemSearch.value.toLowerCase();
-
-        if (heroName && lootTable[heroName]) {
-            itemSearch.style.display = 'block';
-            itemSelect.style.display = 'block';
-            itemSelect.innerHTML = '<option value="">-- Wybierz przedmiot --</option>'; 
-            const filtered = lootTable[heroName].filter(item => item.stats.split('||')[0].toLowerCase().includes(queryStr));
-            filtered.forEach(item => {
-                let opt = document.createElement('option');
-                opt.value = JSON.stringify(item); opt.innerText = item.stats.split('||')[0];
-                itemSelect.appendChild(opt);
-            });
-        } else { 
-            itemSearch.style.display = 'none';
-            itemSelect.style.display = 'none'; 
-        }
+        const src = document.getElementById('itemSource').value;
+        const search = document.getElementById('itemSearch');
+        const sel = document.getElementById('itemSelect');
+        if(!src || !lootTable[src]) { search.style.display = 'none'; sel.style.display = 'none'; return; }
+        search.style.display = 'block'; sel.style.display = 'block';
+        const query = search.value.toLowerCase();
+        sel.innerHTML = '<option value="">-- Wybierz przedmiot --</option>';
+        lootTable[src].filter(i => i.stats.split('||')[0].toLowerCase().includes(query)).forEach(i => {
+            let o = document.createElement('option'); o.value = JSON.stringify(i); o.innerText = i.stats.split('||')[0]; sel.appendChild(o);
+        });
     };
 
     window.fillItemDetails = function() {
-        const selectedValue = document.getElementById('itemSelect').value;
-        if (!selectedValue) return;
-        const itemData = JSON.parse(selectedValue);
-        const namePart = itemData.stats.split('||')[0];
-        document.getElementById('itemName').value = namePart;
-        document.getElementById('itemImg').value = itemData.img;
+        const val = document.getElementById('itemSelect').value;
+        if(!val) return;
+        const data = JSON.parse(val);
+        const name = data.stats.split('||')[0];
+        document.getElementById('itemName').value = name;
+        document.getElementById('itemImg').value = data.img;
         document.getElementById('livePreview').style.display = 'flex';
-        document.getElementById('previewIcon').src = itemData.img;
-        document.getElementById('previewName').innerText = namePart;
-        const statsPart = itemData.stats.split('||')[1] || "";
-        document.getElementById('itemDesc').value = statsPart.includes('opis=') ? statsPart.split('opis=')[1].split(';')[0].replaceAll('[br]', '\n') : "";
-        updateCharCount();
+        document.getElementById('previewIcon').src = data.img;
+        document.getElementById('previewName').innerText = name;
     };
 
-    window.updateCharCount = function() {
-        document.getElementById('charCount').innerText = document.getElementById('itemDesc').value.length + "/150";
-    };
-
-    document.getElementById('googleLoginBtn').addEventListener('click', () => {
-        signInWithPopup(auth, provider).catch(e => alert("Błąd logowania: " + e.message));
-    });
-
+    // LOGOWANIE
+    document.getElementById('googleLoginBtn').addEventListener('click', () => signInWithPopup(auth, provider));
+    
     onAuthStateChanged(auth, async (user) => {
         currentUser = user;
-        if (user) {
-            const userRef = doc(db, "users", user.uid);
-            const userSnap = await getDoc(userRef);
-            if (userSnap.exists()) {
-                currentNick = userSnap.data().nick;
-            } else {
-                let nick = prompt("Podaj swój nick z gry:");
-                if(nick && nick.trim()) {
-                    currentNick = nick.trim();
-                    await setDoc(userRef, { nick: currentNick });
-                } else { logout(); return; }
+        if(user) {
+            const ref = doc(db, "users", user.uid);
+            const snap = await getDoc(ref);
+            if(snap.exists()) currentNick = snap.data().nick;
+            else {
+                let n = prompt("Twój nick:");
+                if(n) { currentNick = n; await setDoc(ref, {nick:n}); } else logout();
             }
             document.getElementById('googleLoginBtn').style.display = 'none';
             document.getElementById('userProfile').style.display = 'flex';
@@ -532,125 +492,100 @@
             document.getElementById('userProfile').style.display = 'none';
             document.getElementById('addOfferPanel').style.display = 'none';
         }
-        renderOffers();
     });
 
-    window.searchMargo = () => { window.open(`https://margoworld.pl/item?name=${encodeURIComponent(document.getElementById('itemName').value)}`, '_blank'); };
-
     window.addOffer = async () => {
-        if (!currentUser) return;
-        const type = document.getElementById('offerType').value;
-        const name = escapeHtml(document.getElementById('itemName').value);
-        const price = escapeHtml(document.getElementById('itemPrice').value);
-        const desc = escapeHtml(document.getElementById('itemDesc').value);
-        const img = escapeHtml(document.getElementById('itemImg').value);
         const sel = document.getElementById('itemSource');
-        const sourceName = sel.value; 
-        const sourceImg = sel.selectedIndex >= 0 && sel.options[sel.selectedIndex] ? sel.options[sel.selectedIndex].dataset.img : "";
-        if(!name || !price) return alert("Brakuje nazwy lub ceny!");
-        try {
-            await addDoc(collection(db, "oferty"), {
-                userId: currentUser.uid, nick: currentNick, avatar: currentUser.photoURL,
-                type, name, price, source: sourceName, sourceImg: sourceImg || "", desc, img,
-                date: new Date().toISOString()
-            });
-            location.reload();
-        } catch(e) { alert(e.message); }
+        await addDoc(collection(db, "oferty"), {
+            userId: currentUser.uid, nick: currentNick, avatar: currentUser.photoURL,
+            type: document.getElementById('offerType').value,
+            name: escapeHtml(document.getElementById('itemName').value),
+            price: escapeHtml(document.getElementById('itemPrice').value),
+            source: sel.value, sourceImg: sel.options[sel.selectedIndex].dataset.img,
+            desc: escapeHtml(document.getElementById('itemDesc').value),
+            img: escapeHtml(document.getElementById('itemImg').value),
+            date: new Date().toISOString(), reservedBy: null
+        });
+        location.reload();
     };
 
-    window.deleteOffer = async (id) => { if(confirm("Usunąć?")) await deleteDoc(doc(db, "oferty", id)); };
-    window.logout = () => signOut(auth);
+    window.reserveOffer = async (id) => {
+        await updateDoc(doc(db, "oferty", id), { reservedBy: currentNick });
+    };
 
-    onSnapshot(query(collection(db, "oferty"), orderBy("date", "desc")), (snapshot) => {
-        allOffers = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    window.cancelReservation = async (id) => {
+        await updateDoc(doc(db, "oferty", id), { reservedBy: null });
+    };
+
+    // RENDEROWANIE
+    onSnapshot(query(collection(db, "oferty"), orderBy("date", "desc")), (snap) => {
+        allOffers = snap.docs.map(d => ({ id: d.id, ...d.data() }));
         renderOffers();
     });
 
     function renderOffers() {
         const list = document.getElementById('offersList');
+        const search = document.getElementById('globalSearch').value.toLowerCase();
         list.innerHTML = "";
+        let count = 0;
+
         allOffers.forEach(data => {
-            if (currentFilter !== 'all' && data.type !== currentFilter) return;
-            const isAdmin = (currentNick === ADMIN_NICK);
-            const isOwner = currentUser && (data.userId === currentUser.uid);
-            let deleteBtn = (isOwner || isAdmin) ? `<button class="delete-btn" onclick="deleteOffer('${data.id}')">${isAdmin && !isOwner ? 'USUŃ (Admin)' : '✕'}</button>` : "";
-            let imgHtml = window.isValidImageUrl(data.img) ? `<img src="${escapeHtml(data.img)}" class="item-img" onerror="this.style.display='none'">` : (data.img ? "⚠️" : "");
+            const isHeros = monstersList.herosi.some(m => m.name === data.source);
+            const isE2 = monstersList.e2.some(m => m.name === data.source);
+            
+            if(currentFilters.type !== 'all' && data.type !== currentFilters.type) return;
+            if(currentFilters.cat === 'herosi' && !isHeros) return;
+            if(currentFilters.cat === 'e2' && !isE2) return;
+            if(!data.name.toLowerCase().includes(search)) return;
+
+            count++;
+            const isOwner = currentUser && data.userId === currentUser.uid;
+            const isAdmin = currentNick === ADMIN_NICK;
+
+            let resHtml = data.reservedBy ? `<div class="reservation-box">🔒 Zarezerwowane przez: <b>${data.reservedBy}</b></div>` : "";
+            
+            let btnRes = "";
+            if(!data.reservedBy) btnRes = `<button class="small-btn reserve-btn" onclick="reserveOffer('${data.id}')">ZAREZERWUJ</button>`;
+            else if(isOwner || isAdmin) btnRes = `<button class="small-btn unreserve-btn" onclick="cancelReservation('${data.id}')">COFNIJ REZ.</button>`;
 
             list.innerHTML += `
                 <div class="offer-card legendary-item">
                     <div class="card-header">
                         <div class="tag ${data.type}">${data.type.toUpperCase()}</div>
                         <div class="item-title">${escapeHtml(data.name)}</div>
-                        ${imgHtml}
+                        ${window.isValidImageUrl(data.img) ? `<img src="${data.img}" class="item-img">` : ""}
                     </div>
-                    <div class="item-source">${data.sourceImg ? `<img src="${data.sourceImg}">` : ""} <span>${escapeHtml(data.source)}</span></div>
+                    <div class="item-source"><img src="${data.sourceImg}"> <span>${data.source}</span></div>
                     <div class="price-tag">Cena: <span>${escapeHtml(data.price)}</span></div>
-                    <div style="color:#aaa; font-size:0.9em; margin-bottom:15px; font-style:italic;" class="item-description">${escapeHtml(data.desc)}</div>
+                    ${resHtml}
                     <div class="seller-info">
-                        <div class="seller-left"><img src="${data.avatar}" class="tiny-avatar"> <b>${escapeHtml(data.nick)}</b></div>
-                        ${deleteBtn}
+                        <div class="seller-left"><img src="${data.avatar}" class="tiny-avatar"><b>${data.nick}</b></div>
+                        <div class="btn-group">
+                            ${btnRes}
+                            ${isOwner ? `<button class="small-btn edit-added" onclick="openFullEdit('${data.id}','${data.name}','${data.price}','${data.desc}','${data.img}')">EDYTUJ</button>` : ""}
+                            ${isOwner || isAdmin ? `<button class="small-btn delete-btn" onclick="deleteOffer('${data.id}')">✕</button>` : ""}
+                        </div>
                     </div>
                 </div>`;
         });
+        document.getElementById('offerStats').innerText = `Widocznych ofert: ${count}`;
     }
 
-    window.filterOffers = (type) => {
-        currentFilter = type;
-        document.querySelectorAll('.filter-btn').forEach(b => b.classList.toggle('active', b.innerText.toLowerCase() === type || (type === 'all' && b.innerText === 'Wszystkie')));
-        renderOffers();
-    };
-
-    window.openFullEdit = (id, name, price, desc, img) => {
-        currentEditId = id;
-        document.getElementById('fullEditName').value = name;
-        document.getElementById('fullEditPrice').value = price;
-        document.getElementById('fullEditDesc').value = desc;
-        document.getElementById('fullEditImg').value = img;
-        document.getElementById('editModal').style.display = 'flex';
-    };
-
-    window.closeFullEdit = () => { document.getElementById('editModal').style.display = 'none'; };
-
+    window.deleteOffer = async (id) => { if(confirm("Usunąć?")) await deleteDoc(doc(db, "oferty", id)); };
+    window.logout = () => signOut(auth);
+    window.searchMargo = () => window.open(`https://margoworld.pl/item?name=${encodeURIComponent(document.getElementById('itemName').value)}`);
+    window.closeFullEdit = () => document.getElementById('editModal').style.display='none';
     window.confirmFullEdit = async () => {
-        if (!currentEditId) return;
-        const updateData = {
+        await updateDoc(doc(db, "oferty", currentEditId), {
             name: document.getElementById('fullEditName').value,
             price: document.getElementById('fullEditPrice').value,
             desc: document.getElementById('fullEditDesc').value,
             img: document.getElementById('fullEditImg').value
-        };
-        try {
-            await updateDoc(doc(db, "oferty", currentEditId), updateData);
-            closeFullEdit();
-        } catch (e) { alert("Błąd aktualizacji: " + e.message); }
-    };
-
-    function refreshControls() {
-        const cards = document.querySelectorAll('.offer-card');
-        cards.forEach(card => {
-            const deleteBtn = card.querySelector('.delete-btn');
-            if (deleteBtn && !card.querySelector('.edit-added')) {
-                const idMatch = deleteBtn.getAttribute('onclick').match(/'([^']+)'/);
-                if (idMatch) {
-                    const id = idMatch[1];
-                    const name = card.querySelector('.item-title').innerText;
-                    const price = card.querySelector('.price-tag span').innerText;
-                    const desc = card.querySelector('.item-description') ? card.querySelector('.item-description').innerText : "";
-                    const img = card.querySelector('.item-img') ? card.querySelector('.item-img').src : "";
-
-                    const editBtn = document.createElement('button');
-                    editBtn.innerText = 'EDYTUJ';
-                    editBtn.className = 'edit-added';
-                    editBtn.style = "background:none; border:1px solid #ffd700; color:#ffd700; font-size:10px; padding:2px 5px; cursor:pointer; margin-right:5px; border-radius:3px;";
-                    editBtn.onclick = () => openFullEdit(id, name, price, desc, img);
-                    
-                    deleteBtn.parentNode.insertBefore(editBtn, deleteBtn);
-                    deleteBtn.onclick = () => window.deleteOffer(id);
-                }
-            }
         });
-    }
-    setInterval(refreshControls, 1000);
+        window.closeFullEdit();
+    };
+    window.updateCharCount = () => {}; // Opcjonalne
 </script>
 </body>
 </html>
+
