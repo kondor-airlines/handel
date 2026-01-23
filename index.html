@@ -31,7 +31,7 @@
             color: var(--gold);
             border: 1px solid var(--border);
             padding: 0 15px;
-            height: 42px; /* Idealne dopasowanie do inputa */
+            height: 42px;
             cursor: pointer;
             border-radius: 6px;
             font-size: 1.2em;
@@ -49,11 +49,6 @@
             transform: translateY(-1px);
         }
 
-        .helper-btn:active {
-            transform: translateY(1px);
-            box-shadow: inset 0 2px 5px rgba(0,0,0,0.8);
-        }
-        
         .container { max-width: 1200px; margin: 0 auto; }
 
         header {
@@ -64,7 +59,6 @@
 
         h1 { font-family: 'MedievalSharp', cursive; color: var(--gold); margin: 0; font-size: 2.5em; text-shadow: 0 0 15px rgba(255, 215, 0, 0.5); letter-spacing: 2px; }
 
-        /* NOWY WYGLĄD PRZYCISKU LOGOWANIA */
         .login-btn {
             background: rgba(255, 255, 255, 0.05);
             color: #fff;
@@ -251,7 +245,7 @@
         <input type="text" id="fullEditImg" placeholder="Link do obrazka" style="margin-bottom:10px; width:100%; background:#000; color:white; border:1px solid #444; padding:10px;">
         <textarea id="fullEditDesc" rows="4" placeholder="Opis" style="width:100%; background:#000; color:white; border:1px solid #444; padding:10px;"></textarea>
         <div style="display:flex; gap:15px; margin-top: 15px;">
-            <button onclick="confirmFullEdit()" style="flex:2; background:#ffd700; padding:10px; cursor:pointer; font-weight:bold; border:none;">ZATWIERDŹ</button>
+            <button onclick="confirmFullEdit()" style="flex:2; background:#ffd700; padding:10px; cursor:pointer; font-weight:bold; border:none;">ZATWIERDŹ ZMIANY</button>
             <button onclick="closeFullEdit()" style="flex:1; background:#333; color:white; padding:10px; cursor:pointer; border:none;">ANULUJ</button>
         </div>
     </div>
@@ -472,7 +466,6 @@
 
 function escapeHtml(text) { return text ? text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;") : ""; }
 
-    // --- LOGIKA FILTRÓW ---
     window.setFilter = (type, val) => {
         if (type === 'cat' && currentFilters.cat === val) currentFilters.cat = 'all';
         else currentFilters[type] = val;
@@ -485,7 +478,6 @@ function escapeHtml(text) { return text ? text.replace(/&/g, "&amp;").replace(/<
         window.renderOffers();
     };
 
-    // --- FUNKCJE FORMULARZA ---
     window.updateSourceList = () => {
         const cat = document.getElementById('sourceCategory').value;
         const sel = document.getElementById('itemSource');
@@ -523,13 +515,8 @@ function escapeHtml(text) { return text ? text.replace(/&/g, "&amp;").replace(/<
         const statsPart = data.stats.split('||')[1];
         if (statsPart && statsPart.includes('opis=')) {
             document.getElementById('itemDesc').value = statsPart.split('opis=')[1].split(';')[0].replaceAll('[br]', '\n');
-        } else {
-            document.getElementById('itemDesc').value = "";
-        }
+        } else { document.getElementById('itemDesc').value = ""; }
     };
-
-    // --- LOGOWANIE I AUTH ---
-    document.getElementById('googleLoginBtn').addEventListener('click', () => signInWithPopup(auth, provider).catch(e => alert("Błąd logowania: " + e.message)));
 
     onAuthStateChanged(auth, async (user) => {
         currentUser = user;
@@ -554,7 +541,6 @@ function escapeHtml(text) { return text ? text.replace(/&/g, "&amp;").replace(/<
         window.renderOffers();
     });
 
-    // --- RENDEROWANIE ---
     window.renderOffers = () => {
         const list = document.getElementById('offersList');
         const searchInput = document.getElementById('globalSearch');
@@ -563,8 +549,10 @@ function escapeHtml(text) { return text ? text.replace(/&/g, "&amp;").replace(/<
         let count = 0;
 
         allOffers.forEach(data => {
+            // SPRAWDZANIE KATEGORII (Heros / E2)
             const isHeros = monstersList.herosi.some(m => m.name === data.source);
             const isE2 = monstersList.e2.some(m => m.name === data.source);
+            
             if(currentFilters.type !== 'all' && data.type !== currentFilters.type) return;
             if(currentFilters.cat === 'herosi' && !isHeros) return;
             if(currentFilters.cat === 'e2' && !isE2) return;
@@ -602,7 +590,6 @@ function escapeHtml(text) { return text ? text.replace(/&/g, "&amp;").replace(/<
         document.getElementById('offerStats').innerText = `Widocznych ofert: ${count}`;
     };
 
-    // --- OPERACJE NA BAZIE ---
     window.addOffer = async () => {
         const sel = document.getElementById('itemSource');
         if(!sel.value) return alert("Wybierz przeciwnika!");
@@ -636,3 +623,4 @@ function escapeHtml(text) { return text ? text.replace(/&/g, "&amp;").replace(/<
 </script>
 </body>
 </html>
+
