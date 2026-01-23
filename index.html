@@ -426,39 +426,41 @@ function escapeHtml(text) {
         return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
     }
 
-    // --- POPRAWIONA LOGIKA FILTRÓW ---
+// --- LOGIKA FILTRÓW (NAPRAWIONA) ---
     window.setFilter = (type, val) => {
-        // Jeśli klikasz w już aktywny filtr (inny niż 'all'), zresetuj go do 'all'
-        if (currentFilters[type] === val && val !== 'all') {
-            currentFilters[type] = 'all';
+        // Jeśli klikasz w ten sam filtr kategorii, który jest już aktywny - wyłącz go (all)
+        if (type === 'cat' && currentFilters.cat === val) {
+            currentFilters.cat = 'all';
         } else {
             currentFilters[type] = val;
         }
 
-        // Aktualizacja wyglądu przycisków
+        // Aktualizacja wizualna przycisków
         document.querySelectorAll('.filters .filter-btn').forEach(btn => {
             const btnId = btn.id;
             
-            // Obsługa podświetlania dla Typu (sprzedam/kupie/all)
+            // Grupa Typu (Wszystkie / Sprzedam / Kupię)
             if (type === 'type') {
                 if (btnId === 'f-' + currentFilters.type) btn.classList.add('active');
                 else if (['f-all', 'f-sprzedam', 'f-kupie'].includes(btnId)) btn.classList.remove('active');
             }
             
-            // Obsługa podświetlania dla Kategorii (herosi/e2)
-            if (type === 'cat') {
-                if (currentFilters.cat !== 'all' && btnId === 'f-' + currentFilters.cat) btn.classList.add('active');
-                else if (['f-h', 'f-e2'].includes(btnId)) btn.classList.remove('active');
+            // Grupa Kategorii (Herosi / E2)
+            if (type === 'cat' || val === 'all') {
+                if (currentFilters.cat !== 'all' && btnId === 'f-' + currentFilters.cat) {
+                    btn.classList.add('active');
+                } else if (['f-h', 'f-e2'].includes(btnId)) {
+                    btn.classList.remove('active');
+                }
             }
         });
 
-        renderOffers();
+        window.renderOffers();
     };
 
-    // --- POPRAWIONE RENDEROWANIE Z DZIAŁAJĄCYM SZUKANIEM ---
-    function renderOffers() {
+    // --- RENDEROWANIE (WYEKSPORTOWANE DO WINDOW) ---
+    window.renderOffers = function() {
         const list = document.getElementById('offersList');
-        // Pobieramy aktualną frazę z wyszukiwarki targu
         const searchInput = document.getElementById('globalSearch');
         const searchStr = searchInput ? searchInput.value.toLowerCase().trim() : "";
         
@@ -466,18 +468,17 @@ function escapeHtml(text) {
         let count = 0;
 
         allOffers.forEach(data => {
-            // 1. Sprawdzanie czy to Heros czy E2
+            // Sprawdzanie przynależności do grupy
             const isHeros = monstersList.herosi.some(m => m.name === data.source);
             const isE2 = monstersList.e2.some(m => m.name === data.source);
             
-            // 2. Logika filtrów połączonych
+            // Filtry
             const matchesType = currentFilters.type === 'all' || data.type === currentFilters.type;
             
             let matchesCat = true;
             if (currentFilters.cat === 'herosi') matchesCat = isHeros;
             if (currentFilters.cat === 'e2') matchesCat = isE2;
 
-            // 3. Logika wyszukiwarki (sprawdza nazwę przedmiotu)
             const matchesSearch = data.name.toLowerCase().includes(searchStr);
 
             if (matchesType && matchesCat && matchesSearch) {
@@ -507,7 +508,7 @@ function escapeHtml(text) {
                         </div>
                         <div class="price-tag">Cena: <span>${escapeHtml(data.price)}</span></div>
                         ${resHtml}
-                        <div style="color:#aaa; font-size:0.8em; margin:10px 0; font-style:italic;" class="item-description">${escapeHtml(data.desc)}</div>
+                        <div style="color:#aaa; font-size:0.8em; margin:10px 0; font-style:italic;">${escapeHtml(data.desc)}</div>
                         <div class="seller-info">
                             <div class="seller-left"><img src="${data.avatar}" class="tiny-avatar"><b>${escapeHtml(data.nick)}</b></div>
                             <div class="btn-group">
@@ -522,7 +523,7 @@ function escapeHtml(text) {
         
         const stats = document.getElementById('offerStats');
         if (stats) stats.innerText = `Widocznych ofert: ${count}`;
-    }
+    };
 
     // LOGOWANIE
     document.getElementById('googleLoginBtn').addEventListener('click', () => signInWithPopup(auth, provider));
@@ -655,6 +656,7 @@ function escapeHtml(text) {
 </script>
 </body>
 </html>
+
 
 
 
