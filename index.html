@@ -3,13 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Targowisko Klanowe</title>
+    <title>Targowisko Klanowe - Elite Edition</title>
     <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
     <style>
         :root {
             --gold: #ffd700;
-            --bg: #121212;
-            --card: #1e1e1e;
+            --gold-bright: #fff2a6;
+            --bg: #0f0f0f;
+            --card: #1a1a1a;
+            --border: #332b00;
             --green: #2ecc71; --blue: #3498db; --red: #e74c3c;
             --purple: #9b59b6;
         }
@@ -17,6 +19,7 @@
         body {
             font-family: 'Montserrat', sans-serif;
             background: var(--bg);
+            background-image: radial-gradient(circle at top, #1a1500 0%, #0f0f0f 100%);
             color: #eee;
             margin: 0;
             padding: 20px;
@@ -27,157 +30,111 @@
 
         header {
             display: flex; justify-content: space-between; align-items: center;
-            border-bottom: 2px solid #333; padding-bottom: 20px; margin-bottom: 30px;
+            border-bottom: 2px solid var(--border); padding-bottom: 20px; margin-bottom: 30px;
             flex-wrap: wrap; gap: 10px;
         }
 
-        h1 { font-family: 'MedievalSharp', cursive; color: var(--gold); margin: 0; font-size: 2em; text-shadow: 0 0 15px rgba(255, 215, 0, 0.4); }
+        h1 { 
+            font-family: 'MedievalSharp', cursive; 
+            color: var(--gold); 
+            margin: 0; 
+            font-size: 2.5em; 
+            text-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
+            letter-spacing: 2px;
+        }
 
         .login-btn {
-            background-color: #fff; color: #333; border: none; padding: 10px 20px;
-            border-radius: 5px; cursor: pointer; font-weight: bold; display: flex; align-items: center; gap: 10px; transition: 0.3s;
+            background: linear-gradient(to bottom, #fff, #ccc); color: #333; border: none; padding: 10px 20px;
+            border-radius: 5px; cursor: pointer; font-weight: bold; display: flex; align-items: center; gap: 10px; 
+            transition: 0.3s; box-shadow: 0 4px 15px rgba(0,0,0,0.5);
         }
-        .login-btn:hover { background-color: #f1f1f1; }
+        .login-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(255,255,255,0.2); }
 
-        .user-profile { display: none; align-items: center; gap: 10px; }
-        .user-avatar { width: 40px; height: 40px; border-radius: 50%; border: 2px solid var(--gold); }
-        .logout-link { color: #888; font-size: 0.8em; text-decoration: underline; cursor: pointer; }
+        .user-profile { display: none; align-items: center; gap: 12px; background: rgba(255,255,255,0.05); padding: 5px 15px; border-radius: 50px; border: 1px solid var(--border); }
+        .user-avatar { width: 35px; height: 35px; border-radius: 50%; border: 2px solid var(--gold); }
+        .logout-link { color: #ff6666; font-size: 0.75em; text-decoration: none; cursor: pointer; text-transform: uppercase; font-weight: bold; }
 
-        .filters { display: flex; gap: 10px; margin-bottom: 20px; justify-content: center; flex-wrap: wrap; }
+        .filters { display: flex; gap: 12px; margin-bottom: 30px; justify-content: center; flex-wrap: wrap; }
         .filter-btn {
-            background: #333; color: #aaa; border: 1px solid #444; padding: 8px 16px; 
-            border-radius: 20px; cursor: pointer; transition: 0.3s; font-size: 0.9em;
+            background: #222; color: #888; border: 1px solid #444; padding: 10px 20px; 
+            border-radius: 5px; cursor: pointer; transition: 0.3s; font-family: 'MedievalSharp'; font-size: 1.1em;
         }
-        .filter-btn:hover { background: #444; color: #fff; }
-        .filter-btn.active { background: var(--gold); color: #000; border-color: var(--gold); font-weight: bold; }
+        .filter-btn:hover { border-color: var(--gold); color: #fff; }
+        .filter-btn.active { background: var(--gold); color: #000; border-color: var(--gold-bright); box-shadow: 0 0 15px rgba(255,215,0,0.3); }
 
         .panel {
-            background: var(--card); padding: 20px; border-radius: 10px; border: 1px solid #333;
-            margin-bottom: 30px; display: none; 
+            background: var(--card); padding: 25px; border-radius: 12px; border: 1px solid var(--border);
+            margin-bottom: 40px; box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+            display: none; position: relative;
         }
+        .panel::before { content: ''; position: absolute; top:0; left:0; right:0; height: 2px; background: linear-gradient(90deg, transparent, var(--gold), transparent); }
 
-        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
         .full-width { grid-column: 1 / -1; }
 
         input, select, textarea {
-            background: #000; border: 1px solid #444; color: white;
-            padding: 10px; border-radius: 5px; width: 100%; box-sizing: border-box;
+            background: #0a0a0a; border: 1px solid #333; color: white;
+            padding: 12px; border-radius: 6px; width: 100%; box-sizing: border-box;
+            transition: 0.3s; outline: none;
         }
+        input:focus, select:focus { border-color: var(--gold); box-shadow: 0 0 8px rgba(255,215,0,0.2); }
         
-        select {
-            color: var(--gold);
-            border: 1px solid var(--purple);
-            background: #151515;
-            cursor: pointer;
-        }
-        option { background: #000; color: #fff; padding: 5px; }
-
-        #itemSelect {
-            border-color: #ffd700;
-            color: #ffd700;
-            display: none; 
-            background: #1a1500;
-        }
+        .search-box { background: #151500; border-color: var(--border); color: var(--gold); font-weight: bold; }
 
         .action-btn {
-            background: var(--gold); color: #000; border: none; padding: 12px;
-            font-weight: bold; width: 100%; cursor: pointer; border-radius: 5px;
+            background: linear-gradient(to bottom, #ffd700, #b89b00); color: #000; border: none; padding: 15px;
+            font-weight: 800; width: 100%; cursor: pointer; border-radius: 6px; text-transform: uppercase;
+            letter-spacing: 1px; font-family: 'Montserrat'; transition: 0.3s;
         }
-        .action-btn:hover { background: #d4a000; }
+        .action-btn:hover { filter: brightness(1.2); transform: scale(1.01); }
 
-        .helper-btn { background: #444; color: #fff; border: 1px solid #555; padding: 10px; cursor: pointer; border-radius: 5px; white-space: nowrap; }
-
-        .offers-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+        .offers-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 25px; }
 
         .offer-card {
-            background: var(--card); border: 1px solid #333; border-radius: 8px; padding: 15px; position: relative; transition: transform 0.2s;
-            overflow: hidden;
+            background: #181818; border: 1px solid #2a2a2a; border-radius: 10px; padding: 20px; 
+            position: relative; transition: 0.4s; overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
         }
-        .offer-card:hover { transform: translateY(-3px); border-color: #555; }
+        .offer-card:hover { transform: translateY(-5px); border-color: var(--gold); box-shadow: 0 8px 25px rgba(255,215,0,0.15); }
 
         .legendary-item {
-            border: 1px solid #ffd700 !important;
-            box-shadow: 0 0 15px rgba(255, 215, 0, 0.2), inset 0 0 20px rgba(255, 215, 0, 0.05);
-            background: linear-gradient(145deg, #1e1e1e, #2a2105) !important;
-            animation: legendary-pulse 4s infinite ease-in-out;
+            background: linear-gradient(135deg, #1a1a1a 0%, #251f00 100%);
+            border: 1px solid var(--border);
         }
-        @keyframes legendary-pulse {
-            0% { box-shadow: 0 0 10px rgba(255, 215, 0, 0.2); border-color: #ffd700; }
-            50% { box-shadow: 0 0 25px rgba(255, 215, 0, 0.5); border-color: #ffeb3b; }
-            100% { box-shadow: 0 0 10px rgba(255, 215, 0, 0.2); border-color: #ffd700; }
+        .legendary-item::after {
+            content: 'LEGENDARNY'; position: absolute; top: 15px; right: -30px; 
+            background: var(--gold); color: #000; font-size: 0.6em; font-weight: 900;
+            padding: 3px 40px; transform: rotate(45deg); box-shadow: 0 2px 5px rgba(0,0,0,0.5);
         }
 
-        .legendary-item .item-source {
-            color: #ffd700;
-            background: rgba(255, 215, 0, 0.1);
-            border-color: rgba(255, 215, 0, 0.3);
-        }
+        .tag { position: absolute; top: 15px; left: 15px; padding: 4px 10px; border-radius: 4px; font-size: 0.7em; font-weight: 800; text-transform: uppercase; }
+        .tag.sprzedam { background: var(--green); color: #000; }
+        .tag.kupie { background: var(--blue); color: #fff; }
+        .tag.zamienie { background: var(--red); color: #fff; }
 
-        .preview-box {
-            grid-column: 1 / -1;
-            display: none;
-            align-items: center;
-            gap: 15px;
-            background: rgba(255, 215, 0, 0.05);
-            border: 1px solid #ffd700;
-            padding: 10px;
-            border-radius: 5px;
-            margin-bottom: 10px;
-            animation: fadeIn 0.3s ease-in;
-        }
-        @keyframes fadeIn { from { opacity:0; transform:translateY(-5px); } to { opacity:1; transform:translateY(0); } }
-        
-        .preview-box img {
-            width: 40px; height: 40px; 
-            border: 1px solid #555; 
-            background: #000;
-            border-radius: 4px;
-        }
-        .preview-text { font-size: 0.9em; color: #ffd700; font-weight: bold; }
-        .preview-label { font-size: 0.7em; color: #888; text-transform: uppercase; display: block; margin-bottom: 2px; }
-
-        .tag { display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 0.75em; font-weight: bold; margin-bottom: 10px; text-transform: uppercase; }
-        .tag.sprzedam { background: rgba(46, 204, 113, 0.2); color: var(--green); }
-        .tag.kupie { background: rgba(52, 152, 219, 0.2); color: var(--blue); }
-        .tag.zamienie { background: rgba(231, 76, 60, 0.2); color: var(--red); }
-
-        .item-img { width: 50px; height: 50px; float: right; object-fit: contain; }
+        .item-img { width: 60px; height: 60px; float: right; margin-top: 10px; filter: drop-shadow(0 0 5px rgba(255,215,0,0.3)); }
         
         .item-source { 
-            font-size: 0.9em; color: #d1a3ff; margin-bottom: 12px; font-weight: 600; 
-            display: flex; align-items: center; gap: 12px; background: rgba(155, 89, 182, 0.15);
-            padding: 8px; border-radius: 6px; border: 1px solid rgba(155, 89, 182, 0.3);
+            font-size: 0.85em; color: #cca3ff; margin: 15px 0; display: flex; align-items: center; gap: 10px;
+            background: rgba(155, 89, 182, 0.1); padding: 8px; border-radius: 6px; border: 1px solid rgba(155,89,182,0.2);
         }
-        .item-source img { height: 45px; width: auto; object-fit: contain; filter: drop-shadow(0 0 2px rgba(0,0,0,0.5)); }
+        .item-source img { height: 35px; width: auto; }
 
-        .margo-link {
-            display: inline-block; font-size: 0.8em; color: #3498db; text-decoration: none; border: 1px solid #3498db; padding: 2px 8px; border-radius: 4px; margin-bottom: 10px; transition: 0.3s;
-        }
-        .margo-link:hover { background: #3498db; color: #fff; }
+        .price-tag { font-size: 1.3em; color: var(--gold); font-weight: bold; margin: 10px 0; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
 
         .seller-info { 
-            margin-top: 15px; padding-top: 10px; border-top: 1px solid #333; 
-            display: flex; align-items: center; justify-content: space-between; font-size: 0.9em; color: #aaa;
+            margin-top: 20px; padding-top: 15px; border-top: 1px dotted #444; 
+            display: flex; align-items: center; justify-content: space-between; font-size: 0.85em;
         }
-        .seller-left { display: flex; align-items: center; gap: 8px; }
-        .tiny-avatar { width: 24px; height: 24px; border-radius: 50%; }
+        .seller-left { display: flex; align-items: center; gap: 10px; }
+        .tiny-avatar { width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--gold); }
 
-        .copy-nick-btn { background: none; border: 1px solid #444; color: #888; cursor: pointer; padding: 2px 6px; border-radius: 4px; font-size: 0.8em; }
-        .copy-nick-btn:hover { color: var(--gold); border-color: var(--gold); }
-
-        .time-ago { font-size: 0.75em; color: #666; }
-        
         .delete-btn {
-            position: absolute; top: 10px; right: 10px;
-            background: #333; color: #fff; border: none; cursor: pointer; font-size: 0.8em; padding: 2px 6px; border-radius: 3px;
-            z-index: 10;
+            position: absolute; bottom: 15px; right: 15px; background: #333; color: #888; border: none; 
+            width: 25px; height: 25px; border-radius: 4px; cursor: pointer; font-weight: bold;
         }
-        .delete-btn:hover { background: red; }
-        
-        .admin-delete-btn { background: #800000; border-color: red; color: white; }
-        .admin-delete-btn:hover { background: red; }
-
-        .char-counter { font-size: 0.7em; color: #666; text-align: right; margin-top: -10px; margin-bottom: 10px; }
+        .delete-btn:hover { background: var(--red); color: #fff; }
+        .admin-delete-btn { width: auto; padding: 0 10px; background: #500; color: #fff; }
     </style>
 </head>
 <body>
@@ -186,83 +143,86 @@
     <header>
         <h1>⚔️ Targowisko Kondor Airlines</h1>
         <button id="googleLoginBtn" class="login-btn">
-            <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
-            Zaloguj
+            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/pwa_googleg_color_64dp.png" width="18">
+            Zaloguj przez Google
         </button>
 
         <div id="userProfile" class="user-profile">
             <img id="userAvatar" class="user-avatar" src="" alt="">
             <div>
-                <div id="userNickDisplay" style="font-weight:bold; color:var(--gold)">...</div>
+                <div id="userNickDisplay" style="font-weight:bold; color:var(--gold); font-size:0.9em;">...</div>
                 <div class="logout-link" onclick="logout()">Wyloguj</div>
             </div>
         </div>
     </header>
 
     <div class="filters">
-        <button class="filter-btn active" onclick="filterOffers('all')">Wszystkie</button>
+        <button class="filter-btn active" onclick="filterOffers('all')">Wszystkie Przedmioty</button>
         <button class="filter-btn" onclick="filterOffers('sprzedam')">Sprzedam</button>
         <button class="filter-btn" onclick="filterOffers('kupie')">Kupię</button>
         <button class="filter-btn" onclick="filterOffers('zamienie')">Zamienię</button>
     </div>
 
     <div id="addOfferPanel" class="panel">
-        <h3 style="margin-top:0; color:#ffd700;">Dodaj Legendarne Ogłoszenie</h3>
+        <h3 style="margin-top:0; color:var(--gold); font-family:'MedievalSharp'; font-size:1.5em;">Wystaw Legendę na Targ</h3>
 
         <div class="form-grid">
             <select id="offerType">
-                <option value="sprzedam">Sprzedam</option>
-                <option value="kupie">Kupię</option>
-                <option value="zamienie">Zamienię</option>
+                <option value="sprzedam">Chcę Sprzedać</option>
+                <option value="kupie">Chcę Kupić</option>
+                <option value="zamienie">Chcę Zamienić</option>
             </select>
-            <input type="text" id="itemPrice" placeholder="Cena (np. 50m)" maxlength="30">
+            <input type="text" id="itemPrice" placeholder="Cena (np. 150m lub SŁ)" maxlength="30">
             
             <select id="sourceCategory" class="full-width" onchange="updateSourceList()">
-                <option value="">-- Wybierz Kategorię --</option>
-                <option value="herosi">Herosi</option>
-                <option value="e2">Elity II</option>
+                <option value="">-- Wybierz Kategorię Przeciwnika --</option>
+                <option value="herosi">Herosi (Wszyscy)</option>
+                <option value="e2">Elity II (Pełna Baza)</option>
             </select>
+
+            <input type="text" id="sourceSearch" class="full-width search-box" placeholder="🔍 Szukaj przeciwnika na liście..." oninput="updateSourceList()" style="display:none;">
 
             <select id="itemSource" class="full-width" onchange="updateLootList()">
-                <option value="">-- Wybierz Przeciwnika --</option>
+                <option value="">-- Wybierz konkretną E2 / Herosa --</option>
             </select>
 
+            <input type="text" id="itemSearch" class="full-width search-box" placeholder="🔍 Szukaj konkretnej legendy..." oninput="updateLootList()" style="display:none;">
+
             <select id="itemSelect" class="full-width" onchange="fillItemDetails()">
-                <option value="">-- Wybierz przedmiot legendarny --</option>
+                <option value="">-- Wybierz Przedmiot z Dropu --</option>
             </select>
 
             <div id="livePreview" class="preview-box">
-                <img id="previewIcon" src="" alt="Ikona">
+                <img id="previewIcon" src="" alt="">
                 <div>
-                    <span class="preview-label">Wybrano:</span>
+                    <span class="preview-label">Wybrany artefakt:</span>
                     <span id="previewName" class="preview-text">...</span>
                 </div>
             </div>
 
             <div style="display:flex; gap:10px; align-items:center;" class="full-width">
-                <input type="text" id="itemName" placeholder="Nazwa przedmiotu" style="margin:0;" maxlength="50">
-                <button class="helper-btn" onclick="searchMargo()" title="Szukaj na MargoWorld">🔍</button>
+                <input type="text" id="itemName" placeholder="Nazwa przedmiotu" maxlength="50">
+                <button class="helper-btn" onclick="searchMargo()" title="Sprawdź w MargoWorld">🔍</button>
             </div>
 
-            <input type="text" id="itemMargoLink" placeholder="Link do statystyk (opcjonalne)" class="full-width">
-            <input type="text" id="itemImg" placeholder="Link do obrazka" class="full-width">
+            <input type="text" id="itemImg" placeholder="Link do obrazka przedmiotu (automatyczny)" class="full-width">
             
-            <textarea id="itemDesc" placeholder="Opis przedmiotu" class="full-width" maxlength="150" oninput="updateCharCount()"></textarea>
+            <textarea id="itemDesc" placeholder="Dodatkowy opis lub statystyki..." class="full-width" maxlength="150" oninput="updateCharCount()" rows="3"></textarea>
             <div id="charCount" class="char-counter full-width">0/150</div>
             
-            <button class="action-btn full-width" onclick="addOffer()">OPUBLIKUJ</button>
+            <button class="action-btn full-width" onclick="addOffer()">Opublikuj ogłoszenie</button>
         </div>
     </div>
 
     <div id="offersList" class="offers-grid">
-        <div style="text-align:center; grid-column:1/-1;">Ładowanie ofert...</div>
+        <div style="text-align:center; grid-column:1/-1; padding: 50px; color: #555;">Ładowanie targowiska...</div>
     </div>
 </div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
     import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
-    import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, deleteDoc, doc, getDoc, setDoc, serverTimestamp, where } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, deleteDoc, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
     
     const firebaseConfig = {
       apiKey: "AIzaSyApFYFkAghXreeX_xptg-PTCSxtPdiXYdA",
@@ -1227,88 +1187,83 @@
     // Funkcja aktualizująca listę przeciwników w zależności od wybranej kategorii (Herosi/E2)
     window.updateSourceList = function() {
         const category = document.getElementById('sourceCategory').value;
+        const sourceSearch = document.getElementById('sourceSearch');
         const sourceSelect = document.getElementById('itemSource');
-        sourceSelect.innerHTML = '<option value="">-- Wybierz Przeciwnika --</option>';
-        if (category && monstersList[category]) {
-            monstersList[category].forEach(mob => {
+        const queryStr = sourceSearch.value.toLowerCase();
+
+        if (category) {
+            sourceSearch.style.display = 'block';
+            sourceSelect.innerHTML = '<option value="">-- Wybierz Przeciwnika --</option>';
+            const filtered = monstersList[category].filter(mob => mob.name.toLowerCase().includes(queryStr));
+            filtered.forEach(mob => {
                 let opt = document.createElement('option');
-                opt.value = mob.name; 
-                opt.dataset.img = mob.img; 
-                opt.innerText = mob.name;
+                opt.value = mob.name; opt.dataset.img = mob.img; opt.innerText = mob.name;
                 sourceSelect.appendChild(opt);
             });
+        } else {
+            sourceSearch.style.display = 'none';
+            sourceSelect.innerHTML = '<option value="">-- Wybierz Przeciwnika --</option>';
         }
         document.getElementById('itemSelect').style.display = 'none';
+        document.getElementById('itemSearch').style.display = 'none';
         document.getElementById('livePreview').style.display = 'none';
     };
 
-    // Funkcja ładująca listę przedmiotów po wyborze przeciwnika
     window.updateLootList = function() {
         const heroName = document.getElementById('itemSource').value;
+        const itemSearch = document.getElementById('itemSearch');
         const itemSelect = document.getElementById('itemSelect');
-        itemSelect.innerHTML = '<option value="">-- Wybierz przedmiot legendarny --</option>'; 
-        
+        const queryStr = itemSearch.value.toLowerCase();
+
         if (heroName && lootTable[heroName]) {
-            itemSelect.style.display = 'block'; 
-            lootTable[heroName].forEach(item => {
+            itemSearch.style.display = 'block';
+            itemSelect.style.display = 'block';
+            itemSelect.innerHTML = '<option value="">-- Wybierz przedmiot --</option>'; 
+            const filtered = lootTable[heroName].filter(item => item.stats.split('||')[0].toLowerCase().includes(queryStr));
+            filtered.forEach(item => {
                 let opt = document.createElement('option');
-                opt.value = JSON.stringify(item); 
-                opt.innerText = item.stats.split('||')[0];
+                opt.value = JSON.stringify(item); opt.innerText = item.stats.split('||')[0];
                 itemSelect.appendChild(opt);
             });
         } else { 
+            itemSearch.style.display = 'none';
             itemSelect.style.display = 'none'; 
         }
     };
 
-    // Wypełnianie pól formularza po wyborze przedmiotu
     window.fillItemDetails = function() {
         const selectedValue = document.getElementById('itemSelect').value;
         if (!selectedValue) return;
-
         const itemData = JSON.parse(selectedValue);
         const namePart = itemData.stats.split('||')[0];
-        const statsPart = itemData.stats.split('||')[1] || "";
-
         document.getElementById('itemName').value = namePart;
         document.getElementById('itemImg').value = itemData.img;
-
-        // Podgląd na żywo
         document.getElementById('livePreview').style.display = 'flex';
         document.getElementById('previewIcon').src = itemData.img;
         document.getElementById('previewName').innerText = namePart;
-
-        // Wyciąganie opisu
-        let description = "";
-        if (statsPart.includes('opis=')) {
-            description = statsPart.split('opis=')[1].split(';')[0].replaceAll('[br]', '\n');
-        }
-        document.getElementById('itemDesc').value = description;
+        const statsPart = itemData.stats.split('||')[1] || "";
+        document.getElementById('itemDesc').value = statsPart.includes('opis=') ? statsPart.split('opis=')[1].split(';')[0].replaceAll('[br]', '\n') : "";
         updateCharCount();
     };
 
     window.updateCharCount = function() {
-        const val = document.getElementById('itemDesc').value.length;
-        document.getElementById('charCount').innerText = val + "/150";
+        document.getElementById('charCount').innerText = document.getElementById('itemDesc').value.length + "/150";
     };
 
-    // Obsługa logowania i stanów użytkownika
+    document.getElementById('googleLoginBtn').addEventListener('click', () => {
+        signInWithPopup(auth, provider).catch(e => alert("Błąd: " + e.message));
+    });
+
     onAuthStateChanged(auth, async (user) => {
         currentUser = user;
         if (user) {
             const userRef = doc(db, "users", user.uid);
             const userSnap = await getDoc(userRef);
-
-            if (userSnap.exists()) {
-                currentNick = userSnap.data().nick;
-            } else {
-                let nick = prompt("Podaj swój nick z gry:");
-                if(nick && nick.trim()) {
-                    currentNick = nick.trim();
-                    await setDoc(userRef, { nick: currentNick });
-                } else {
-                    logout(); return;
-                }
+            if (userSnap.exists()) { currentNick = userSnap.data().nick; }
+            else {
+                let nick = prompt("Nick z gry:");
+                if(nick && nick.trim()) { currentNick = nick.trim(); await setDoc(userRef, { nick: currentNick }); }
+                else { logout(); return; }
             }
             document.getElementById('googleLoginBtn').style.display = 'none';
             document.getElementById('userProfile').style.display = 'flex';
@@ -1319,52 +1274,37 @@
             document.getElementById('googleLoginBtn').style.display = 'flex';
             document.getElementById('userProfile').style.display = 'none';
             document.getElementById('addOfferPanel').style.display = 'none';
-            currentNick = null;
         }
         renderOffers();
     });
 
-    window.searchMargo = () => {
-        const name = document.getElementById('itemName').value;
-        window.open(`https://margoworld.pl/item?name=${encodeURIComponent(name)}&minLvl=&maxLvl=&cl=`, '_blank');
-    };
+    window.searchMargo = () => { window.open(`https://margoworld.pl/item?name=${encodeURIComponent(document.getElementById('itemName').value)}`, '_blank'); };
 
     window.addOffer = async () => {
-        if (!currentUser) return alert("Zaloguj się!");
-        
+        if (!currentUser) return;
         const type = document.getElementById('offerType').value;
         const name = escapeHtml(document.getElementById('itemName').value);
         const price = escapeHtml(document.getElementById('itemPrice').value);
         const desc = escapeHtml(document.getElementById('itemDesc').value);
         const img = escapeHtml(document.getElementById('itemImg').value);
-
         const sel = document.getElementById('itemSource');
         const sourceName = sel.value; 
-        const sourceImg = sel.selectedIndex > 0 ? sel.options[sel.selectedIndex].dataset.img : "";
-
+        const sourceImg = sel.selectedIndex >= 0 ? sel.options[sel.selectedIndex].dataset.img : "";
         if(!name || !price) return alert("Brakuje nazwy lub ceny!");
-
         try {
             await addDoc(collection(db, "oferty"), {
                 userId: currentUser.uid, nick: currentNick, avatar: currentUser.photoURL,
-                type, name, price, source: sourceName, sourceImg: sourceImg, desc, img,
+                type, name, price, source: sourceName, sourceImg: sourceImg || "", desc, img,
                 date: new Date().toISOString()
             });
             location.reload();
-        } catch(e) { alert("Błąd: " + e.message); }
+        } catch(e) { alert(e.message); }
     };
 
-    window.deleteOffer = async (id) => {
-        if(confirm("Czy na pewno usunąć?")) await deleteDoc(doc(db, "oferty", id));
-    };
-
-    window.copyNick = (nick) => {
-        navigator.clipboard.writeText(`/t ${nick} `).then(() => alert("Skopiowano nick!"));
-    };
-
+    window.deleteOffer = async (id) => { if(confirm("Usunąć?")) await deleteDoc(doc(db, "oferty", id)); };
+    window.copyNick = (nick) => { navigator.clipboard.writeText(`/t ${nick} `).then(() => alert("Skopiowano!")); };
     window.logout = () => signOut(auth);
 
-    // Pobieranie ofert w czasie rzeczywistym
     onSnapshot(query(collection(db, "oferty"), orderBy("date", "desc")), (snapshot) => {
         allOffers = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         renderOffers();
@@ -1373,38 +1313,21 @@
     function renderOffers() {
         const list = document.getElementById('offersList');
         list.innerHTML = "";
-        
         allOffers.forEach(data => {
             if (currentFilter !== 'all' && data.type !== currentFilter) return;
-
             const isAdmin = (currentNick === ADMIN_NICK);
             const isOwner = currentUser && (data.userId === currentUser.uid);
-
-            let deleteBtn = "";
-            if (isOwner || isAdmin) {
-                let btnClass = (isAdmin && !isOwner) ? "delete-btn admin-delete-btn" : "delete-btn";
-                let label = (isAdmin && !isOwner) ? "USUŃ (Admin)" : "✕";
-                deleteBtn = `<button class="${btnClass}" onclick="deleteOffer('${data.id}')">${label}</button>`;
-            }
-
-            let imgHtml = "";
-            if (isValidImageUrl(data.img)) {
-                imgHtml = `<img src="${escapeHtml(data.img)}" class="item-img" onerror="this.style.display='none'">`;
-            } else if (data.img) {
-                imgHtml = `<span style="float:right; font-size:20px;" title="Błędny format">⚠️</span>`;
-            }
+            let deleteBtn = (isOwner || isAdmin) ? `<button class="delete-btn ${isAdmin && !isOwner ? 'admin-delete-btn' : ''}" onclick="deleteOffer('${data.id}')">${isAdmin && !isOwner ? 'USUŃ (Admin)' : '✕'}</button>` : "";
+            let imgHtml = isValidImageUrl(data.img) ? `<img src="${escapeHtml(data.img)}" class="item-img" onerror="this.style.display='none'">` : (data.img ? "⚠️" : "");
 
             list.innerHTML += `
                 <div class="offer-card legendary-item">
                     ${deleteBtn}
                     <div class="tag ${data.type}">${data.type.toUpperCase()}</div>
                     ${imgHtml}
-                    <div style="font-size:1.1em; font-weight:bold; margin-bottom:5px;">${escapeHtml(data.name)}</div>
-                    <div class="item-source">
-                        ${data.sourceImg ? `<img src="${data.sourceImg}">` : ""} 
-                        <span>${escapeHtml(data.source)}</span>
-                    </div>
-                    <div style="color:var(--gold); margin-bottom:10px;">Cena: ${escapeHtml(data.price)}</div>
+                    <div style="font-size:1.1em; font-weight:bold; color:var(--gold);">${escapeHtml(data.name)}</div>
+                    <div class="item-source">${data.sourceImg ? `<img src="${data.sourceImg}">` : ""} <span>${escapeHtml(data.source)}</span></div>
+                    <div class="price-tag">Cena: ${escapeHtml(data.price)}</div>
                     <div style="color:#aaa; font-size:0.9em; margin-bottom:15px; font-style:italic;">${escapeHtml(data.desc)}</div>
                     <div class="seller-info">
                         <div class="seller-left">
@@ -1419,11 +1342,10 @@
 
     window.filterOffers = (type) => {
         currentFilter = type;
-        document.querySelectorAll('.filter-btn').forEach(b => {
-            b.classList.toggle('active', b.innerText.toLowerCase() === type || (type === 'all' && b.innerText === 'Wszystkie'));
-        });
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.toggle('active', b.innerText.toLowerCase() === type || (type === 'all' && b.innerText === 'Wszystkie')));
         renderOffers();
     };
 </script>
 </body>
 </html>
+
