@@ -20,6 +20,7 @@
             color: #eee;
             margin: 0;
             padding: 20px;
+            padding-bottom: 80px;
         }
 
         .container { max-width: 1200px; margin: 0 auto; }
@@ -90,6 +91,7 @@
 
         .offer-card {
             background: var(--card); border: 1px solid #333; border-radius: 8px; padding: 15px; position: relative; transition: transform 0.2s;
+            overflow: hidden; /* Zabezpieczenie przed wylewaniem */
         }
         .offer-card:hover { transform: translateY(-3px); border-color: #555; }
 
@@ -168,6 +170,7 @@
         .delete-btn {
             position: absolute; top: 10px; right: 10px;
             background: #333; color: #fff; border: none; cursor: pointer; font-size: 0.8em; padding: 2px 6px; border-radius: 3px;
+            z-index: 10;
         }
         .delete-btn:hover { background: red; }
         
@@ -256,7 +259,7 @@
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
     import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
-    import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, deleteDoc, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, deleteDoc, doc, getDoc, setDoc, serverTimestamp, where } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
     
     // --- ⚠️ WKLEJ TU SWOJĄ KONFIGURACJĘ ⚠️ ---
     const firebaseConfig = {
@@ -281,6 +284,17 @@
     
     // --- ADMIN CONFIG ---
     const ADMIN_NICK = "Stachu Drzymała"; 
+
+    // --- SANITYZACJA (BEZPIECZEŃSTWO) ---
+    function escapeHtml(text) {
+        if (!text) return "";
+        return text
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
 
     // --- BAZA HEROSÓW ---
     const monstersList = [
@@ -380,7 +394,7 @@
             {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_06.gif.gif", stats: "Skrytka mocy||rarity=legendary"}
         ],
         "Baca bez łowiec (144 lvl)": [
-            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/naszyjnik1163.gif", stats: "Serowe wahadełko||rarity=heroic"}, 
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/naszyjnik1163.gif", stats: "Serowe wahadełko||rarity=heroic"}, 
             {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/naszyjnik1164.gif", stats: "Sztuczka doświadczonego bacy||rarity=legendary"},
             {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/naszyjnik1162.gif", stats: "Eteryczny baran||rarity=legendary"},
             {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_06.gif.gif", stats: "Skrytka mocy||rarity=legendary"}
@@ -459,7 +473,7 @@
         ],
         "Młody Smok (282 lvl)": [
             {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/tal/tal32.gif", stats: "Talizman smoczego boga||rarity=legendary;opis=Hełm wykuty w smoczym ogniu."},
-            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm658.gif", stats: "Maska gniewu Shaiharrud||rarity=legendary"}, 
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm658.gif", stats: "Maska gniewu Shaiharrud||rarity=legendary"}, 
             {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm659.gif", stats: "Skupisko smoczej magii||rarity=legendary"},
             {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm657.gif", stats: "Więzienie gadzich płomieni||rarity=legendary"},
             {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_06.gif.gif", stats: "Ciężka skrytka mocy||rarity=legendary"}
@@ -470,8 +484,8 @@
     const sourceSelect = document.getElementById('itemSource');
     monstersList.forEach(mob => {
         let opt = document.createElement('option');
-        opt.value = mob.name; 
-        opt.dataset.img = mob.img; 
+        opt.value = mob.name; 
+        opt.dataset.img = mob.img; 
         opt.innerText = mob.name;
         sourceSelect.appendChild(opt);
     });
@@ -496,19 +510,19 @@
     window.updateLootList = function() {
         const heroName = document.getElementById('itemSource').value;
         const itemSelect = document.getElementById('itemSelect');
-        itemSelect.innerHTML = '<option value="">-- Wybierz przedmiot legendarny --</option>'; 
-        
+        itemSelect.innerHTML = '<option value="">-- Wybierz przedmiot legendarny --</option>'; 
+         
         if (heroName && lootTable[heroName] && lootTable[heroName].length > 0) {
-            itemSelect.style.display = 'block'; 
+            itemSelect.style.display = 'block'; 
             lootTable[heroName].forEach(item => {
                 const realName = item.stats.split('||')[0];
                 let opt = document.createElement('option');
-                opt.value = JSON.stringify(item); 
+                opt.value = JSON.stringify(item); 
                 opt.innerText = realName;
                 itemSelect.appendChild(opt);
             });
         } else {
-            itemSelect.style.display = 'none'; 
+            itemSelect.style.display = 'none'; 
             if(heroName) alert("Wybrany heros nie posiada przedmiotów legendarnych w bazie.");
         }
     }
@@ -585,6 +599,9 @@
             document.getElementById('addOfferPanel').style.display = 'block';
             document.getElementById('userNickDisplay').innerText = currentNick;
             document.getElementById('userAvatar').src = user.photoURL;
+
+            updatePresence();
+            setInterval(updatePresence, 60000);
         } else {
             document.getElementById('googleLoginBtn').style.display = 'flex';
             document.getElementById('userProfile').style.display = 'none';
@@ -593,6 +610,11 @@
         }
         renderOffers();
     });
+
+    // ONLINE QUERY
+    const fifteenMinutesAgo = new Date(Date.now() - 15 * 60 * 1000);
+    const qOnline = query(collection(db, "users"), where("lastSeen", ">", fifteenMinutesAgo));
+    onSnapshot(qOnline, (snapshot) => { renderOnlineUsers(snapshot); });
 
     window.searchMargo = () => {
         const name = document.getElementById('itemName').value;
@@ -610,7 +632,7 @@
         const img = document.getElementById('itemImg').value;
 
         const sel = document.getElementById('itemSource');
-        const sourceName = sel.value; 
+        const sourceName = sel.value; 
         const sourceImg = sel.selectedIndex > 0 ? sel.options[sel.selectedIndex].dataset.img : "";
 
         if(!name || !price) return alert("Brakuje nazwy lub ceny!");
@@ -621,6 +643,7 @@
                 type, name, price, source: sourceName, sourceImg: sourceImg, margoLink, desc, img,
                 date: new Date().toISOString()
             });
+            // Reset formularza
             document.getElementById('itemName').value = "";
             document.getElementById('itemPrice').value = "";
             document.getElementById('itemSource').value = "";
@@ -687,7 +710,7 @@
         }
 
         filtered.forEach(data => {
-            let tagClass = data.type; 
+            let tagClass = data.type; 
             let typeLabel = data.type.toUpperCase();
             
             // --- LOGIKA ADMINA ---
@@ -743,4 +766,3 @@
 
 </body>
 </html>
-
