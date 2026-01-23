@@ -430,7 +430,6 @@ function escapeHtml(text) { return text ? text.replace(/&/g, "&amp;").replace(/<
             const id = b.id.replace('f-', '');
             if (type === 'type' && ['all','sprzedam','kupie'].includes(id)) b.classList.toggle('active', id === currentFilters.type);
             if (type === 'cat' && ['herosi','e2'].includes(id)) b.classList.toggle('active', id === currentFilters.cat);
-            if (val === 'all' && id === 'all') b.classList.add('active');
         });
         window.renderOffers();
     };
@@ -522,6 +521,9 @@ function escapeHtml(text) { return text ? text.replace(/&/g, "&amp;").replace(/<
                     <div class="item-source"><img src="${data.sourceImg}"> <span>${data.source}</span></div>
                     <div class="price-tag">Cena: <span>${escapeHtml(data.price)}</span></div>
                     ${resHtml}
+                    <div style="color:#aaa; font-size:0.85em; margin:10px 0; font-style:italic;" class="item-description">
+                        ${escapeHtml(data.desc)}
+                    </div>
                     <div class="seller-info">
                         <div class="seller-left"><img src="${data.avatar}" class="tiny-avatar"><b>${data.nick}</b></div>
                         <div class="btn-group">
@@ -567,6 +569,7 @@ function escapeHtml(text) { return text ? text.replace(/&/g, "&amp;").replace(/<
 </script>
 </body>
 </html>
+
 
 
 
