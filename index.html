@@ -112,6 +112,40 @@
             border-color: rgba(255, 215, 0, 0.3);
         }
 
+        /* LIVE PREVIEW BOX */
+        .preview-box {
+            grid-column: 1 / -1;
+            display: none; /* Domyślnie ukryte */
+            align-items: center;
+            gap: 15px;
+            background: rgba(255, 215, 0, 0.05);
+            border: 1px solid #ffd700;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            animation: fadeIn 0.3s ease-in;
+        }
+        @keyframes fadeIn { from { opacity:0; transform:translateY(-5px); } to { opacity:1; transform:translateY(0); } }
+        
+        .preview-box img {
+            width: 40px; height: 40px; 
+            border: 1px solid #555; 
+            background: #000;
+            border-radius: 4px;
+        }
+        .preview-text {
+            font-size: 0.9em;
+            color: #ffd700;
+            font-weight: bold;
+        }
+        .preview-label {
+            font-size: 0.7em; 
+            color: #888; 
+            text-transform: uppercase; 
+            display: block; 
+            margin-bottom: 2px;
+        }
+
         .tag { display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 0.75em; font-weight: bold; margin-bottom: 10px; text-transform: uppercase; }
         .tag.sprzedam { background: rgba(46, 204, 113, 0.2); color: var(--green); }
         .tag.kupie { background: rgba(52, 152, 219, 0.2); color: var(--blue); }
@@ -177,14 +211,6 @@
 
     <div id="addOfferPanel" class="panel">
         <h3 style="margin-top:0; color:#ffd700;">Dodaj Legendarne Ogłoszenie</h3>
-        
-        <div style="background:#111; padding:10px; border-radius:5px; margin-bottom:15px; border:1px dashed #ffd700;">
-            <div style="font-size:0.8em; color:#ffd700; margin-bottom:5px;">📋 Wklej kod przedmiotu z forum (Szybka metoda)</div>
-            <div style="display:flex; gap:10px;">
-                <input type="text" id="pasteCode" placeholder='<img src="..." stats="...">'>
-                <button class="action-btn" onclick="parseItemCode()" style="width:auto; background:#ffd700; color:#000;">⚡ Wczytaj</button>
-            </div>
-        </div>
 
         <div class="form-grid">
             <select id="offerType">
@@ -201,6 +227,14 @@
             <select id="itemSelect" class="full-width" onchange="fillItemDetails()">
                 <option value="">-- Wybierz przedmiot legendarny --</option>
             </select>
+
+            <div id="livePreview" class="preview-box">
+                <img id="previewIcon" src="" alt="Ikona">
+                <div>
+                    <span class="preview-label">Wybrano:</span>
+                    <span id="previewName" class="preview-text">...</span>
+                </div>
+            </div>
 
             <div style="display:flex; gap:10px; align-items:center;" class="full-width">
                 <input type="text" id="itemName" placeholder="Nazwa przedmiotu" style="margin:0;">
@@ -277,9 +311,20 @@
         { name: "Młody Smok (282 lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/her/smokbarb.gif" }
     ];
 
-    // --- PEŁNA BAZA LEGEND Z PLIKU ---
-    // Każdy heros ma 4 przedmioty, Smok 5.
+    // --- PEŁNA BAZA LEGEND Z PLIKU (UZUPEŁNIONA) ---
     const lootTable = {
+        "Domina Ecclesiae (21 lvl)": [
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/sur/smocza_runa3.gif", stats: "Smocza Runa (Legenda)||rarity=legendary;runes=2250"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_06.gif.gif", stats: "Lekka skrytka mocy||rarity=legendary"},
+            {img: "", stats: "Legendarny Przedmiot 3 (Brak w pliku)||rarity=legendary"},
+            {img: "", stats: "Legendarny Przedmiot 4 (Brak w pliku)||rarity=legendary"}
+        ],
+        "Mietek Żul (25 lvl)": [
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_06.gif.gif", stats: "Lekka skrytka mocy||rarity=legendary"},
+            {img: "", stats: "Legendarny Przedmiot 2 (Brak w pliku)||rarity=legendary"},
+            {img: "", stats: "Legendarny Przedmiot 3 (Brak w pliku)||rarity=legendary"},
+            {img: "", stats: "Legendarny Przedmiot 4 (Brak w pliku)||rarity=legendary"}
+        ],
         "Mroczny Patryk (35 lvl)": [
             {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm749.gif", stats: "Kapelusz wiecznej udręki||rarity=legendary;opis=Chociaż poprzednia właścicielka tego kapelusza powiązana była z ciemną stroną mocy..."},
             {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm748.gif", stats: "Splot szaleństwa||rarity=legendary;opis=Ostre kolce boleśnie wbijały się w skroń..."},
@@ -342,8 +387,8 @@
         ],
         "Złoty Roger (135 lvl)": [
             {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice1189.gif", stats: "Złowrogie czaszki Rogera||rarity=legendary;opis=Gdy załoga zacumowała w ukrytym porcie..."},
-            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice1191.gif", stats: "Wybuchowe przywitanie||rarity=legendary"},
-            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice1190.gif", stats: "Wspomnienie wielkiego korsarza||rarity=legendary"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice1188.gif", stats: "Pirackie rękawice (Szacowany)||rarity=legendary"},
+            {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice1190.gif", stats: "Skrab kapitana (Szacowany)||rarity=legendary"},
             {img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_06.gif.gif", stats: "Skrytka mocy||rarity=legendary"}
         ],
         "Baca bez łowiec (144 lvl)": [
@@ -433,7 +478,7 @@
         ]
     };
 
-    // Ładowanie listy herosów
+    // Ładowanie listy herosów do selecta
     const sourceSelect = document.getElementById('itemSource');
     monstersList.forEach(mob => {
         let opt = document.createElement('option');
@@ -491,6 +536,18 @@
 
         document.getElementById('itemName').value = namePart;
         document.getElementById('itemImg').value = itemData.img;
+
+        // --- AKTUALIZACJA LIVE PREVIEW ---
+        const previewBox = document.getElementById('livePreview');
+        const previewImg = document.getElementById('previewIcon');
+        const previewTxt = document.getElementById('previewName');
+
+        if (itemData.img) {
+            previewBox.style.display = 'flex';
+            previewImg.src = itemData.img;
+            previewTxt.innerText = namePart;
+        }
+        // ---------------------------------
 
         let description = "";
         if (statsPart.includes('opis=')) {
@@ -573,6 +630,7 @@
             document.getElementById('itemPrice').value = "";
             document.getElementById('itemSource').value = "";
             document.getElementById('itemSelect').style.display = 'none';
+            document.getElementById('livePreview').style.display = 'none'; // Ukryj podgląd
             document.getElementById('itemMargoLink').value = "";
             document.getElementById('itemDesc').value = "";
             document.getElementById('itemImg').value = "";
@@ -683,4 +741,3 @@
 
 </body>
 </html>
-
