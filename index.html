@@ -74,7 +74,8 @@
             text-transform: uppercase;
             letter-spacing: 1px;
             font-size: 0.85em;
-            z-index: 10;
+            z-index: 999;
+            position: relative;
         }
 
         .login-btn:hover {
@@ -1209,6 +1210,7 @@
 
   function escapeHtml(text) { return text ? text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;") : ""; }
 
+    // --- LOGIKA FILTRÓW ---
     window.setFilter = (type, val) => {
         if (type === 'cat' && currentFilters.cat === val) currentFilters.cat = 'all';
         else currentFilters[type] = val;
@@ -1261,6 +1263,12 @@
         } else { document.getElementById('itemDesc').value = ""; }
     };
 
+    // LOGOWANIE GOOGLE
+    window.loginGoogle = () => {
+        signInWithPopup(auth, provider).catch(e => alert("Błąd logowania: " + e.message));
+    };
+    document.getElementById('googleLoginBtn').addEventListener('click', window.loginGoogle);
+    
     onAuthStateChanged(auth, async (user) => {
         currentUser = user;
         if(user) {
@@ -1268,16 +1276,16 @@
             const snap = await getDoc(ref);
             if(snap.exists()) currentNick = snap.data().nick;
             else {
-                let n = prompt("Podaj swój nick z gry:");
-                if(n && n.trim()) { currentNick = n.trim(); await setDoc(ref, {nick:currentNick}); } else { await signOut(auth); return; }
+                let n = prompt("Twój nick z gry:");
+                if(n && n.trim()) { currentNick = n.trim(); await setDoc(ref, {nick:currentNick}); } else await signOut(auth);
             }
-            document.getElementById('googleLoginBtn').style.setProperty('display', 'none', 'important');
+            document.getElementById('googleLoginBtn').style.display = 'none';
             document.getElementById('userProfile').style.display = 'flex';
             document.getElementById('addOfferPanel').style.display = 'block';
             document.getElementById('userNickDisplay').innerText = currentNick;
             document.getElementById('userAvatar').src = user.photoURL;
         } else {
-            document.getElementById('googleLoginBtn').style.setProperty('display', 'flex', 'important');
+            document.getElementById('googleLoginBtn').style.display = 'flex';
             document.getElementById('userProfile').style.display = 'none';
             document.getElementById('addOfferPanel').style.display = 'none';
         }
@@ -1290,17 +1298,13 @@
         const searchStr = searchInput ? searchInput.value.toLowerCase().trim() : "";
         list.innerHTML = "";
         let count = 0;
-
         allOffers.forEach(data => {
-            // SPRAWDZANIE KATEGORII (Heros / E2)
             const isHeros = monstersList.herosi.some(m => m.name === data.source);
             const isE2 = monstersList.e2.some(m => m.name === data.source);
-            
             if(currentFilters.type !== 'all' && data.type !== currentFilters.type) return;
             if(currentFilters.cat === 'herosi' && !isHeros) return;
             if(currentFilters.cat === 'e2' && !isE2) return;
             if(!data.name.toLowerCase().includes(searchStr)) return;
-
             count++;
             const isOwner = currentUser && data.userId === currentUser.uid;
             const isAdmin = currentNick === ADMIN_NICK;
@@ -1346,7 +1350,6 @@
             img: document.getElementById('itemImg').value,
             date: new Date().toISOString(), reservedBy: null
         });
-        location.reload();
     };
 
     window.reserveOffer = async (id) => { if(!currentNick) return alert("Zaloguj się!"); await updateDoc(doc(db, "oferty", id), { reservedBy: currentNick }); };
@@ -1357,7 +1360,6 @@
     window.openFullEdit = (id, n, p, d, i) => { currentEditId = id; document.getElementById('fullEditName').value=n; document.getElementById('fullEditPrice').value=p; document.getElementById('fullEditDesc').value=d; document.getElementById('fullEditImg').value=i; document.getElementById('editModal').style.display='flex'; };
     window.closeFullEdit = () => document.getElementById('editModal').style.display='none';
     window.confirmFullEdit = async () => { await updateDoc(doc(db, "oferty", currentEditId), { name: document.getElementById('fullEditName').value, price: document.getElementById('fullEditPrice').value, desc: document.getElementById('fullEditDesc').value, img: document.getElementById('fullEditImg').value }); window.closeFullEdit(); };
-    window.updateCharCount = () => {};
 
     onSnapshot(query(collection(db, "oferty"), orderBy("date", "desc")), (snap) => {
         allOffers = snap.docs.map(d => ({ id: d.id, ...d.data() }));
@@ -1366,4 +1368,5 @@
 </script>
 </body>
 </html>
+
 
