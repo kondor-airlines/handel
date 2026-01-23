@@ -151,7 +151,7 @@
         <button class="filter-btn" id="f-sprzedam" onclick="setFilter('type', 'sprzedam')">Sprzedam</button>
         <button class="filter-btn" id="f-kupie" onclick="setFilter('type', 'kupie')">Kupię</button>
         <span style="color:#444; margin: 0 10px;">|</span>
-        <button class="filter-btn" id="f-h" onclick="setFilter('cat', 'herosi')">Herosi</button>
+        <button class="filter-btn" id="f-herosi" onclick="setFilter('cat', 'herosi')">Herosi</button>
         <button class="filter-btn" id="f-e2" onclick="setFilter('cat', 'e2')">Elity II</button>
         <input type="text" id="globalSearch" class="search-box" placeholder="🔍 Szukaj na targu..." oninput="renderOffers()" style="max-width: 200px; padding: 8px;">
     </div>
@@ -185,7 +185,7 @@
                 <button class="helper-btn" onclick="searchMargo()">🔍</button>
             </div>
             <input type="text" id="itemImg" placeholder="Link do obrazka" class="full-width">
-            <textarea id="itemDesc" placeholder="Dodatkowy opis..." class="full-width" maxlength="150" oninput="updateCharCount()" rows="2"></textarea>
+            <textarea id="itemDesc" placeholder="Dodatkowy opis..." class="full-width" maxlength="150" rows="2"></textarea>
             <button class="action-btn full-width" onclick="addOffer()">Opublikuj na Targu</button>
         </div>
     </div>
@@ -227,7 +227,6 @@
     const provider = new GoogleAuthProvider();
 
     window.isValidImageUrl = (url) => url && /^https?:\/\/[^<>"]+\.(jpeg|jpg|gif|png|webp|bmp)$/i.test(url);
-    
     const ADMIN_NICK = "Stachu Drzymała";
     let currentUser = null;
     let currentNick = null;
@@ -421,113 +420,57 @@
         "Artenius": [{ img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_02.gif.gif", stats: "Ciężka skrytka ognistej mocy||rarity=legendary" }]
     };
 
-function escapeHtml(text) {
-        if (!text) return "";
-        return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
-    }
+function escapeHtml(text) { return text ? text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;") : ""; }
 
-// --- LOGIKA FILTRÓW (NAPRAWIONA) ---
     window.setFilter = (type, val) => {
-        // Jeśli klikasz w ten sam filtr kategorii, który jest już aktywny - wyłącz go (all)
-        if (type === 'cat' && currentFilters.cat === val) {
-            currentFilters.cat = 'all';
-        } else {
-            currentFilters[type] = val;
-        }
-
-        // Aktualizacja wizualna przycisków
-        document.querySelectorAll('.filters .filter-btn').forEach(btn => {
-            const btnId = btn.id;
-            
-            // Grupa Typu (Wszystkie / Sprzedam / Kupię)
-            if (type === 'type') {
-                if (btnId === 'f-' + currentFilters.type) btn.classList.add('active');
-                else if (['f-all', 'f-sprzedam', 'f-kupie'].includes(btnId)) btn.classList.remove('active');
-            }
-            
-            // Grupa Kategorii (Herosi / E2)
-            if (type === 'cat' || val === 'all') {
-                if (currentFilters.cat !== 'all' && btnId === 'f-' + currentFilters.cat) {
-                    btn.classList.add('active');
-                } else if (['f-h', 'f-e2'].includes(btnId)) {
-                    btn.classList.remove('active');
-                }
-            }
+        if (type === 'cat' && currentFilters.cat === val) currentFilters.cat = 'all';
+        else currentFilters[type] = val;
+        
+        document.querySelectorAll('.filter-btn').forEach(b => {
+            const id = b.id.replace('f-', '');
+            if (type === 'type' && ['all','sprzedam','kupie'].includes(id)) b.classList.toggle('active', id === currentFilters.type);
+            if (type === 'cat' && ['herosi','e2'].includes(id)) b.classList.toggle('active', id === currentFilters.cat);
+            if (val === 'all' && id === 'all') b.classList.add('active');
         });
-
         window.renderOffers();
     };
 
-    // --- RENDEROWANIE (WYEKSPORTOWANE DO WINDOW) ---
-    window.renderOffers = function() {
-        const list = document.getElementById('offersList');
-        const searchInput = document.getElementById('globalSearch');
-        const searchStr = searchInput ? searchInput.value.toLowerCase().trim() : "";
-        
-        list.innerHTML = "";
-        let count = 0;
-
-        allOffers.forEach(data => {
-            // Sprawdzanie przynależności do grupy
-            const isHeros = monstersList.herosi.some(m => m.name === data.source);
-            const isE2 = monstersList.e2.some(m => m.name === data.source);
-            
-            // Filtry
-            const matchesType = currentFilters.type === 'all' || data.type === currentFilters.type;
-            
-            let matchesCat = true;
-            if (currentFilters.cat === 'herosi') matchesCat = isHeros;
-            if (currentFilters.cat === 'e2') matchesCat = isE2;
-
-            const matchesSearch = data.name.toLowerCase().includes(searchStr);
-
-            if (matchesType && matchesCat && matchesSearch) {
-                count++;
-                const isOwner = currentUser && data.userId === currentUser.uid;
-                const isAdmin = (typeof ADMIN_NICK !== 'undefined' && currentNick === ADMIN_NICK);
-
-                let resHtml = data.reservedBy ? `<div class="reservation-box">🔒 Zarezerwowane przez: <b>${data.reservedBy}</b></div>` : "";
-                
-                let btnRes = "";
-                if (!data.reservedBy) {
-                    btnRes = `<button class="small-btn reserve-btn" onclick="reserveOffer('${data.id}')">ZAREZERWUJ</button>`;
-                } else if (isOwner || isAdmin) {
-                    btnRes = `<button class="small-btn unreserve-btn" onclick="cancelReservation('${data.id}')">COFNIJ REZ.</button>`;
-                }
-
-                list.innerHTML += `
-                    <div class="offer-card legendary-item">
-                        <div class="card-header">
-                            <div class="tag ${data.type}">${data.type.toUpperCase()}</div>
-                            <div class="item-title">${escapeHtml(data.name)}</div>
-                            ${window.isValidImageUrl(data.img) ? `<img src="${data.img}" class="item-img">` : ""}
-                        </div>
-                        <div class="item-source">
-                            ${data.sourceImg ? `<img src="${data.sourceImg}">` : ""} 
-                            <span>${escapeHtml(data.source)}</span>
-                        </div>
-                        <div class="price-tag">Cena: <span>${escapeHtml(data.price)}</span></div>
-                        ${resHtml}
-                        <div style="color:#aaa; font-size:0.8em; margin:10px 0; font-style:italic;">${escapeHtml(data.desc)}</div>
-                        <div class="seller-info">
-                            <div class="seller-left"><img src="${data.avatar}" class="tiny-avatar"><b>${escapeHtml(data.nick)}</b></div>
-                            <div class="btn-group">
-                                ${btnRes}
-                                ${isOwner ? `<button class="small-btn edit-added" onclick="openFullEdit('${data.id}','${escapeHtml(data.name)}','${escapeHtml(data.price)}','${escapeHtml(data.desc)}','${escapeHtml(data.img)}')">EDYTUJ</button>` : ""}
-                                ${isOwner || isAdmin ? `<button class="small-btn delete-btn" onclick="deleteOffer('${data.id}')">✕</button>` : ""}
-                            </div>
-                        </div>
-                    </div>`;
-            }
+    window.updateSourceList = () => {
+        const cat = document.getElementById('sourceCategory').value;
+        const sel = document.getElementById('itemSource');
+        const search = document.getElementById('sourceSearch');
+        if(!cat) { search.style.display = 'none'; return; }
+        search.style.display = 'block';
+        sel.innerHTML = '<option value="">-- Przeciwnik --</option>';
+        monstersList[cat].filter(m => m.name.toLowerCase().includes(search.value.toLowerCase())).forEach(m => {
+            let o = document.createElement('option'); o.value = m.name; o.dataset.img = m.img; o.innerText = m.name; sel.appendChild(o);
         });
-        
-        const stats = document.getElementById('offerStats');
-        if (stats) stats.innerText = `Widocznych ofert: ${count}`;
     };
 
-    // LOGOWANIE
-    document.getElementById('googleLoginBtn').addEventListener('click', () => signInWithPopup(auth, provider));
-    
+    window.updateLootList = () => {
+        const src = document.getElementById('itemSource').value;
+        const sel = document.getElementById('itemSelect');
+        const search = document.getElementById('itemSearch');
+        if(!src || !lootTable[src]) { search.style.display = 'none'; sel.style.display = 'none'; return; }
+        search.style.display = 'block'; sel.style.display = 'block';
+        sel.innerHTML = '<option value="">-- Przedmiot --</option>';
+        lootTable[src].filter(i => i.stats.split('||')[0].toLowerCase().includes(search.value.toLowerCase())).forEach(i => {
+            let o = document.createElement('option'); o.value = JSON.stringify(i); o.innerText = i.stats.split('||')[0]; sel.appendChild(o);
+        });
+    };
+
+    window.fillItemDetails = () => {
+        const val = document.getElementById('itemSelect').value;
+        if(!val) return;
+        const data = JSON.parse(val);
+        const name = data.stats.split('||')[0];
+        document.getElementById('itemName').value = name;
+        document.getElementById('itemImg').value = data.img;
+        document.getElementById('livePreview').style.display = 'flex';
+        document.getElementById('previewIcon').src = data.img;
+        document.getElementById('previewName').innerText = name;
+    };
+
     onAuthStateChanged(auth, async (user) => {
         currentUser = user;
         if(user) {
@@ -535,8 +478,8 @@ function escapeHtml(text) {
             const snap = await getDoc(ref);
             if(snap.exists()) currentNick = snap.data().nick;
             else {
-                let n = prompt("Twój nick z gry:");
-                if(n) { currentNick = n; await setDoc(ref, {nick:n}); } else { await signOut(auth); return; }
+                let n = prompt("Twój nick:");
+                if(n) { currentNick = n; await setDoc(ref, {nick:n}); } else await signOut(auth);
             }
             document.getElementById('googleLoginBtn').style.display = 'none';
             document.getElementById('userProfile').style.display = 'flex';
@@ -548,65 +491,27 @@ function escapeHtml(text) {
             document.getElementById('userProfile').style.display = 'none';
             document.getElementById('addOfferPanel').style.display = 'none';
         }
-        renderOffers();
+        window.renderOffers();
     });
 
-    window.addOffer = async () => {
-        const sel = document.getElementById('itemSource');
-        if(!sel.value) return alert("Wybierz przeciwnika!");
-        await addDoc(collection(db, "oferty"), {
-            userId: currentUser.uid, nick: currentNick, avatar: currentUser.photoURL,
-            type: document.getElementById('offerType').value,
-            name: escapeHtml(document.getElementById('itemName').value),
-            price: escapeHtml(document.getElementById('itemPrice').value),
-            source: sel.value, sourceImg: sel.options[sel.selectedIndex].dataset.img,
-            desc: escapeHtml(document.getElementById('itemDesc').value),
-            img: escapeHtml(document.getElementById('itemImg').value),
-            date: new Date().toISOString(), reservedBy: null
-        });
-        location.reload();
-    };
-
-    window.reserveOffer = async (id) => {
-        if(!currentNick) return alert("Zaloguj się!");
-        await updateDoc(doc(db, "oferty", id), { reservedBy: currentNick });
-    };
-
-    window.cancelReservation = async (id) => {
-        await updateDoc(doc(db, "oferty", id), { reservedBy: null });
-    };
-
-    // RENDEROWANIE
-    onSnapshot(query(collection(db, "oferty"), orderBy("date", "desc")), (snap) => {
-        allOffers = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-        renderOffers();
-    });
-
-    window.renderOffers = function() {
+    window.renderOffers = () => {
         const list = document.getElementById('offersList');
         const search = document.getElementById('globalSearch').value.toLowerCase();
         list.innerHTML = "";
         let count = 0;
-
         allOffers.forEach(data => {
             const isHeros = monstersList.herosi.some(m => m.name === data.source);
             const isE2 = monstersList.e2.some(m => m.name === data.source);
-            
             if(currentFilters.type !== 'all' && data.type !== currentFilters.type) return;
             if(currentFilters.cat === 'herosi' && !isHeros) return;
             if(currentFilters.cat === 'e2' && !isE2) return;
             if(!data.name.toLowerCase().includes(search)) return;
-
             count++;
             const isOwner = currentUser && data.userId === currentUser.uid;
             const isAdmin = currentNick === ADMIN_NICK;
-
             let resHtml = data.reservedBy ? `<div class="reservation-box">🔒 Zarezerwowane przez: <b>${data.reservedBy}</b></div>` : "";
+            let btnRes = !data.reservedBy ? `<button class="small-btn reserve-btn" onclick="reserveOffer('${data.id}')">ZAREZERWUJ</button>` : (isOwner || isAdmin ? `<button class="small-btn unreserve-btn" onclick="cancelReservation('${data.id}')">COFNIJ REZ.</button>` : "");
             
-            let btnRes = "";
-            if(!data.reservedBy) btnRes = `<button class="small-btn reserve-btn" onclick="reserveOffer('${data.id}')">ZAREZERWUJ</button>`;
-            else if(isOwner || isAdmin) btnRes = `<button class="small-btn unreserve-btn" onclick="cancelReservation('${data.id}')">COFNIJ REZ.</button>`;
-
             list.innerHTML += `
                 <div class="offer-card legendary-item">
                     <div class="card-header">
@@ -617,7 +522,6 @@ function escapeHtml(text) {
                     <div class="item-source"><img src="${data.sourceImg}"> <span>${data.source}</span></div>
                     <div class="price-tag">Cena: <span>${escapeHtml(data.price)}</span></div>
                     ${resHtml}
-                    <div style="color:#aaa; font-size:0.8em; margin:10px 0; font-style:italic;" class="item-description">${escapeHtml(data.desc)}</div>
                     <div class="seller-info">
                         <div class="seller-left"><img src="${data.avatar}" class="tiny-avatar"><b>${data.nick}</b></div>
                         <div class="btn-group">
@@ -629,30 +533,37 @@ function escapeHtml(text) {
                 </div>`;
         });
         document.getElementById('offerStats').innerText = `Widocznych ofert: ${count}`;
-    }
+    };
 
+    window.addOffer = async () => {
+        const sel = document.getElementById('itemSource');
+        if(!sel.value) return alert("Wybierz przeciwnika!");
+        await addDoc(collection(db, "oferty"), {
+            userId: currentUser.uid, nick: currentNick, avatar: currentUser.photoURL,
+            type: document.getElementById('offerType').value,
+            name: document.getElementById('itemName').value,
+            price: document.getElementById('itemPrice').value,
+            source: sel.value, sourceImg: sel.options[sel.selectedIndex].dataset.img,
+            desc: document.getElementById('itemDesc').value,
+            img: document.getElementById('itemImg').value,
+            date: new Date().toISOString(), reservedBy: null
+        });
+        location.reload();
+    };
+
+    window.reserveOffer = async (id) => { if(!currentNick) return alert("Zaloguj się!"); await updateDoc(doc(db, "oferty", id), { reservedBy: currentNick }); };
+    window.cancelReservation = async (id) => { await updateDoc(doc(db, "oferty", id), { reservedBy: null }); };
     window.deleteOffer = async (id) => { if(confirm("Usunąć?")) await deleteDoc(doc(db, "oferty", id)); };
     window.logout = () => signOut(auth);
     window.searchMargo = () => window.open(`https://margoworld.pl/item?name=${encodeURIComponent(document.getElementById('itemName').value)}`);
+    window.openFullEdit = (id, n, p, d, i) => { currentEditId = id; document.getElementById('fullEditName').value=n; document.getElementById('fullEditPrice').value=p; document.getElementById('fullEditDesc').value=d; document.getElementById('fullEditImg').value=i; document.getElementById('editModal').style.display='flex'; };
     window.closeFullEdit = () => document.getElementById('editModal').style.display='none';
-    window.confirmFullEdit = async () => {
-        await updateDoc(doc(db, "oferty", currentEditId), {
-            name: document.getElementById('fullEditName').value,
-            price: document.getElementById('fullEditPrice').value,
-            desc: document.getElementById('fullEditDesc').value,
-            img: document.getElementById('fullEditImg').value
-        });
-        window.closeFullEdit();
-    };
-    window.updateCharCount = () => {};
-    window.openFullEdit = (id, name, price, desc, img) => {
-        currentEditId = id;
-        document.getElementById('fullEditName').value = name;
-        document.getElementById('fullEditPrice').value = price;
-        document.getElementById('fullEditDesc').value = desc;
-        document.getElementById('fullEditImg').value = img;
-        document.getElementById('editModal').style.display = 'flex';
-    };
+    window.confirmFullEdit = async () => { await updateDoc(doc(db, "oferty", currentEditId), { name: document.getElementById('fullEditName').value, price: document.getElementById('fullEditPrice').value, desc: document.getElementById('fullEditDesc').value, img: document.getElementById('fullEditImg').value }); window.closeFullEdit(); };
+
+    onSnapshot(query(collection(db, "oferty"), orderBy("date", "desc")), (snap) => {
+        allOffers = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        window.renderOffers();
+    });
 </script>
 </body>
 </html>
