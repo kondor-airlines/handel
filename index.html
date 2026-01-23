@@ -26,6 +26,29 @@
             padding-bottom: 80px;
         }
 
+        .helper-btn {
+            background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
+            color: var(--gold);
+            border: 1px solid var(--border);
+            padding: 0 15px;
+            height: 42px;
+            cursor: pointer;
+            border-radius: 6px;
+            font-size: 1.2em;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+        }
+
+        .helper-btn:hover {
+            border-color: var(--gold);
+            background: linear-gradient(135deg, #332b00 0%, #1a1500 100%);
+            box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+            transform: translateY(-1px);
+        }
+
         .container { max-width: 1200px; margin: 0 auto; }
 
         header {
@@ -34,123 +57,117 @@
             flex-wrap: wrap; gap: 10px;
         }
 
-        h1 { 
-            font-family: 'MedievalSharp', cursive; 
-            color: var(--gold); 
-            margin: 0; 
-            font-size: 2.5em; 
-            text-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
-            letter-spacing: 2px;
-        }
+        h1 { font-family: 'MedievalSharp', cursive; color: var(--gold); margin: 0; font-size: 2.5em; text-shadow: 0 0 15px rgba(255, 215, 0, 0.5); letter-spacing: 2px; }
 
         .login-btn {
-            background: linear-gradient(to bottom, #fff, #ccc); color: #333; border: none; padding: 10px 20px;
-            border-radius: 5px; cursor: pointer; font-weight: bold; display: flex; align-items: center; gap: 10px; 
-            transition: 0.3s; box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            background: rgba(255, 255, 255, 0.05);
+            color: #fff;
+            border: 1px solid var(--gold);
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 0.85em;
+            z-index: 10;
         }
-        .login-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(255,255,255,0.2); }
+
+        .login-btn:hover {
+            background: var(--gold);
+            color: #000;
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.4);
+            transform: translateY(-2px);
+        }
 
         .user-profile { display: none; align-items: center; gap: 12px; background: rgba(255,255,255,0.05); padding: 5px 15px; border-radius: 50px; border: 1px solid var(--border); }
         .user-avatar { width: 35px; height: 35px; border-radius: 50%; border: 2px solid var(--gold); }
         .logout-link { color: #ff6666; font-size: 0.75em; text-decoration: none; cursor: pointer; text-transform: uppercase; font-weight: bold; }
 
-        .filters { display: flex; gap: 12px; margin-bottom: 30px; justify-content: center; flex-wrap: wrap; }
+        .filters { display: flex; gap: 10px; margin-bottom: 30px; justify-content: center; flex-wrap: wrap; align-items: center; }
         .filter-btn {
-            background: #222; color: #888; border: 1px solid #444; padding: 10px 20px; 
-            border-radius: 5px; cursor: pointer; transition: 0.3s; font-family: 'MedievalSharp'; font-size: 1.1em;
+            background: #222; color: #888; border: 1px solid #444; padding: 8px 16px; 
+            border-radius: 5px; cursor: pointer; transition: 0.3s; font-family: 'MedievalSharp'; font-size: 1em;
         }
         .filter-btn:hover { border-color: var(--gold); color: #fff; }
-        .filter-btn.active { background: var(--gold); color: #000; border-color: var(--gold-bright); box-shadow: 0 0 15px rgba(255,215,0,0.3); }
+        .filter-btn.active { background: var(--gold); color: #000; border-color: var(--gold-bright); }
 
         .panel {
             background: var(--card); padding: 25px; border-radius: 12px; border: 1px solid var(--border);
-            margin-bottom: 40px; box-shadow: 0 10px 30px rgba(0,0,0,0.8);
-            display: none; position: relative;
+            margin-bottom: 40px; box-shadow: 0 10px 30px rgba(0,0,0,0.8); display: none;
         }
-        .panel::before { content: ''; position: absolute; top:0; left:0; right:0; height: 2px; background: linear-gradient(90deg, transparent, var(--gold), transparent); }
 
         .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
         .full-width { grid-column: 1 / -1; }
 
         input, select, textarea {
             background: #0a0a0a; border: 1px solid #333; color: white;
-            padding: 12px; border-radius: 6px; width: 100%; box-sizing: border-box;
-            transition: 0.3s; outline: none;
+            padding: 12px; border-radius: 6px; width: 100%; box-sizing: border-box; outline: none;
         }
-        input:focus, select:focus { border-color: var(--gold); box-shadow: 0 0 8px rgba(255,215,0,0.2); }
         
-        .search-box { background: #151500; border-color: var(--border); color: var(--gold); font-weight: bold; }
+        .search-box { background: #151500; border-color: var(--border); color: var(--gold); }
 
         .action-btn {
             background: linear-gradient(to bottom, #ffd700, #b89b00); color: #000; border: none; padding: 15px;
-            font-weight: 800; width: 100%; cursor: pointer; border-radius: 6px; text-transform: uppercase;
-            letter-spacing: 1px; font-family: 'Montserrat'; transition: 0.3s;
+            font-weight: 800; width: 100%; cursor: pointer; border-radius: 6px; text-transform: uppercase; transition: 0.3s;
         }
-        .action-btn:hover { filter: brightness(1.2); transform: scale(1.01); }
 
-        .offers-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 25px; }
+        .offers-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 25px; }
 
         .offer-card {
             background: #181818; border: 1px solid #2a2a2a; border-radius: 10px; padding: 20px; 
-            position: relative; transition: 0.4s; overflow: hidden;
+            position: relative; transition: 0.4s; display: flex; flex-direction: column;
             box-shadow: 0 5px 15px rgba(0,0,0,0.5);
         }
-        .offer-card:hover { transform: translateY(-5px); border-color: var(--gold); box-shadow: 0 8px 25px rgba(255,215,0,0.15); }
+        .offer-card:hover { transform: translateY(-5px); border-color: var(--gold); }
 
-        .legendary-item {
-            background: linear-gradient(135deg, #1a1a1a 0%, #251f00 100%);
-            border: 1px solid var(--border);
-        }
-        .legendary-item::after {
-            content: 'LEGENDARNY'; position: absolute; top: 15px; right: -30px; 
-            background: var(--gold); color: #000; font-size: 0.6em; font-weight: 900;
-            padding: 3px 40px; transform: rotate(45deg); box-shadow: 0 2px 5px rgba(0,0,0,0.5);
-        }
-
-        .tag { position: absolute; top: 15px; left: 15px; padding: 4px 10px; border-radius: 4px; font-size: 0.7em; font-weight: 800; text-transform: uppercase; }
+        .card-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+        .tag { padding: 4px 10px; border-radius: 4px; font-size: 0.7em; font-weight: 800; text-transform: uppercase; }
         .tag.sprzedam { background: var(--green); color: #000; }
         .tag.kupie { background: var(--blue); color: #fff; }
         .tag.zamienie { background: var(--red); color: #fff; }
 
-        .item-img { width: 60px; height: 60px; float: right; margin-top: 10px; filter: drop-shadow(0 0 5px rgba(255,215,0,0.3)); }
+        .item-title { font-size: 1.1em; font-weight: bold; color: var(--gold); line-height: 1.2; flex-grow: 1; }
+        .item-img { width: 60px; height: 60px; object-fit: contain; filter: drop-shadow(0 0 5px rgba(255,215,0,0.3)); }
         
         .item-source { 
-            font-size: 0.85em; color: #cca3ff; margin: 15px 0; display: flex; align-items: center; gap: 10px;
+            font-size: 0.85em; color: #cca3ff; margin: 12px 0; display: flex; align-items: center; gap: 10px;
             background: rgba(155, 89, 182, 0.1); padding: 8px; border-radius: 6px; border: 1px solid rgba(155,89,182,0.2);
         }
         .item-source img { height: 35px; width: auto; }
 
-        .price-tag { font-size: 1.3em; color: var(--gold); font-weight: bold; margin: 10px 0; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
+        .price-tag { font-size: 1.3em; color: #fff; font-weight: bold; margin: 10px 0; }
+        .price-tag span { color: var(--gold); }
 
-        .seller-info { 
-            margin-top: 20px; padding-top: 15px; border-top: 1px dotted #444; 
-            display: flex; align-items: center; justify-content: space-between; font-size: 0.85em;
+        .reservation-box {
+            background: rgba(46, 204, 113, 0.15); border: 1px dashed var(--green);
+            padding: 8px; border-radius: 6px; margin: 10px 0; font-size: 0.8em; color: var(--green);
+            display: flex; align-items: center; gap: 8px;
         }
+
+        .seller-info { margin-top: auto; padding-top: 15px; border-top: 1px dotted #444; display: flex; align-items: center; justify-content: space-between; font-size: 0.85em; }
         .seller-left { display: flex; align-items: center; gap: 10px; }
-        .tiny-avatar { width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--gold); }
+        .tiny-avatar { width: 28px; height: 28px; border-radius: 50%; border: 2px solid var(--gold); }
 
-        .delete-btn {
-            position: absolute; bottom: 15px; right: 15px; background: #333; color: #888; border: none; 
-            width: 25px; height: 25px; border-radius: 4px; cursor: pointer; font-weight: bold;
-        }
-        .delete-btn:hover { background: var(--red); color: #fff; }
-        .admin-delete-btn { width: auto; padding: 0 10px; background: #500; color: #fff; }
+        .btn-group { display: flex; gap: 5px; }
+        .small-btn { padding: 4px 8px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 0.7em; border: 1px solid transparent; }
+        .reserve-btn { background: var(--green); color: #000; }
+        .unreserve-btn { background: #444; color: #fff; }
+        .edit-added { border: 1px solid var(--gold); color: var(--gold); background: none; }
+        .delete-btn { background: #333; color: #888; }
 
-        /* NOWY STYL PREVIEW */
         .preview-box {
-            grid-column: 1 / -1;
-            display: none;
-            align-items: center;
-            gap: 20px;
-            background: linear-gradient(to right, #251f00, #1a1a1a);
-            border: 2px solid var(--gold);
-            padding: 15px;
-            border-radius: 10px;
-            margin: 10px 0;
-            box-shadow: inset 0 0 15px rgba(255, 215, 0, 0.2);
+            grid-column: 1 / -1; display: none; align-items: center; justify-content: space-between; 
+            flex-direction: row-reverse; background: linear-gradient(270deg, #251f00 0%, #1a1a1a 100%);
+            border: 2px solid var(--gold); padding: 15px 25px; border-radius: 12px; margin: 10px 0;
         }
-        .preview-text { font-size: 1.1em; color: var(--gold); font-family: 'MedievalSharp'; }
-        .preview-label { color: #888; font-size: 0.7em; letter-spacing: 1px; }
+        .preview-content { display: flex; flex-direction: column; align-items: flex-start; }
+        .preview-text { font-size: 1.4em; color: var(--gold); font-family: 'MedievalSharp'; }
+        .preview-icon-wrapper { background: radial-gradient(circle, #333 0%, #000 100%); padding: 8px; border-radius: 10px; border: 1px solid var(--gold); }
     </style>
 </head>
 <body>
@@ -160,9 +177,8 @@
         <h1>⚔️ Targowisko Kondor Airlines</h1>
         <button id="googleLoginBtn" class="login-btn">
             <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/pwa_googleg_color_64dp.png" width="18">
-            Zaloguj przez Google
+            <span>Zaloguj przez Google</span>
         </button>
-
         <div id="userProfile" class="user-profile">
             <img id="userAvatar" class="user-avatar" src="" alt="">
             <div>
@@ -173,72 +189,72 @@
     </header>
 
     <div class="filters">
-        <button class="filter-btn active" onclick="filterOffers('all')">Wszystkie Przedmioty</button>
-        <button class="filter-btn" onclick="filterOffers('sprzedam')">Sprzedam</button>
-        <button class="filter-btn" onclick="filterOffers('kupie')">Kupię</button>
-        <button class="filter-btn" onclick="filterOffers('zamienie')">Zamienię</button>
+        <button class="filter-btn active" id="f-all" onclick="setFilter('type', 'all')">Wszystkie</button>
+        <button class="filter-btn" id="f-sprzedam" onclick="setFilter('type', 'sprzedam')">Sprzedam</button>
+        <button class="filter-btn" id="f-kupie" onclick="setFilter('type', 'kupie')">Kupię</button>
+        <span style="color:#444; margin: 0 10px;">|</span>
+        <button class="filter-btn" id="f-herosi" onclick="setFilter('cat', 'herosi')">Herosi</button>
+        <button class="filter-btn" id="f-e2" onclick="setFilter('cat', 'e2')">Elity II</button>
+        <input type="text" id="globalSearch" class="search-box" placeholder="🔍 Szukaj na targu..." oninput="renderOffers()" style="max-width: 200px; padding: 8px;">
     </div>
+    
+    <div id="offerStats" style="text-align:center; font-size:0.8em; color:#666; margin-bottom:20px;"></div>
 
     <div id="addOfferPanel" class="panel">
-        <h3 style="margin-top:0; color:var(--gold); font-family:'MedievalSharp'; font-size:1.5em;">Wystaw Legendę na Targ</h3>
-
+        <h3 style="margin-top:0; color:var(--gold); font-family:'MedievalSharp';">Wystaw Artefakt</h3>
         <div class="form-grid">
             <select id="offerType">
-                <option value="sprzedam">Chcę Sprzedać</option>
-                <option value="kupie">Chcę Kupić</option>
-                <option value="zamienie">Chcę Zamienić</option>
+                <option value="sprzedam">Sprzedam</option>
+                <option value="kupie">Kupię</option>
+                <option value="zamienie">Zamienię</option>
             </select>
-            <input type="text" id="itemPrice" placeholder="Cena (np. 150m lub SŁ)" maxlength="30">
-            
+            <input type="text" id="itemPrice" placeholder="Cena (np. 150m)" maxlength="30">
             <select id="sourceCategory" class="full-width" onchange="updateSourceList()">
-                <option value="">-- Wybierz Kategorię Przeciwnika --</option>
+                <option value="">-- Wybierz Kategorię --</option>
                 <option value="herosi">Herosi</option>
                 <option value="e2">Elity II</option>
             </select>
-
             <input type="text" id="sourceSearch" class="full-width search-box" placeholder="🔍 Szukaj przeciwnika..." oninput="updateSourceList()" style="display:none;">
-
-            <select id="itemSource" class="full-width" onchange="updateLootList()">
-                <option value="">-- Wybierz konkretną E2 / Herosa --</option>
-            </select>
-
-            <input type="text" id="itemSearch" class="full-width search-box" placeholder="🔍 Szukaj konkretnej legendy..." oninput="updateLootList()" style="display:none;">
-
-            <select id="itemSelect" class="full-width" onchange="fillItemDetails()">
-                <option value="">-- Wybierz Przedmiot z Dropu --</option>
-            </select>
-
+            <select id="itemSource" class="full-width" onchange="updateLootList()"><option value="">-- Przeciwnik --</option></select>
+            <input type="text" id="itemSearch" class="full-width search-box" placeholder="🔍 Szukaj przedmiotu..." oninput="updateLootList()" style="display:none;">
+            <select id="itemSelect" class="full-width" onchange="fillItemDetails()"><option value="">-- Przedmiot --</option></select>
             <div id="livePreview" class="preview-box">
-                <img id="previewIcon" src="" alt="" style="width:50px; height:50px; filter: drop-shadow(0 0 5px gold);">
-                <div>
-                    <span class="preview-label">Wybrany artefakt:</span><br>
-                    <span id="previewName" class="preview-text">...</span>
-                </div>
+                <div class="preview-content"><span class="preview-label">Wybrany artefakt</span><span id="previewName" class="preview-text">...</span></div>
+                <div class="preview-icon-wrapper"><img id="previewIcon" src="" alt="" style="width:55px; height:55px; display:block; object-fit: contain;"></div>
             </div>
-
             <div style="display:flex; gap:10px; align-items:center;" class="full-width">
                 <input type="text" id="itemName" placeholder="Nazwa przedmiotu" maxlength="50">
-                <button class="helper-btn" onclick="searchMargo()" title="Sprawdź w MargoWorld">🔍</button>
+                <button class="helper-btn" onclick="searchMargo()" title="Sprawdź statystyki na MargoWorld">
+                    <span style="margin-right: 5px; font-size: 0.8em; font-family: 'Montserrat'; font-weight: 600;">STATY</span> 🔍
+                </button>
             </div>
-
             <input type="text" id="itemImg" placeholder="Link do obrazka" class="full-width">
-            
-            <textarea id="itemDesc" placeholder="Dodatkowy opis..." class="full-width" maxlength="150" oninput="updateCharCount()" rows="3"></textarea>
-            <div id="charCount" class="char-counter full-width">0/150</div>
-            
-            <button class="action-btn full-width" onclick="addOffer()">Opublikuj ogłoszenie</button>
+            <textarea id="itemDesc" placeholder="Dodatkowy opis..." class="full-width" maxlength="150" rows="2"></textarea>
+            <button class="action-btn full-width" onclick="addOffer()">Opublikuj na Targu</button>
         </div>
     </div>
 
-    <div id="offersList" class="offers-grid">
-        <div style="text-align:center; grid-column:1/-1; padding: 50px; color: #555;">Ładowanie targowiska...</div>
+    <div id="offersList" class="offers-grid"></div>
+</div>
+
+<div id="editModal" style="display: none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.95); align-items: center; justify-content: center; backdrop-filter: blur(5px);">
+    <div class="modal-content-full" style="background: #1a1a1a; padding: 30px; border: 2px solid #ffd700; border-radius: 15px; width: 95%; max-width: 600px;">
+        <h3 style="color:#ffd700; font-family:'MedievalSharp'; margin-top:0;">Modyfikuj Ogłoszenie</h3>
+        <input type="text" id="fullEditName" placeholder="Nazwa" style="margin-bottom:10px; width:100%; background:#000; color:white; border:1px solid #444; padding:10px;">
+        <input type="text" id="fullEditPrice" placeholder="Cena" style="margin-bottom:10px; width:100%; background:#000; color:white; border:1px solid #444; padding:10px;">
+        <input type="text" id="fullEditImg" placeholder="Link do obrazka" style="margin-bottom:10px; width:100%; background:#000; color:white; border:1px solid #444; padding:10px;">
+        <textarea id="fullEditDesc" rows="4" placeholder="Opis" style="width:100%; background:#000; color:white; border:1px solid #444; padding:10px;"></textarea>
+        <div style="display:flex; gap:15px; margin-top: 15px;">
+            <button onclick="confirmFullEdit()" style="flex:2; background:#ffd700; padding:10px; cursor:pointer; font-weight:bold; border:none;">ZATWIERDŹ ZMIANY</button>
+            <button onclick="closeFullEdit()" style="flex:1; background:#333; color:white; padding:10px; cursor:pointer; border:none;">ANULUJ</button>
+        </div>
     </div>
 </div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
     import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
-    import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, deleteDoc, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, deleteDoc, doc, getDoc, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
     
     const firebaseConfig = {
       apiKey: "AIzaSyApFYFkAghXreeX_xptg-PTCSxtPdiXYdA",
@@ -254,22 +270,13 @@
     const db = getFirestore(app);
     const provider = new GoogleAuthProvider();
 
+    window.isValidImageUrl = (url) => url && /^https?:\/\/[^<>"]+\.(jpeg|jpg|gif|png|webp|bmp)$/i.test(url);
+    const ADMIN_NICK = "Stachu Drzymała";
     let currentUser = null;
     let currentNick = null;
     let allOffers = [];
-    let currentFilter = 'all';
-    const ADMIN_NICK = "Stachu Drzymała"; 
-
-    function escapeHtml(text) {
-        if (!text) return "";
-        return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
-    }
-
-    function isValidImageUrl(url) {
-        if (!url) return false;
-        const pattern = /^https?:\/\/[^<>"]+\.(jpeg|jpg|gif|png|webp|bmp)$/i;
-        return pattern.test(url);
-    }
+    let currentFilters = { type: 'all', cat: 'all' };
+    let currentEditId = null;
 
     const monstersList = {
         herosi: [
@@ -1200,168 +1207,162 @@
         ]
     };
 
-   window.updateSourceList = function() {
-        const category = document.getElementById('sourceCategory').value;
-        const sourceSearch = document.getElementById('sourceSearch');
-        const sourceSelect = document.getElementById('itemSource');
-        const queryStr = sourceSearch.value.toLowerCase();
+  function escapeHtml(text) { return text ? text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;") : ""; }
 
-        if (category) {
-            sourceSearch.style.display = 'block';
-            sourceSelect.innerHTML = '<option value="">-- Wybierz Przeciwnika --</option>';
-            const filtered = monstersList[category].filter(mob => mob.name.toLowerCase().includes(queryStr));
-            filtered.forEach(mob => {
-                let opt = document.createElement('option');
-                opt.value = mob.name; opt.dataset.img = mob.img; opt.innerText = mob.name;
-                sourceSelect.appendChild(opt);
-            });
-        } else {
-            sourceSearch.style.display = 'none';
-        }
-        document.getElementById('itemSelect').style.display = 'none';
-        document.getElementById('itemSearch').style.display = 'none';
-        document.getElementById('livePreview').style.display = 'none';
+    window.setFilter = (type, val) => {
+        if (type === 'cat' && currentFilters.cat === val) currentFilters.cat = 'all';
+        else currentFilters[type] = val;
+        
+        document.querySelectorAll('.filter-btn').forEach(b => {
+            const id = b.id.replace('f-', '');
+            if (type === 'type' && ['all','sprzedam','kupie'].includes(id)) b.classList.toggle('active', id === currentFilters.type);
+            if (type === 'cat' && ['herosi','e2'].includes(id)) b.classList.toggle('active', id === currentFilters.cat);
+        });
+        window.renderOffers();
     };
 
-    window.updateLootList = function() {
-        const heroName = document.getElementById('itemSource').value;
-        const itemSearch = document.getElementById('itemSearch');
-        const itemSelect = document.getElementById('itemSelect');
-        const queryStr = itemSearch.value.toLowerCase();
-
-        if (heroName && lootTable[heroName]) {
-            itemSearch.style.display = 'block';
-            itemSelect.style.display = 'block';
-            itemSelect.innerHTML = '<option value="">-- Wybierz przedmiot --</option>'; 
-            const filtered = lootTable[heroName].filter(item => item.stats.split('||')[0].toLowerCase().includes(queryStr));
-            filtered.forEach(item => {
-                let opt = document.createElement('option');
-                opt.value = JSON.stringify(item); opt.innerText = item.stats.split('||')[0];
-                itemSelect.appendChild(opt);
-            });
-        } else { 
-            itemSearch.style.display = 'none';
-            itemSelect.style.display = 'none'; 
-        }
+    window.updateSourceList = () => {
+        const cat = document.getElementById('sourceCategory').value;
+        const sel = document.getElementById('itemSource');
+        const search = document.getElementById('sourceSearch');
+        if(!cat) { search.style.display = 'none'; return; }
+        search.style.display = 'block';
+        sel.innerHTML = '<option value="">-- Przeciwnik --</option>';
+        monstersList[cat].filter(m => m.name.toLowerCase().includes(search.value.toLowerCase())).forEach(m => {
+            let o = document.createElement('option'); o.value = m.name; o.dataset.img = m.img; o.innerText = m.name; sel.appendChild(o);
+        });
     };
 
-    window.fillItemDetails = function() {
-        const selectedValue = document.getElementById('itemSelect').value;
-        if (!selectedValue) return;
-        const itemData = JSON.parse(selectedValue);
-        const namePart = itemData.stats.split('||')[0];
-        document.getElementById('itemName').value = namePart;
-        document.getElementById('itemImg').value = itemData.img;
+    window.updateLootList = () => {
+        const src = document.getElementById('itemSource').value;
+        const sel = document.getElementById('itemSelect');
+        const search = document.getElementById('itemSearch');
+        if(!src || !lootTable[src]) { search.style.display = 'none'; sel.style.display = 'none'; return; }
+        search.style.display = 'block'; sel.style.display = 'block';
+        sel.innerHTML = '<option value="">-- Przedmiot --</option>';
+        lootTable[src].filter(i => i.stats.split('||')[0].toLowerCase().includes(search.value.toLowerCase())).forEach(i => {
+            let o = document.createElement('option'); o.value = JSON.stringify(i); o.innerText = i.stats.split('||')[0]; sel.appendChild(o);
+        });
+    };
+
+    window.fillItemDetails = () => {
+        const val = document.getElementById('itemSelect').value;
+        if(!val) return;
+        const data = JSON.parse(val);
+        const name = data.stats.split('||')[0];
+        document.getElementById('itemName').value = name;
+        document.getElementById('itemImg').value = data.img;
         document.getElementById('livePreview').style.display = 'flex';
-        document.getElementById('previewIcon').src = itemData.img;
-        document.getElementById('previewName').innerText = namePart;
-        const statsPart = itemData.stats.split('||')[1] || "";
-        document.getElementById('itemDesc').value = statsPart.includes('opis=') ? statsPart.split('opis=')[1].split(';')[0].replaceAll('[br]', '\n') : "";
-        updateCharCount();
+        document.getElementById('previewIcon').src = data.img;
+        document.getElementById('previewName').innerText = name;
+        const statsPart = data.stats.split('||')[1];
+        if (statsPart && statsPart.includes('opis=')) {
+            document.getElementById('itemDesc').value = statsPart.split('opis=')[1].split(';')[0].replaceAll('[br]', '\n');
+        } else { document.getElementById('itemDesc').value = ""; }
     };
-
-    window.updateCharCount = function() {
-        document.getElementById('charCount').innerText = document.getElementById('itemDesc').value.length + "/150";
-    };
-
-    document.getElementById('googleLoginBtn').addEventListener('click', () => {
-        signInWithPopup(auth, provider).catch(e => alert("Błąd: " + e.message));
-    });
 
     onAuthStateChanged(auth, async (user) => {
         currentUser = user;
-        if (user) {
-            const userRef = doc(db, "users", user.uid);
-            const userSnap = await getDoc(userRef);
-            if (userSnap.exists()) {
-                currentNick = userSnap.data().nick;
-            } else {
-                let nick = prompt("Podaj swój nick z gry:");
-                if(nick && nick.trim()) {
-                    currentNick = nick.trim();
-                    await setDoc(userRef, { nick: currentNick });
-                } else { logout(); return; }
+        if(user) {
+            const ref = doc(db, "users", user.uid);
+            const snap = await getDoc(ref);
+            if(snap.exists()) currentNick = snap.data().nick;
+            else {
+                let n = prompt("Podaj swój nick z gry:");
+                if(n && n.trim()) { currentNick = n.trim(); await setDoc(ref, {nick:currentNick}); } else { await signOut(auth); return; }
             }
-            document.getElementById('googleLoginBtn').style.display = 'none';
+            document.getElementById('googleLoginBtn').style.setProperty('display', 'none', 'important');
             document.getElementById('userProfile').style.display = 'flex';
             document.getElementById('addOfferPanel').style.display = 'block';
             document.getElementById('userNickDisplay').innerText = currentNick;
             document.getElementById('userAvatar').src = user.photoURL;
         } else {
-            document.getElementById('googleLoginBtn').style.display = 'flex';
+            document.getElementById('googleLoginBtn').style.setProperty('display', 'flex', 'important');
             document.getElementById('userProfile').style.display = 'none';
             document.getElementById('addOfferPanel').style.display = 'none';
         }
-        renderOffers();
+        window.renderOffers();
     });
 
-    window.searchMargo = () => { window.open(`https://margoworld.pl/item?name=${encodeURIComponent(document.getElementById('itemName').value)}`, '_blank'); };
-
-    window.addOffer = async () => {
-        if (!currentUser) return;
-        const type = document.getElementById('offerType').value;
-        const name = escapeHtml(document.getElementById('itemName').value);
-        const price = escapeHtml(document.getElementById('itemPrice').value);
-        const desc = escapeHtml(document.getElementById('itemDesc').value);
-        const img = escapeHtml(document.getElementById('itemImg').value);
-        const sel = document.getElementById('itemSource');
-        const sourceName = sel.value; 
-        const sourceImg = sel.selectedIndex >= 0 && sel.options[sel.selectedIndex] ? sel.options[sel.selectedIndex].dataset.img : "";
-        if(!name || !price) return alert("Brakuje nazwy lub ceny!");
-        try {
-            await addDoc(collection(db, "oferty"), {
-                userId: currentUser.uid, nick: currentNick, avatar: currentUser.photoURL,
-                type, name, price, source: sourceName, sourceImg: sourceImg || "", desc, img,
-                date: new Date().toISOString()
-            });
-            location.reload();
-        } catch(e) { alert(e.message); }
-    };
-
-    window.deleteOffer = async (id) => { if(confirm("Usunąć?")) await deleteDoc(doc(db, "oferty", id)); };
-    window.copyNick = (nick) => { navigator.clipboard.writeText(`/t ${nick} `).then(() => alert("Skopiowano!")); };
-    window.logout = () => signOut(auth);
-
-    onSnapshot(query(collection(db, "oferty"), orderBy("date", "desc")), (snapshot) => {
-        allOffers = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        renderOffers();
-    });
-
-    function renderOffers() {
+    window.renderOffers = () => {
         const list = document.getElementById('offersList');
+        const searchInput = document.getElementById('globalSearch');
+        const searchStr = searchInput ? searchInput.value.toLowerCase().trim() : "";
         list.innerHTML = "";
-        allOffers.forEach(data => {
-            if (currentFilter !== 'all' && data.type !== currentFilter) return;
-            const isAdmin = (currentNick === ADMIN_NICK);
-            const isOwner = currentUser && (data.userId === currentUser.uid);
-            let deleteBtn = (isOwner || isAdmin) ? `<button class="delete-btn ${isAdmin && !isOwner ? 'admin-delete-btn' : ''}" onclick="deleteOffer('${data.id}')">${isAdmin && !isOwner ? 'USUŃ (Admin)' : '✕'}</button>` : "";
-            let imgHtml = isValidImageUrl(data.img) ? `<img src="${escapeHtml(data.img)}" class="item-img" onerror="this.style.display='none'">` : (data.img ? "⚠️" : "");
+        let count = 0;
 
+        allOffers.forEach(data => {
+            // SPRAWDZANIE KATEGORII (Heros / E2)
+            const isHeros = monstersList.herosi.some(m => m.name === data.source);
+            const isE2 = monstersList.e2.some(m => m.name === data.source);
+            
+            if(currentFilters.type !== 'all' && data.type !== currentFilters.type) return;
+            if(currentFilters.cat === 'herosi' && !isHeros) return;
+            if(currentFilters.cat === 'e2' && !isE2) return;
+            if(!data.name.toLowerCase().includes(searchStr)) return;
+
+            count++;
+            const isOwner = currentUser && data.userId === currentUser.uid;
+            const isAdmin = currentNick === ADMIN_NICK;
+            let resHtml = data.reservedBy ? `<div class="reservation-box">🔒 Zarezerwowane przez: <b>${data.reservedBy}</b></div>` : "";
+            let btnRes = !data.reservedBy ? `<button class="small-btn reserve-btn" onclick="reserveOffer('${data.id}')">ZAREZERWUJ</button>` : (isOwner || isAdmin ? `<button class="small-btn unreserve-btn" onclick="cancelReservation('${data.id}')">COFNIJ REZ.</button>` : "");
+            
             list.innerHTML += `
                 <div class="offer-card legendary-item">
-                    ${deleteBtn}
-                    <div class="tag ${data.type}">${data.type.toUpperCase()}</div>
-                    ${imgHtml}
-                    <div style="font-size:1.1em; font-weight:bold; color:var(--gold);">${escapeHtml(data.name)}</div>
-                    <div class="item-source">${data.sourceImg ? `<img src="${data.sourceImg}">` : ""} <span>${escapeHtml(data.source)}</span></div>
-                    <div class="price-tag">Cena: ${escapeHtml(data.price)}</div>
-                    <div style="color:#aaa; font-size:0.9em; margin-bottom:15px; font-style:italic;">${escapeHtml(data.desc)}</div>
+                    <div class="card-header">
+                        <div class="tag ${data.type}">${data.type.toUpperCase()}</div>
+                        <div class="item-title">${escapeHtml(data.name)}</div>
+                        ${window.isValidImageUrl(data.img) ? `<img src="${data.img}" class="item-img">` : ""}
+                    </div>
+                    <div class="item-source"><img src="${data.sourceImg}"> <span>${data.source}</span></div>
+                    <div class="price-tag">Cena: <span>${escapeHtml(data.price)}</span></div>
+                    ${resHtml}
+                    <div style="color:#aaa; font-size:0.85em; margin:10px 0; font-style:italic;" class="item-description">
+                        ${escapeHtml(data.desc)}
+                    </div>
                     <div class="seller-info">
-                        <div class="seller-left">
-                            <img src="${data.avatar}" class="tiny-avatar"> 
-                            <b>${escapeHtml(data.nick)}</b>
-                            <button class="copy-nick-btn" onclick="copyNick('${data.nick}')">✉️</button>
+                        <div class="seller-left"><img src="${data.avatar}" class="tiny-avatar"><b>${escapeHtml(data.nick)}</b></div>
+                        <div class="btn-group">
+                            ${btnRes}
+                            ${isOwner ? `<button class="small-btn edit-added" onclick="openFullEdit('${data.id}','${escapeHtml(data.name)}','${escapeHtml(data.price)}','${escapeHtml(data.desc)}','${escapeHtml(data.img)}')">EDYTUJ</button>` : ""}
+                            ${isOwner || isAdmin ? `<button class="small-btn delete-btn" onclick="deleteOffer('${data.id}')">✕</button>` : ""}
                         </div>
                     </div>
                 </div>`;
         });
-    }
-
-    window.filterOffers = (type) => {
-        currentFilter = type;
-        document.querySelectorAll('.filter-btn').forEach(b => b.classList.toggle('active', b.innerText.toLowerCase() === type || (type === 'all' && b.innerText === 'Wszystkie')));
-        renderOffers();
+        document.getElementById('offerStats').innerText = `Widocznych ofert: ${count}`;
     };
+
+    window.addOffer = async () => {
+        const sel = document.getElementById('itemSource');
+        if(!sel.value) return alert("Wybierz przeciwnika!");
+        await addDoc(collection(db, "oferty"), {
+            userId: currentUser.uid, nick: currentNick, avatar: currentUser.photoURL,
+            type: document.getElementById('offerType').value,
+            name: document.getElementById('itemName').value,
+            price: document.getElementById('itemPrice').value,
+            source: sel.value, sourceImg: sel.options[sel.selectedIndex].dataset.img,
+            desc: document.getElementById('itemDesc').value,
+            img: document.getElementById('itemImg').value,
+            date: new Date().toISOString(), reservedBy: null
+        });
+        location.reload();
+    };
+
+    window.reserveOffer = async (id) => { if(!currentNick) return alert("Zaloguj się!"); await updateDoc(doc(db, "oferty", id), { reservedBy: currentNick }); };
+    window.cancelReservation = async (id) => { await updateDoc(doc(db, "oferty", id), { reservedBy: null }); };
+    window.deleteOffer = async (id) => { if(confirm("Usunąć?")) await deleteDoc(doc(db, "oferty", id)); };
+    window.logout = () => signOut(auth);
+    window.searchMargo = () => window.open(`https://margoworld.pl/item?name=${encodeURIComponent(document.getElementById('itemName').value)}`);
+    window.openFullEdit = (id, n, p, d, i) => { currentEditId = id; document.getElementById('fullEditName').value=n; document.getElementById('fullEditPrice').value=p; document.getElementById('fullEditDesc').value=d; document.getElementById('fullEditImg').value=i; document.getElementById('editModal').style.display='flex'; };
+    window.closeFullEdit = () => document.getElementById('editModal').style.display='none';
+    window.confirmFullEdit = async () => { await updateDoc(doc(db, "oferty", currentEditId), { name: document.getElementById('fullEditName').value, price: document.getElementById('fullEditPrice').value, desc: document.getElementById('fullEditDesc').value, img: document.getElementById('fullEditImg').value }); window.closeFullEdit(); };
+    window.updateCharCount = () => {};
+
+    onSnapshot(query(collection(db, "oferty"), orderBy("date", "desc")), (snap) => {
+        allOffers = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        window.renderOffers();
+    });
 </script>
 </body>
 </html>
