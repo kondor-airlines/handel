@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Targowisko Klanowe - Ultra Secure</title>
+    <title>Targowisko Klanowe</title>
     <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -107,42 +107,6 @@
             100% { box-shadow: 0 0 10px rgba(255, 215, 0, 0.2); border-color: #ffd700; }
         }
 
-        .legendary-item .item-source {
-            color: #ffd700;
-            background: rgba(255, 215, 0, 0.1);
-            border-color: rgba(255, 215, 0, 0.3);
-        }
-
-        .preview-box {
-            grid-column: 1 / -1;
-            display: none;
-            align-items: center;
-            gap: 15px;
-            background: rgba(255, 215, 0, 0.05);
-            border: 1px solid #ffd700;
-            padding: 10px;
-            border-radius: 5px;
-            margin-bottom: 10px;
-            animation: fadeIn 0.3s ease-in;
-        }
-        @keyframes fadeIn { from { opacity:0; transform:translateY(-5px); } to { opacity:1; transform:translateY(0); } }
-        
-        .preview-box img {
-            width: 40px; height: 40px; 
-            border: 1px solid #555; 
-            background: #000;
-            border-radius: 4px;
-        }
-        .preview-text { font-size: 0.9em; color: #ffd700; font-weight: bold; }
-        .preview-label { font-size: 0.7em; color: #888; text-transform: uppercase; display: block; margin-bottom: 2px; }
-
-        .tag { display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 0.75em; font-weight: bold; margin-bottom: 10px; text-transform: uppercase; }
-        .tag.sprzedam { background: rgba(46, 204, 113, 0.2); color: var(--green); }
-        .tag.kupie { background: rgba(52, 152, 219, 0.2); color: var(--blue); }
-        .tag.zamienie { background: rgba(231, 76, 60, 0.2); color: var(--red); }
-
-        .item-img { width: 50px; height: 50px; float: right; object-fit: contain; }
-        
         .item-source { 
             font-size: 0.9em; color: #d1a3ff; margin-bottom: 12px; font-weight: 600; 
             display: flex; align-items: center; gap: 12px; background: rgba(155, 89, 182, 0.15);
@@ -223,13 +187,13 @@
                 <option value="e2">Elity II</option>
             </select>
 
-            <input type="text" id="sourceSearch" class="full-width" placeholder="🔍 Szukaj przeciwnika..." oninput="updateSourceList()">
+            <input type="text" id="sourceSearch" class="full-width" placeholder="🔍 Szukaj przeciwnika..." oninput="updateSourceList()" style="border: 1px solid var(--purple); display:none;">
 
             <select id="itemSource" class="full-width" onchange="updateLootList()">
                 <option value="">-- Wybierz Przeciwnika --</option>
             </select>
 
-            <input type="text" id="itemSearch" class="full-width" placeholder="🔍 Szukaj przedmiotu..." oninput="updateLootList()">
+            <input type="text" id="itemSearch" class="full-width" placeholder="🔍 Szukaj przedmiotu..." oninput="updateLootList()" style="border: 1px solid var(--purple); display:none;">
 
             <select id="itemSelect" class="full-width" onchange="fillItemDetails()">
                 <option value="">-- Wybierz przedmiot legendarny --</option>
@@ -268,6 +232,7 @@
     import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
     import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, deleteDoc, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
     
+    // --- KONFIGURACJA FIREBASE (Twoje dane) ---
     const firebaseConfig = {
       apiKey: "AIzaSyApFYFkAghXreeX_xptg-PTCSxtPdiXYdA",
       authDomain: "targowisko-klanu.firebaseapp.com",
@@ -298,7 +263,6 @@
         const pattern = /^https?:\/\/[^<>"]+\.(jpeg|jpg|gif|png|webp|bmp)$/i;
         return pattern.test(url);
     }
-
     const monstersList = {
         herosi: [
             { name: "Mroczny Patryk (35 lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/her/bardzozlypatryk.gif" },
@@ -1241,19 +1205,18 @@
         ]
     };
 
-    // Funkcja aktualizująca listę przeciwników w zależności od wybranej kategorii (Herosi/E2)
-    window.updateSourceList = function() {
+   window.updateSourceList = function() {
         const category = document.getElementById('sourceCategory').value;
         const sourceSearch = document.getElementById('sourceSearch');
         const sourceSelect = document.getElementById('itemSource');
-        const query = sourceSearch.value.toLowerCase();
+        const queryStr = sourceSearch.value.toLowerCase();
 
         if (category) {
             sourceSearch.style.display = 'block';
             sourceSelect.innerHTML = '<option value="">-- Wybierz Przeciwnika --</option>';
             
             const filtered = monstersList[category].filter(mob => 
-                mob.name.toLowerCase().includes(query)
+                mob.name.toLowerCase().includes(queryStr)
             );
 
             filtered.forEach(mob => {
@@ -1267,26 +1230,24 @@
             sourceSearch.style.display = 'none';
             sourceSelect.innerHTML = '<option value="">-- Wybierz Przeciwnika --</option>';
         }
-        
         document.getElementById('itemSelect').style.display = 'none';
         document.getElementById('itemSearch').style.display = 'none';
         document.getElementById('livePreview').style.display = 'none';
     };
 
-    // Funkcja ładująca listę przedmiotów po wyborze przeciwnika
     window.updateLootList = function() {
         const heroName = document.getElementById('itemSource').value;
         const itemSearch = document.getElementById('itemSearch');
         const itemSelect = document.getElementById('itemSelect');
-        const query = itemSearch.value.toLowerCase();
+        const queryStr = itemSearch.value.toLowerCase();
 
         if (heroName && lootTable[heroName]) {
             itemSearch.style.display = 'block';
             itemSelect.style.display = 'block';
-            itemSelect.innerHTML = '<option value="">-- Wybierz przedmiot legendarny --</option>'; 
+            itemSelect.innerHTML = '<option value="">-- Wybierz przedmiot --</option>'; 
             
             const filtered = lootTable[heroName].filter(item => 
-                item.stats.split('||')[0].toLowerCase().includes(query)
+                item.stats.split('||')[0].toLowerCase().includes(queryStr)
             );
 
             filtered.forEach(item => {
@@ -1301,22 +1262,17 @@
         }
     };
 
-    // Wypełnianie pól formularza po wyborze przedmiotu
     window.fillItemDetails = function() {
         const selectedValue = document.getElementById('itemSelect').value;
         if (!selectedValue) return;
-
         const itemData = JSON.parse(selectedValue);
         const namePart = itemData.stats.split('||')[0];
         const statsPart = itemData.stats.split('||')[1] || "";
-
         document.getElementById('itemName').value = namePart;
         document.getElementById('itemImg').value = itemData.img;
-
         document.getElementById('livePreview').style.display = 'flex';
         document.getElementById('previewIcon').src = itemData.img;
         document.getElementById('previewName').innerText = namePart;
-
         let description = "";
         if (statsPart.includes('opis=')) {
             description = statsPart.split('opis=')[1].split(';')[0].replaceAll('[br]', '\n');
@@ -1326,16 +1282,18 @@
     };
 
     window.updateCharCount = function() {
-        const val = document.getElementById('itemDesc').value.length;
-        document.getElementById('charCount').innerText = val + "/150";
+        document.getElementById('charCount').innerText = document.getElementById('itemDesc').value.length + "/150";
     };
+
+    document.getElementById('googleLoginBtn').addEventListener('click', () => {
+        signInWithPopup(auth, provider).catch(e => alert("Błąd logowania: " + e.message));
+    });
 
     onAuthStateChanged(auth, async (user) => {
         currentUser = user;
         if (user) {
             const userRef = doc(db, "users", user.uid);
             const userSnap = await getDoc(userRef);
-
             if (userSnap.exists()) {
                 currentNick = userSnap.data().nick;
             } else {
@@ -1343,9 +1301,7 @@
                 if(nick && nick.trim()) {
                     currentNick = nick.trim();
                     await setDoc(userRef, { nick: currentNick });
-                } else {
-                    logout(); return;
-                }
+                } else { logout(); return; }
             }
             document.getElementById('googleLoginBtn').style.display = 'none';
             document.getElementById('userProfile').style.display = 'flex';
@@ -1356,31 +1312,26 @@
             document.getElementById('googleLoginBtn').style.display = 'flex';
             document.getElementById('userProfile').style.display = 'none';
             document.getElementById('addOfferPanel').style.display = 'none';
-            currentNick = null;
         }
         renderOffers();
     });
 
     window.searchMargo = () => {
-        const name = document.getElementById('itemName').value;
-        window.open(`https://margoworld.pl/item?name=${encodeURIComponent(name)}&minLvl=&maxLvl=&cl=`, '_blank');
+        window.open(`https://margoworld.pl/item?name=${encodeURIComponent(document.getElementById('itemName').value)}`, '_blank');
     };
 
     window.addOffer = async () => {
-        if (!currentUser) return alert("Zaloguj się!");
-        
+        if (!currentUser) return;
         const type = document.getElementById('offerType').value;
         const name = escapeHtml(document.getElementById('itemName').value);
         const price = escapeHtml(document.getElementById('itemPrice').value);
         const desc = escapeHtml(document.getElementById('itemDesc').value);
         const img = escapeHtml(document.getElementById('itemImg').value);
-
         const sel = document.getElementById('itemSource');
         const sourceName = sel.value; 
         const sourceImg = sel.selectedIndex >= 0 && sel.options[sel.selectedIndex] ? sel.options[sel.selectedIndex].dataset.img : "";
 
         if(!name || !price) return alert("Brakuje nazwy lub ceny!");
-
         try {
             await addDoc(collection(db, "oferty"), {
                 userId: currentUser.uid, nick: currentNick, avatar: currentUser.photoURL,
@@ -1388,17 +1339,11 @@
                 date: new Date().toISOString()
             });
             location.reload();
-        } catch(e) { alert("Błąd: " + e.message); }
+        } catch(e) { alert(e.message); }
     };
 
-    window.deleteOffer = async (id) => {
-        if(confirm("Czy na pewno usunąć?")) await deleteDoc(doc(db, "oferty", id));
-    };
-
-    window.copyNick = (nick) => {
-        navigator.clipboard.writeText(`/t ${nick} `).then(() => alert("Skopiowano nick!"));
-    };
-
+    window.deleteOffer = async (id) => { if(confirm("Usunąć?")) await deleteDoc(doc(db, "oferty", id)); };
+    window.copyNick = (nick) => { navigator.clipboard.writeText(`/t ${nick} `).then(() => alert("Skopiowano!")); };
     window.logout = () => signOut(auth);
 
     onSnapshot(query(collection(db, "oferty"), orderBy("date", "desc")), (snapshot) => {
@@ -1409,45 +1354,25 @@
     function renderOffers() {
         const list = document.getElementById('offersList');
         list.innerHTML = "";
-        
         allOffers.forEach(data => {
             if (currentFilter !== 'all' && data.type !== currentFilter) return;
-
             const isAdmin = (currentNick === ADMIN_NICK);
             const isOwner = currentUser && (data.userId === currentUser.uid);
-
-            let deleteBtn = "";
-            if (isOwner || isAdmin) {
-                let btnClass = (isAdmin && !isOwner) ? "delete-btn admin-delete-btn" : "delete-btn";
-                let label = (isAdmin && !isOwner) ? "USUŃ (Admin)" : "✕";
-                deleteBtn = `<button class="${btnClass}" onclick="deleteOffer('${data.id}')">${label}</button>`;
-            }
-
-            let imgHtml = "";
-            if (isValidImageUrl(data.img)) {
-                imgHtml = `<img src="${escapeHtml(data.img)}" class="item-img" onerror="this.style.display='none'">`;
-            } else if (data.img) {
-                imgHtml = `<span style="float:right; font-size:20px;" title="Błędny format">⚠️</span>`;
-            }
+            let deleteBtn = (isOwner || isAdmin) ? `<button class="delete-btn ${isAdmin && !isOwner ? 'admin-delete-btn' : ''}" onclick="deleteOffer('${data.id}')">${isAdmin && !isOwner ? 'USUŃ (Admin)' : '✕'}</button>` : "";
+            let imgHtml = isValidImageUrl(data.img) ? `<img src="${escapeHtml(data.img)}" class="item-img" onerror="this.style.display='none'">` : (data.img ? "⚠️" : "");
 
             list.innerHTML += `
                 <div class="offer-card legendary-item">
                     ${deleteBtn}
                     <div class="tag ${data.type}">${data.type.toUpperCase()}</div>
                     ${imgHtml}
-                    <div style="font-size:1.1em; font-weight:bold; margin-bottom:5px;">${escapeHtml(data.name)}</div>
-                    <div class="item-source">
-                        ${data.sourceImg ? `<img src="${data.sourceImg}">` : ""} 
-                        <span>${escapeHtml(data.source)}</span>
-                    </div>
-                    <div style="color:var(--gold); margin-bottom:10px;">Cena: ${escapeHtml(data.price)}</div>
-                    <div style="color:#aaa; font-size:0.9em; margin-bottom:15px; font-style:italic;">${escapeHtml(data.desc)}</div>
+                    <div style="font-size:1.1em; font-weight:bold;">${escapeHtml(data.name)}</div>
+                    <div class="item-source">${data.sourceImg ? `<img src="${data.sourceImg}">` : ""} <span>${escapeHtml(data.source)}</span></div>
+                    <div style="color:var(--gold);">Cena: ${escapeHtml(data.price)}</div>
+                    <div style="color:#aaa; font-style:italic;">${escapeHtml(data.desc)}</div>
                     <div class="seller-info">
-                        <div class="seller-left">
-                            <img src="${data.avatar}" class="tiny-avatar"> 
-                            <b>${escapeHtml(data.nick)}</b>
-                            <button class="copy-nick-btn" onclick="copyNick('${data.nick}')">✉️</button>
-                        </div>
+                        <div class="seller-left"><img src="${data.avatar}" class="tiny-avatar"> <b>${escapeHtml(data.nick)}</b>
+                        <button class="copy-nick-btn" onclick="copyNick('${data.nick}')">✉️</button></div>
                     </div>
                 </div>`;
         });
@@ -1455,11 +1380,10 @@
 
     window.filterOffers = (type) => {
         currentFilter = type;
-        document.querySelectorAll('.filter-btn').forEach(b => {
-            b.classList.toggle('active', b.innerText.toLowerCase() === type || (type === 'all' && b.innerText === 'Wszystkie'));
-        });
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.toggle('active', b.innerText.toLowerCase() === type || (type === 'all' && b.innerText === 'Wszystkie')));
         renderOffers();
     };
 </script>
 </body>
 </html>
+
