@@ -421,7 +421,8 @@
                 <option value="kupie">Kupię</option>
                 <option value="zamienie">Zamienię</option>
             </select>
-            <input type="text" id="itemPrice" placeholder="Cena (np. 150m)" maxlength="30">
+            <input type="text" id="itemPrice" placeholder="Cena (np. 150m, 1.2g)" maxlength="10" 
+       oninput="this.style.borderColor = /^\d+(\.\d+)?[kmg]?$/i.test(this.value.trim().replace(',', '.')) ? 'var(--green)' : 'var(--red)'">
             <select id="sourceCategory" class="full-width" onchange="updateSourceList()">
                 <option value="">-- Wybierz Kategorię --</option>
                 <option value="herosi">Herosi</option>
@@ -1921,20 +1922,52 @@
         window.renderOffers();
     });
 
+    // --- DODAWANIE OFERTY Z WALIDACJĄ CENY ---
     window.addOffer = async () => {
         const sel = document.getElementById('itemSource');
-        if(!sel.value) return alert("Wybierz przeciwnika!");
+        const priceInput = document.getElementById('itemPrice');
+        const priceVal = priceInput.value.trim().replace(',', '.'); // Zamień przecinek na kropkę dla ułatwienia
+        
+        // 1. Walidacja wyboru przeciwnika
+        if(!sel.value) return window.alert("Błąd: Wybierz przeciwnika z listy!");
+
+        // 2. Walidacja ceny (Regex)
+        // ^ = początek, \d+ = cyfry, (\.\d+)? = opcjonalnie kropka i cyfry, [kmg]? = opcjonalnie jedna z liter, $ = koniec
+        const pricePattern = /^\d+(\.\d+)?[kmg]?$/i; 
+
+        if (!priceVal) {
+            return window.alert("Błąd: Podaj cenę!");
+        }
+
+        if (!pricePattern.test(priceVal)) {
+            return window.alert("Błąd ceny! Format: liczba + opcjonalnie k, m, g (np. 150m, 1.2g, 500k).");
+        }
+
+        // Jeśli wszystko ok -> Wysyłamy do Firebase
         await addDoc(collection(db, "oferty"), {
-            userId: currentUser.uid, nick: currentNick, avatar: currentUser.photoURL,
+            userId: currentUser.uid, 
+            nick: currentNick, 
+            avatar: currentUser.photoURL,
             type: document.getElementById('offerType').value,
-            name: document.getElementById('itemName').value,
-            price: document.getElementById('itemPrice').value,
-            source: sel.value, sourceImg: sel.options[sel.selectedIndex].dataset.img,
+            name: document.getElementById('itemName').value || "Nieznany przedmiot", // Zabezpieczenie braku nazwy
+            price: priceVal.toLowerCase(), // Zapisujemy np. 150M jako 150m
+            source: sel.value, 
+            sourceImg: sel.options[sel.selectedIndex].dataset.img,
             desc: document.getElementById('itemDesc').value,
             img: document.getElementById('itemImg').value,
-            date: new Date().toISOString(), reservedBy: null
+            date: new Date().toISOString(), 
+            reservedBy: null
         });
+        
         window.playSound('coin');
+        window.alert("Dodano ofertę!");
+        
+        // Czyścimy pola po dodaniu (opcjonalne, ale wygodne)
+        document.getElementById('itemPrice').value = "";
+        document.getElementById('itemName').value = "";
+        document.getElementById('itemImg').value = "";
+        document.getElementById('itemDesc').value = "";
+        document.getElementById('livePreview').style.display = 'none';
     };
     
     window.reserveOffer = async (id) => { if(!currentNick) return alert("Zaloguj się!"); await updateDoc(doc(db, "oferty", id), { reservedBy: currentNick }); window.playSound('click'); };
@@ -2061,6 +2094,7 @@
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
