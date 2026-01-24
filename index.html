@@ -421,8 +421,8 @@
                 <option value="kupie">Kupię</option>
                 <option value="zamienie">Zamienię</option>
             </select>
-            <input type="text" id="itemPrice" placeholder="Cena (np. 150m, 1.2g)" maxlength="10" 
-       oninput="this.style.borderColor = /^\d+(\.\d+)?[kmg]?$/i.test(this.value.trim().replace(',', '.')) ? 'var(--green)' : 'var(--red)'">
+            <input type="text" id="itemPrice" placeholder="Cena (wymagane m, g lub k, np. 150m)" maxlength="10" 
+       oninput="this.style.borderColor = /^\d+(\.\d+)?[kmg]$/i.test(this.value.trim().replace(',', '.')) ? 'var(--green)' : 'var(--red)'">
             <select id="sourceCategory" class="full-width" onchange="updateSourceList()">
                 <option value="">-- Wybierz Kategorię --</option>
                 <option value="herosi">Herosi</option>
@@ -1923,24 +1923,25 @@
     });
 
     // --- DODAWANIE OFERTY Z WALIDACJĄ CENY ---
+    // --- DODAWANIE OFERTY (ŚCISŁA WALIDACJA) ---
     window.addOffer = async () => {
         const sel = document.getElementById('itemSource');
         const priceInput = document.getElementById('itemPrice');
-        const priceVal = priceInput.value.trim().replace(',', '.'); // Zamień przecinek na kropkę dla ułatwienia
+        const priceVal = priceInput.value.trim().replace(',', '.'); // Zamiana przecinka na kropkę
         
         // 1. Walidacja wyboru przeciwnika
         if(!sel.value) return window.alert("Błąd: Wybierz przeciwnika z listy!");
 
-        // 2. Walidacja ceny (Regex)
-        // ^ = początek, \d+ = cyfry, (\.\d+)? = opcjonalnie kropka i cyfry, [kmg]? = opcjonalnie jedna z liter, $ = koniec
-        const pricePattern = /^\d+(\.\d+)?[kmg]?$/i; 
+        // 2. Walidacja ceny (Regex Ścisły)
+        // ^ = start, \d+ = liczby, (\.\d+)? = opcjonalnie ułamek, [kmg] = OBOWIĄZKOWO jedna z liter, $ = koniec
+        const pricePattern = /^\d+(\.\d+)?[kmg]$/i; 
 
         if (!priceVal) {
             return window.alert("Błąd: Podaj cenę!");
         }
 
         if (!pricePattern.test(priceVal)) {
-            return window.alert("Błąd ceny! Format: liczba + opcjonalnie k, m, g (np. 150m, 1.2g, 500k).");
+            return window.alert("Błąd formatu! Cena MUSI kończyć się literą k, m lub g (np. 500k, 150m, 1.2g).");
         }
 
         // Jeśli wszystko ok -> Wysyłamy do Firebase
@@ -1949,7 +1950,7 @@
             nick: currentNick, 
             avatar: currentUser.photoURL,
             type: document.getElementById('offerType').value,
-            name: document.getElementById('itemName').value || "Nieznany przedmiot", // Zabezpieczenie braku nazwy
+            name: document.getElementById('itemName').value || "Nieznany przedmiot",
             price: priceVal.toLowerCase(), // Zapisujemy np. 150M jako 150m
             source: sel.value, 
             sourceImg: sel.options[sel.selectedIndex].dataset.img,
@@ -1962,8 +1963,9 @@
         window.playSound('coin');
         window.alert("Dodano ofertę!");
         
-        // Czyścimy pola po dodaniu (opcjonalne, ale wygodne)
+        // Czyścimy pola
         document.getElementById('itemPrice').value = "";
+        document.getElementById('itemPrice').style.borderColor = "#333"; // Reset koloru ramki
         document.getElementById('itemName').value = "";
         document.getElementById('itemImg').value = "";
         document.getElementById('itemDesc').value = "";
@@ -2094,6 +2096,7 @@
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
