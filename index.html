@@ -413,62 +413,47 @@
     
     <div id="offerStats" style="text-align:center; font-size:0.8em; color:#666; margin-bottom:20px;"></div>
 
-	<button id="addOfferBtn" onclick="document.getElementById('addOfferModal').style.display='flex'" 
-            style="display:block; margin: 0 auto 30px auto; background: linear-gradient(to bottom, #ffd700, #b8860b); color: #000; font-family: 'MedievalSharp'; font-size: 1.2em; padding: 10px 40px; border: none; border-radius: 8px; cursor: pointer; box-shadow: 0 0 15px rgba(255, 215, 0, 0.3); transition: 0.3s;"
-            onmouseover="this.style.transform='scale(1.05)'" 
-            onmouseout="this.style.transform='scale(1)'">
-        + WYSTAW ARTEFAKT
-    </button>
-
-    <div id="addOfferModal" style="display: none; position: fixed; z-index: 10003; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.9); align-items: center; justify-content: center; backdrop-filter: blur(5px);">
-        
-        <div class="panel" style="position: relative; width: 90%; max-width: 500px; background: linear-gradient(135deg, #1a1a1a 0%, #0f0f0f 100%); padding: 25px; border-radius: 12px; border: 2px solid #ffd700; box-shadow: 0 0 30px rgba(255, 215, 0, 0.2);">
+    <div id="addOfferPanel" class="panel">
+        <h3 style="margin-top:0; color:var(--gold); font-family:'MedievalSharp';">Wystaw Artefakt</h3>
+        <div class="form-grid">
+            <select id="offerType">
+                <option value="sprzedam">Sprzedam</option>
+                <option value="kupie">Kupię</option>
+                <option value="zamienie">Zamienię</option>
+            </select>
+            <input type="text" id="itemPrice" placeholder="Cena (wymagane m, g lub k, np. 150m)" maxlength="10" 
+       oninput="this.style.borderColor = /^\d+(\.\d+)?[kmg]$/i.test(this.value.trim().replace(',', '.')) ? 'var(--green)' : 'var(--red)'">
+            <select id="sourceCategory" class="full-width" onchange="updateSourceList()">
+                <option value="">-- Wybierz Kategorię --</option>
+                <option value="herosi">Herosi</option>
+                <option value="e2">Elity II</option>
+            </select>
+            <input type="text" id="sourceSearch" class="full-width search-box" placeholder="🔍 Szukaj przeciwnika..." oninput="updateSourceList()" style="display:none;">
             
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-                <h3 style="margin:0; color:#ffd700; font-family:'MedievalSharp';">Wystaw Artefakt</h3>
-                <button onclick="document.getElementById('addOfferModal').style.display='none'" style="background:none; border:none; color:#888; font-size:1.5em; cursor:pointer;">✕</button>
+            <select id="itemSource" class="full-width" onchange="updateLootList()"><option value="">-- Przeciwnik --</option></select>
+            
+            <input type="text" id="itemSearch" class="full-width search-box" placeholder="🔍 Szukaj przedmiotu..." oninput="updateLootList()" style="display:none;">
+            <select id="itemSelect" class="full-width" onchange="fillItemDetails()"><option value="">-- Przedmiot --</option></select>
+            
+            <div id="livePreview" class="preview-box">
+                <div class="preview-content">
+                    <span class="preview-label">Podgląd</span>
+                    <span id="previewName" class="preview-text">Wybierz coś...</span>
+                </div>
+                <div class="preview-icon-wrapper">
+                    <img id="previewIcon" src="https://micc.garmory-cdn.cloud/obrazki/itemy/bag/bag.gif" alt="">
+                </div>
             </div>
 
-            <div class="form-grid">
-                <select id="offerType">
-                    <option value="sprzedam">Sprzedam</option>
-                    <option value="kupie">Kupię</option>
-                    <option value="zamienie">Zamienię</option>
-                </select>
-                <input type="text" id="itemPrice" placeholder="Cena (wymagane m, g lub k, np. 150m)" maxlength="10" oninput="this.style.borderColor = /^\d+(\.\d+)?[kmg]$/i.test(this.value.trim().replace(',', '.')) ? 'var(--green)' : 'var(--red)'">
-                
-                <select id="sourceCategory" class="full-width" onchange="updateSourceList()">
-                    <option value="">-- Wybierz Kategorię --</option>
-                    <option value="herosi">Herosi</option>
-                    <option value="e2">Elity II</option>
-                </select>
-                <input type="text" id="sourceSearch" class="full-width search-box" placeholder="🔍 Szukaj przeciwnika..." oninput="updateSourceList()" style="display:none;">
-                
-                <select id="itemSource" class="full-width" onchange="updateLootList()"><option value="">-- Przeciwnik --</option></select>
-                
-                <input type="text" id="itemSearch" class="full-width search-box" placeholder="🔍 Szukaj przedmiotu..." oninput="updateLootList()" style="display:none;">
-                <select id="itemSelect" class="full-width" onchange="fillItemDetails()"><option value="">-- Przedmiot --</option></select>
-                
-                <div id="livePreview" class="preview-box">
-                    <div class="preview-content">
-                        <span class="preview-label">Podgląd</span>
-                        <span id="previewName" class="preview-text">Wybierz coś...</span>
-                    </div>
-                    <div class="preview-icon-wrapper">
-                        <img id="previewIcon" src="https://micc.garmory-cdn.cloud/obrazki/itemy/bag/bag.gif" alt="">
-                    </div>
-                </div>
-
-                <div style="display:flex; gap:10px; align-items:center;" class="full-width">
-                    <input type="text" id="itemName" placeholder="Nazwa przedmiotu" maxlength="50">
-                    <button class="helper-btn" onclick="searchMargo()" title="Sprawdź statystyki">
-                        <span style="margin-right: 5px; font-size: 0.8em;">STATY</span> 🔍
-                    </button>
-                </div>
-                <input type="text" id="itemImg" placeholder="Link do obrazka" class="full-width" oninput="manualImgPreview()">
-                <textarea id="itemDesc" placeholder="Dodatkowy opis..." class="full-width" maxlength="150" rows="2"></textarea>
-                <button class="action-btn full-width" onclick="addOffer(); document.getElementById('addOfferModal').style.display='none';">Opublikuj na Targu</button>
+            <div style="display:flex; gap:10px; align-items:center;" class="full-width">
+                <input type="text" id="itemName" placeholder="Nazwa przedmiotu" maxlength="50">
+                <button class="helper-btn" onclick="searchMargo()" title="Sprawdź statystyki">
+                    <span style="margin-right: 5px; font-size: 0.8em;">STATY</span> 🔍
+                </button>
             </div>
+            <input type="text" id="itemImg" placeholder="Link do obrazka" class="full-width" oninput="manualImgPreview()">
+            <textarea id="itemDesc" placeholder="Dodatkowy opis..." class="full-width" maxlength="150" rows="2"></textarea>
+            <button class="action-btn full-width" onclick="addOffer()">Opublikuj na Targu</button>
         </div>
     </div>
 
@@ -1939,47 +1924,38 @@
 
     // --- DODAWANIE OFERTY Z WALIDACJĄ CENY ---
     // --- DODAWANIE OFERTY (ŚCISŁA WALIDACJA) ---
-   // --- DODAWANIE OFERTY (WERSJA PANCERNA - NAPRAWIONY BŁĄD) ---
     window.addOffer = async () => {
         const sel = document.getElementById('itemSource');
         const priceInput = document.getElementById('itemPrice');
-        
-        // Zabezpieczenie: czy pola w ogóle istnieją?
-        if (!sel || !priceInput) {
-            console.error("Błąd: Nie znaleziono pól formularza.");
-            return;
-        }
-
-        const priceVal = priceInput.value.trim().replace(',', '.');
+        const priceVal = priceInput.value.trim().replace(',', '.'); // Zamiana przecinka na kropkę
         
         // 1. Walidacja wyboru przeciwnika
         if(!sel.value) return window.alert("Błąd: Wybierz przeciwnika z listy!");
 
-        // 2. Walidacja ceny
+        // 2. Walidacja ceny (Regex Ścisły)
+        // ^ = start, \d+ = liczby, (\.\d+)? = opcjonalnie ułamek, [kmg] = OBOWIĄZKOWO jedna z liter, $ = koniec
         const pricePattern = /^\d+(\.\d+)?[kmg]$/i; 
 
-        if (!priceVal) return window.alert("Błąd: Podaj cenę!");
-        if (!pricePattern.test(priceVal)) return window.alert("Błąd formatu! Cena MUSI kończyć się literą k, m lub g (np. 500k, 150m, 1.2g).");
+        if (!priceVal) {
+            return window.alert("Błąd: Podaj cenę!");
+        }
 
-        // 3. Pobranie danych opcjonalnych (bezpiecznie)
-        const typeEl = document.getElementById('offerType');
-        const nameEl = document.getElementById('itemName');
-        const descEl = document.getElementById('itemDesc');
-        const imgEl = document.getElementById('itemImg');
-        const previewEl = document.getElementById('livePreview'); // To powodowało błąd u Ciebie
+        if (!pricePattern.test(priceVal)) {
+            return window.alert("Błąd formatu! Cena MUSI kończyć się literą k, m lub g (np. 500k, 150m, 1.2g).");
+        }
 
-        // 4. Wysyłka do bazy
+        // Jeśli wszystko ok -> Wysyłamy do Firebase
         await addDoc(collection(db, "oferty"), {
             userId: currentUser.uid, 
             nick: currentNick, 
             avatar: currentUser.photoURL,
-            type: typeEl ? typeEl.value : 'sprzedam',
-            name: nameEl ? (nameEl.value || "Nieznany przedmiot") : "Nieznany",
-            price: priceVal.toLowerCase(),
+            type: document.getElementById('offerType').value,
+            name: document.getElementById('itemName').value || "Nieznany przedmiot",
+            price: priceVal.toLowerCase(), // Zapisujemy np. 150M jako 150m
             source: sel.value, 
-            sourceImg: sel.options[sel.selectedIndex].dataset.img || "",
-            desc: descEl ? descEl.value : "",
-            img: imgEl ? imgEl.value : "",
+            sourceImg: sel.options[sel.selectedIndex].dataset.img,
+            desc: document.getElementById('itemDesc').value,
+            img: document.getElementById('itemImg').value,
             date: new Date().toISOString(), 
             reservedBy: null
         });
@@ -1987,23 +1963,13 @@
         window.playSound('coin');
         window.alert("Dodano ofertę!");
         
-        // 5. Bezpieczne czyszczenie pól (TERAZ NIE WYWALI BŁĘDU)
-        if(priceInput) {
-            priceInput.value = "";
-            priceInput.style.borderColor = "#333";
-        }
-        if(nameEl) nameEl.value = "";
-        if(imgEl) imgEl.value = "";
-        if(descEl) descEl.value = "";
-        
-        // Naprawa Twojego błędu: sprawdzamy czy preview istnieje przed zmianą stylu
-        if(previewEl) {
-            previewEl.style.display = 'none';
-        }
-
-        // Zamknięcie modala
-        const modal = document.getElementById('addOfferModal');
-        if(modal) modal.style.display = 'none';
+        // Czyścimy pola
+        document.getElementById('itemPrice').value = "";
+        document.getElementById('itemPrice').style.borderColor = "#333"; // Reset koloru ramki
+        document.getElementById('itemName').value = "";
+        document.getElementById('itemImg').value = "";
+        document.getElementById('itemDesc').value = "";
+        document.getElementById('livePreview').style.display = 'none';
     };
     
     window.reserveOffer = async (id) => { if(!currentNick) return alert("Zaloguj się!"); await updateDoc(doc(db, "oferty", id), { reservedBy: currentNick }); window.playSound('click'); };
@@ -2130,6 +2096,3 @@
 <div id="toast-container"></div>
 </body>
 </html>
-
-
-
