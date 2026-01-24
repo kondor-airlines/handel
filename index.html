@@ -1785,12 +1785,15 @@ const lootTable = {
         }
     };
 
-// Generowanie Tooltipa (dymek po najechaniu na ofertę) - WERSJA Z LINKIEM MARGOWORLD
+// Generowanie Tooltipa - WERSJA CZYSTA (bez nawiasów w tytule)
     function getTooltipHtml(dataName, dataImg) {
+        // Tworzymy "czystą" nazwę do wyświetlania (usuwamy nawiasy z końca)
+        const cleanName = dataName.replace(/\s*\([^)]*\)$/, "");
+
         let foundStats = "";
         let rarityClass = "legendary";
 
-        // Szukamy statystyk w tabeli
+        // Szukamy statystyk w tabeli UŻYWAJĄC PEŁNEJ NAZWY (dataName), żeby znaleźć pasujący przedmiot
         for (const mob in lootTable) {
             const item = lootTable[mob].find(i => i.img === dataImg || i.stats.split('||')[0] === dataName);
             if (item) {
@@ -1807,12 +1810,10 @@ const lootTable = {
         let contentHtml = "";
         
         if (foundStats) {
-            // Jeśli mamy statystyki w bazie -> wyświetl je
             contentHtml = `<div class="tooltip-stats">${foundStats}</div>`;
         } else {
-            // Jeśli NIE mamy statystyk -> wyświetl link do MargoWorld
-            // encodeURIComponent sprawia, że nazwy ze spacjami działają w linku
-            const safeName = encodeURIComponent(dataName); 
+            // W linku też używamy czystej nazwy, żeby lepiej szukało
+            const safeName = encodeURIComponent(cleanName); 
             const mwLink = `https://margoworld.pl/item?name=${safeName}`;
             
             contentHtml = `
@@ -1824,10 +1825,9 @@ const lootTable = {
             `;
         }
 
-        // pointer-events: auto jest KONIECZNE, żeby dało się kliknąć w link
         return `
             <div class="tooltip-container" style="pointer-events: auto;">
-                <div class="tooltip-name ${rarityClass}">${window.escapeHtml(dataName)}</div>
+                <div class="tooltip-name ${rarityClass}">${window.escapeHtml(cleanName)}</div>
                 <img src="${dataImg}" class="tooltip-img">
                 ${contentHtml}
             </div>
@@ -1915,7 +1915,7 @@ const lootTable = {
         window.renderOffers();
     };
 
-// --- RENDEROWANIE OFERT (NAPRAWIONE POZYCJE I KOLORY) ---
+// --- RENDEROWANIE OFERT (CZYSTE NAZWY) ---
     window.renderOffers = () => {
         const list = document.getElementById('offersList');
         const search = document.getElementById('globalSearch').value.toLowerCase();
@@ -1942,11 +1942,12 @@ const lootTable = {
             if(currentFilters.cat === 'herosi' && !isHeros) return;
             if(currentFilters.cat === 'e2' && !isE2) return;
             
+            // Wyszukiwanie
             if(!data.name.toLowerCase().includes(search)) return;
             if(selectedUser && data.nick !== selectedUser) return;
             if(monsterLvl < minLvl || monsterLvl > maxLvl) return;
 
-            // Filtr Profesji
+            // Filtrowanie profesji (logika zostaje po staremu, używa pełnej nazwy)
             if (selectedProf && selectedProf !== 'a') {
                 const match = data.name.match(/\(([^)]+)\)[^()]*$/);
                 if (match) {
@@ -1962,7 +1963,6 @@ const lootTable = {
             const isOnline = isUserOnline(data.userId);
             const onlineHtml = isOnline ? '<span class="online-dot" title="Online"></span>' : '';
             
-            // Klasa koloru (To naprawia "Błysk" ramek)
             let typeClass = "";
             if (data.type === 'sprzedam') typeClass = "type-sprzedam";
             if (data.type === 'kupie') typeClass = "type-kupie";
@@ -1970,10 +1970,13 @@ const lootTable = {
 
             const tooltipHtml = getTooltipHtml(data.name, data.img);
 
+            // --- NOWOŚĆ: Tworzymy czystą nazwę tylko do wyświetlenia na karcie ---
+            const displayName = data.name.replace(/\s*\([^)]*\)$/, "");
+            // ---------------------------------------------------------------------
+
             let btnRes = !data.reservedBy ? `<button class="small-btn reserve-btn" onclick="reserveOffer('${data.id}')">REZ</button>` : (isOwner || isAdmin ? `<button class="small-btn unreserve-btn" onclick="cancelReservation('${data.id}')">COFNIJ</button>` : "");
             let mailBtn = (!isOwner && currentUser) ? `<button class="small-btn msg-btn" onclick="openCompose('${data.userId}', '${window.escapeHtml(data.nick)}', '${window.escapeHtml(data.name)}')" title="Wiadomość">✉️</button>` : "";
             
-            // NOWA STRUKTURA KARTY - Serce i Tag mają position: absolute (w CSS)
             list.innerHTML += `
                 <div class="offer-card ${typeClass}">
                     ${tooltipHtml}
@@ -1983,7 +1986,7 @@ const lootTable = {
 
                     ${window.isValidImageUrl(data.img) ? `<img src="${data.img}" class="item-img">` : ""}
 
-                    <div class="item-title">${window.escapeHtml(data.name)}</div>
+                    <div class="item-title">${window.escapeHtml(displayName)}</div>
                     
                     <div class="item-source">
                         <img src="${data.sourceImg}"> <span>${data.source}</span>
@@ -1994,7 +1997,7 @@ const lootTable = {
                     </div>
                     
                     ${data.reservedBy ? `<div style="font-size:0.7em; color:var(--green); margin:5px 0;">🔒 Rez: ${data.reservedBy}</div>` : ""}
-                    
+
                     ${data.desc ? `<div style="font-size:0.8em; color:#888; font-style:italic; margin-bottom:10px; text-align:center;">"${window.escapeHtml(data.desc)}"</div>` : ""}
 
                     <div class="seller-info">
@@ -2250,6 +2253,7 @@ const lootTable = {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
