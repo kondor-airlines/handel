@@ -413,7 +413,12 @@
     
     <div id="offerStats" style="text-align:center; font-size:0.8em; color:#666; margin-bottom:20px;"></div>
 
-    <div id="addOfferPanel" class="panel">
+    <button onclick="toggleAddOfferPanel()" id="toggleAddBtn" 
+            style="display:block; margin: 0 auto 20px auto; background: linear-gradient(to bottom, #ffd700, #b8860b); color: #000; font-family: 'MedievalSharp'; font-size: 1.2em; padding: 10px 40px; border: none; border-radius: 8px; cursor: pointer; box-shadow: 0 0 15px rgba(255, 215, 0, 0.3); transition: 0.3s;">
+        + WYSTAW ARTEFAKT
+    </button>
+
+    <div id="addOfferPanel" class="panel" style="display: none; animation: fadeIn 0.3s ease-out;">
         <h3 style="margin-top:0; color:var(--gold); font-family:'MedievalSharp';">Wystaw Artefakt</h3>
         <div class="form-grid">
             <select id="offerType">
@@ -422,7 +427,8 @@
                 <option value="zamienie">Zamienię</option>
             </select>
             <input type="text" id="itemPrice" placeholder="Cena (wymagane m, g lub k, np. 150m)" maxlength="10" 
-       oninput="this.style.borderColor = /^\d+(\.\d+)?[kmg]$/i.test(this.value.trim().replace(',', '.')) ? 'var(--green)' : 'var(--red)'">
+                   oninput="this.style.borderColor = /^\d+(\.\d+)?[kmg]$/i.test(this.value.trim().replace(',', '.')) ? 'var(--green)' : 'var(--red)'">
+            
             <select id="sourceCategory" class="full-width" onchange="updateSourceList()">
                 <option value="">-- Wybierz Kategorię --</option>
                 <option value="herosi">Herosi</option>
@@ -2091,8 +2097,27 @@
         } else { scrollBtn.style.display = "none"; }
     };
     window.topFunction = function() { window.scrollTo({top: 0, behavior: 'smooth'}); }
+
+	// --- FUNKCJA ZWIJANIA PANELU ---
+    window.toggleAddOfferPanel = () => {
+        const panel = document.getElementById('addOfferPanel');
+        const btn = document.getElementById('toggleAddBtn');
+        if (panel.style.display === 'none') {
+            panel.style.display = 'block';
+            btn.innerText = '− UKRYJ FORMULARZ';
+            btn.style.background = '#333'; // Zmiana koloru na ciemny po otwarciu
+            btn.style.color = '#fff';
+        } else {
+            panel.style.display = 'none';
+            btn.innerText = '+ WYSTAW ARTEFAKT';
+            btn.style.background = 'linear-gradient(to bottom, #ffd700, #b8860b)'; // Powrót do złotego
+            btn.style.color = '#000';
+        }
+    };
+	
 </script>
 
 <div id="toast-container"></div>
 </body>
 </html>
+
