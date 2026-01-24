@@ -1729,7 +1729,7 @@ const lootTable = {
         }
     };
 
-   // Generowanie Tooltipa (dymek po najechaniu na ofertę)
+// Generowanie Tooltipa (dymek po najechaniu na ofertę) - WERSJA Z LINKIEM MARGOWORLD
     function getTooltipHtml(dataName, dataImg) {
         let foundStats = "";
         let rarityClass = "legendary";
@@ -1755,17 +1755,28 @@ const lootTable = {
             contentHtml = `<div class="tooltip-stats">${foundStats}</div>`;
         } else {
             // Jeśli NIE mamy statystyk -> wyświetl link do MargoWorld
-            const safeName = encodeURIComponent(dataName); // Zamienia spacje na %20 itp.
+            // encodeURIComponent sprawia, że nazwy ze spacjami działają w linku
+            const safeName = encodeURIComponent(dataName); 
             const mwLink = `https://margoworld.pl/item?name=${safeName}`;
             
             contentHtml = `
                 <div class="tooltip-stats" style="margin-top:8px; padding-top:8px; border-top:1px dashed #555;">
-                    <a href="${mwLink}" target="_blank" style="color:var(--gold); text-decoration:none; font-weight:bold; cursor:pointer;">
+                    <a href="${mwLink}" target="_blank" style="color:var(--gold); text-decoration:none; font-weight:bold; cursor:pointer; display:block; padding:5px; background:rgba(255,215,0,0.1); border-radius:4px;">
                         🔗 Sprawdź na MargoWorld
                     </a>
                 </div>
             `;
         }
+
+        // pointer-events: auto jest KONIECZNE, żeby dało się kliknąć w link
+        return `
+            <div class="tooltip-container" style="pointer-events: auto;">
+                <div class="tooltip-name ${rarityClass}">${window.escapeHtml(dataName)}</div>
+                <img src="${dataImg}" class="tooltip-img">
+                ${contentHtml}
+            </div>
+        `;
+    }
 
         // Dodano style="pointer-events: auto;" żeby dało się kliknąć w link
         return `
@@ -2194,6 +2205,7 @@ const lootTable = {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
