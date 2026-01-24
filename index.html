@@ -401,16 +401,16 @@
             <option value="">👤 Wszyscy sprzedawcy</option>
         </select>
 
-		<select id="profFilter" class="filter-select" onchange="renderOffers()">
+	<select id="profFilter" class="filter-select" onchange="renderOffers()">
             <option value="">⚔️ Wszystkie profesje</option>
-            <option value="w">Wojownik</option>
-            <option value="p">Paladyn</option>
-            <option value="b">Tancerz Ostrzy</option>
-            <option value="m">Mag</option>
-            <option value="t">Tropiciel</option>
-            <option value="h">Łowca</option>
-            <option value="a">Ogólne (A)</option>
-            <option value="i">Inne</option>
+            <option value="w">Wojownik (w)</option>
+            <option value="p">Paladyn (p)</option>
+            <option value="b">Tancerz Ostrzy (b)</option>
+            <option value="m">Mag (m)</option>
+            <option value="t">Tropiciel (t)</option>
+            <option value="h">Łowca (h)</option>
+            <option value="a">Wszystkie profesje (a)</option>
+            <option value="i">Inne (i)</option>
         </select>
 		
         <div class="lvl-group">
@@ -1862,7 +1862,7 @@ const lootTable = {
         const list = document.getElementById('offersList');
         const search = document.getElementById('globalSearch').value.toLowerCase();
         const selectedUser = document.getElementById('userFilterSelect').value;
-        const selectedProf = document.getElementById('profFilter').value; // <--- NOWE: Pobieramy profesję
+        const selectedProf = document.getElementById('profFilter').value; // Pobieramy wybraną literkę (np. 'i', 'w')
         const minLvl = parseInt(document.getElementById('minLvlInput').value) || 0;
         const maxLvl = parseInt(document.getElementById('maxLvlInput').value) || 9999;
         const favs = JSON.parse(localStorage.getItem('targ_favs') || '[]');
@@ -1887,28 +1887,28 @@ const lootTable = {
             if(selectedUser && data.nick !== selectedUser) return;
             if(monsterLvl < minLvl || monsterLvl > maxLvl) return;
 
-            // --- NOWE: FILTROWANIE PO PROFESJI ---
+            // --- NAPRAWIONE FILTROWANIE PROFESJI ---
             if (selectedProf) {
-                // Szukamy tekstu w nawiasach na końcu nazwy, np. "(w/p)"
+                // Wyciągamy zawartość ostatniego nawiasu w nazwie, np. "Miecz (w/p)" -> "w/p"
                 const match = data.name.match(/\(([^)]+)\)[^()]*$/);
                 
                 if (match) {
-                    // Mamy nawias (np. "w/p")
-                    const profs = match[1].toLowerCase();
-                    if (selectedProf !== 'i' && !profs.includes(selectedProf)) return;
+                    const itemProfs = match[1].toLowerCase();
+                    // Sprawdzamy czy wybrana literka (np. 'i') znajduje się w nawiasie
+                    if (!itemProfs.includes(selectedProf)) return;
                 } else {
-                    // Brak nawiasu = traktujemy jako "Inne" (i)
-                    if (selectedProf !== 'i') return;
+                    // Jeśli przedmiot NIE MA nawiasu, a filtr jest włączony -> ukrywamy go
+                    return;
                 }
             }
-            // -------------------------------------
+            // ---------------------------------------
 
             count++;
             const isAdmin = currentNick === ADMIN_NICK;
             const isOnline = isUserOnline(data.userId);
             const onlineHtml = isOnline ? '<span class="online-dot" title="Sprzedawca jest Online!"></span>' : '';
             
-            // Stylizacja kart (Sprzedam/Kupię/Zamienię)
+            // Stylizacja kart
             let typeClass = "";
             if (data.type === 'sprzedam') typeClass = "type-sprzedam";
             if (data.type === 'kupie') typeClass = "type-kupie";
@@ -1923,24 +1923,23 @@ const lootTable = {
                 <div class="offer-card ${typeClass}">
                     ${tooltipHtml}
                     <div class="card-header">
-                        <div class="tag ${data.type}">${data.type.toUpperCase()}</div>
                         <button class="fav-btn ${isFav?'active':''}" onclick="toggleFav('${data.id}')">❤</button>
+                        <div class="tag ${data.type}">${data.type.toUpperCase()}</div>
+                        ${window.isValidImageUrl(data.img) ? `<img src="${data.img}" class="item-img">` : ""}
                     </div>
-                    
-                    ${window.isValidImageUrl(data.img) ? `<img src="${data.img}" class="item-img">` : ""}
-                    
+
                     <div class="item-title">${window.escapeHtml(data.name)}</div>
                     
                     <div class="item-source">
                         <img src="${data.sourceImg}"> <span>${data.source}</span>
                     </div>
 
-                    <div class="price-tag">Cena: <span>${window.escapeHtml(data.price)}</span></div>
+                    <div class="price-tag">
+                        ${window.escapeHtml(data.price)}
+                    </div>
                     
-                    ${data.reservedBy ? `<div class="reservation-box">🔒 Rez: <b>${data.reservedBy}</b></div>` : ""}
-                    
-                    <div style="color:#aaa; font-size:0.85em; margin:10px 0; font-style:italic;" class="item-description">${window.escapeHtml(data.desc)}</div>
-                    
+                    ${data.reservedBy ? `<div class="reservation-box" style="margin:5px auto; width: fit-content;">🔒 Rez: <b>${data.reservedBy}</b></div>` : ""}
+
                     <div class="seller-info">
                         <div class="seller-left">
                             <div class="avatar-wrapper">
@@ -2195,6 +2194,7 @@ const lootTable = {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
