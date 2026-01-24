@@ -418,7 +418,7 @@
         + WYSTAW ARTEFAKT
     </button>
 
-    <div id="addOfferPanel" class="panel" style="display: none; animation: fadeIn 0.3s ease-out;">
+    <div id="addOfferPanel" class="panel" style="display: none;">
         <h3 style="margin-top:0; color:var(--gold); font-family:'MedievalSharp';">Wystaw Artefakt</h3>
         <div class="form-grid">
             <select id="offerType">
@@ -1912,9 +1912,16 @@
                     await setDoc(ref, {nick:currentNick, lastActive: new Date().toISOString()}); 
                 } else await signOut(auth);
             }
+            // UKRYWAMY PRZYCISK LOGOWANIA
             document.getElementById('googleLoginBtn').style.display = 'none';
+            // POKAZUJEMY PROFIL
             document.getElementById('userProfile').style.display = 'flex';
-            document.getElementById('addOfferPanel').style.display = 'block';
+            
+            // --- TU BYŁ BŁĄD: ZAMIAST OTWIERAĆ PANEL, POKAZUJEMY TYLKO PRZYCISK ---
+            document.getElementById('toggleAddBtn').style.display = 'block'; // Pokaż przycisk "+"
+            document.getElementById('addOfferPanel').style.display = 'none'; // Upewnij się, że panel jest SCHOWANY
+            // -----------------------------------------------------------------------
+
             document.getElementById('userNickDisplay').innerText = currentNick;
             document.getElementById('userAvatar').src = user.photoURL;
             
@@ -1924,6 +1931,7 @@
             document.getElementById('googleLoginBtn').style.display = 'flex';
             document.getElementById('userProfile').style.display = 'none';
             document.getElementById('addOfferPanel').style.display = 'none';
+            document.getElementById('toggleAddBtn').style.display = 'none'; // Ukryj przycisk jak niezalogowany
         }
         window.renderOffers();
     });
@@ -2120,4 +2128,5 @@
 <div id="toast-container"></div>
 </body>
 </html>
+
 
