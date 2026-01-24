@@ -209,7 +209,15 @@
     
     <div id="offerStats" style="text-align:center; font-size:0.8em; color:#666; margin-bottom:20px;"></div>
 
-    <div id="addOfferPanel" class="panel">
+    <div id="livePreview" class="preview-box" style="display: none;">
+                <div class="preview-content">
+                    <span class="preview-label" style="font-size:0.8em; color:#888; text-transform:uppercase;">Wybrany artefakt</span>
+                    <span id="previewName" class="preview-text" style="color:var(--gold); font-weight:bold;">...</span>
+                </div>
+                <div class="preview-icon-wrapper" style="border:1px solid var(--gold); border-radius:8px; padding:5px; background:rgba(0,0,0,0.5);">
+                    <img id="previewIcon" src="" alt="" style="width:50px; height:50px; display:block; object-fit: contain;">
+                </div>
+            </div>
         <h3 style="margin-top:0; color:var(--gold); font-family:'MedievalSharp';">Wystaw Artefakt</h3>
         <div class="form-grid">
             <select id="offerType">
@@ -1609,4 +1617,5 @@ function escapeHtml(text) { return text ? text.replace(/&/g, "&amp;").replace(/<
 <div id="toast-container"></div>
 </body>
 </html>
+
 
