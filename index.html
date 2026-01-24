@@ -224,6 +224,7 @@
         <button class="filter-btn active" id="f-all" onclick="setFilter('type', 'all')">Wszystkie</button>
         <button class="filter-btn" id="f-sprzedam" onclick="setFilter('type', 'sprzedam')">Sprzedam</button>
         <button class="filter-btn" id="f-kupie" onclick="setFilter('type', 'kupie')">Kupię</button>
+        <button class="filter-btn" id="f-mine" onclick="setFilter('type', 'mine')">👤 Moje</button>
         <button class="filter-btn" id="f-fav" onclick="setFilter('type', 'fav')">❤️ Ulubione</button>
         <span style="color:#444; margin: 0 10px;">|</span>
         <button class="filter-btn" id="f-herosi" onclick="setFilter('cat', 'herosi')">Herosi</button>
@@ -1372,7 +1373,8 @@ function escapeHtml(text) { return text ? text.replace(/&/g, "&amp;").replace(/<
         else currentFilters[type] = val;
         document.querySelectorAll('.filter-btn').forEach(b => {
             const id = b.id.replace('f-', '');
-            if(type==='type' && ['all','sprzedam','kupie','fav'].includes(id)) b.classList.toggle('active', id===currentFilters.type);
+            // Dodano 'mine' do listy typów
+            if(type==='type' && ['all','sprzedam','kupie','fav','mine'].includes(id)) b.classList.toggle('active', id===currentFilters.type);
             if(type==='cat' && ['herosi','e2'].includes(id)) b.classList.toggle('active', id===currentFilters.cat);
         });
         window.renderOffers();
@@ -1389,15 +1391,18 @@ function escapeHtml(text) { return text ? text.replace(/&/g, "&amp;").replace(/<
             const isHeros = monstersList.herosi.some(m => m.name === data.source);
             const isE2 = monstersList.e2.some(m => m.name === data.source);
             const isFav = favs.includes(data.id);
+            const isOwner = currentUser && data.userId === currentUser.uid;
 
+            // Logika filtrowania - Dodano obsługę 'mine'
             if(currentFilters.type === 'fav' && !isFav) return;
-            if(currentFilters.type !== 'fav' && currentFilters.type !== 'all' && data.type !== currentFilters.type) return;
+            if(currentFilters.type === 'mine' && !isOwner) return;
+            if(currentFilters.type !== 'fav' && currentFilters.type !== 'mine' && currentFilters.type !== 'all' && data.type !== currentFilters.type) return;
+            
             if(currentFilters.cat === 'herosi' && !isHeros) return;
             if(currentFilters.cat === 'e2' && !isE2) return;
             if(!data.name.toLowerCase().includes(search)) return;
 
             count++;
-            const isOwner = currentUser && data.userId === currentUser.uid;
             const isAdmin = currentNick === ADMIN_NICK;
             const isOnline = isUserOnline(data.userId);
             const onlineHtml = isOnline ? '<span class="online-dot" title="Sprzedawca jest Online!"></span>' : '';
@@ -1578,6 +1583,7 @@ function escapeHtml(text) { return text ? text.replace(/&/g, "&amp;").replace(/<
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
