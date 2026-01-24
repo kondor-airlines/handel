@@ -161,22 +161,78 @@
         .preview-icon-wrapper img { max-width: 90%; max-height: 90%; object-fit: contain; filter: drop-shadow(0 0 5px rgba(255,255,255,0.2)); }
 
         /* --- KARTY OFERT --- */
-        .offers-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 25px; }
-        .offer-card { 
-            background: rgba(18, 18, 18, 0.85); backdrop-filter: blur(4px); border: 1px solid rgba(255, 215, 0, 0.15); 
-            border-radius: 10px; padding: 20px; position: relative; transition: 0.4s; display: flex; flex-direction: column; 
-            box-shadow: 0 5px 15px rgba(0,0,0,0.5); overflow: visible; z-index: 1; animation: cardAppear 0.5s ease-out backwards;
-        }
-        .offer-card:hover { border-color: var(--gold); transform: translateY(-5px); box-shadow: 0 10px 40px rgba(0,0,0,0.8), 0 0 20px rgba(255, 215, 0, 0.15); z-index: 10; }
+        /* --- KARTY OFERT (POPRAWIONE) --- */
+        .offers-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 25px; }
         
-        .card-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; position: relative; }
-        .tag { padding: 4px 10px; border-radius: 4px; font-size: 0.7em; font-weight: 800; text-transform: uppercase; }
+        .offer-card { 
+            background: rgba(18, 18, 18, 0.9); backdrop-filter: blur(5px); 
+            border: 2px solid #333; /* Domyślna ramka */
+            border-radius: 12px; padding: 20px; 
+            position: relative; transition: 0.3s; 
+            display: flex; flex-direction: column; align-items: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5); 
+            animation: cardAppear 0.5s ease-out backwards;
+            overflow: visible; /* Ważne dla tooltipa */
+        }
+        .offer-card:hover { transform: translateY(-5px); box-shadow: 0 10px 25px rgba(0,0,0,0.7); }
+
+        /* --- KOLORY RAMEK (NAPRAWIONE) --- */
+        .offer-card.type-sprzedam { border-color: var(--green); box-shadow: inset 0 0 20px rgba(46, 204, 113, 0.1); }
+        .offer-card.type-kupie { border-color: var(--blue); box-shadow: inset 0 0 20px rgba(52, 152, 219, 0.1); }
+        .offer-card.type-zamienie { border-color: var(--orange); box-shadow: inset 0 0 20px rgba(230, 126, 34, 0.1); }
+
+        /* --- ELEMENTY KARTY --- */
+        /* Tag (Sprzedam/Kupię) - Lewy górny róg */
+        .tag { 
+            position: absolute; top: 10px; left: 10px; 
+            padding: 4px 8px; border-radius: 4px; 
+            font-size: 0.65em; font-weight: 800; text-transform: uppercase; z-index: 2;
+        }
         .tag.sprzedam { background: var(--green); color: #000; }
         .tag.kupie { background: var(--blue); color: #fff; }
         .tag.zamienie { background: var(--orange); color: #fff; }
 
-        .item-title { font-size: 1.1em; font-weight: bold; color: var(--gold); line-height: 1.2; flex-grow: 1; cursor: help; }
-        .item-img { width: 60px; height: 60px; object-fit: contain; filter: drop-shadow(0 0 5px rgba(255,215,0,0.3)); }
+        /* Serce - Prawy górny róg */
+        .fav-btn { 
+            position: absolute; top: 5px; right: 5px; 
+            background: none; border: none; font-size: 1.5em; 
+            cursor: pointer; color: #555; transition: 0.3s; z-index: 5;
+        }
+        .fav-btn:hover, .fav-btn.active { color: var(--red); transform: scale(1.2); }
+
+        /* Obrazek i Tytuł */
+        .item-img { width: 70px; height: 70px; object-fit: contain; margin: 25px auto 10px auto; filter: drop-shadow(0 0 8px rgba(255,255,255,0.2)); transition: 0.3s; }
+        .offer-card:hover .item-img { transform: scale(1.1); }
+        
+        .item-title { font-size: 1.1em; font-weight: bold; text-align: center; color: var(--gold); margin-bottom: 5px; line-height: 1.3; }
+        .offer-card.type-sprzedam .item-title { color: var(--green); }
+        .offer-card.type-kupie .item-title { color: var(--blue); }
+        .offer-card.type-zamienie .item-title { color: var(--orange); }
+
+        .item-source { display: flex; align-items: center; gap: 5px; font-size: 0.8em; color: #888; margin-bottom: 10px; }
+        .item-source img { height: 18px; width: auto; }
+
+        .price-tag { font-size: 1.4em; color: #fff; font-weight: bold; margin: 5px 0; border-top: 1px solid #333; padding-top: 10px; width: 100%; text-align: center; }
+        .price-tag span { color: #4fffa8; text-shadow: 0 0 10px rgba(79, 255, 168, 0.3); }
+
+        /* Info o sprzedawcy (Dół) */
+        .seller-info { margin-top: auto; width: 100%; padding-top: 10px; border-top: 1px dotted #444; display: flex; justify-content: space-between; align-items: center; }
+        .seller-left { display: flex; align-items: center; gap: 8px; font-size: 0.8em; overflow: hidden; }
+        .seller-left b { max-width: 90px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
+        
+        /* Tooltip - WAŻNE: pointer-events auto pozwala klikać w link */
+        .tooltip-container {
+            position: absolute; bottom: 80%; left: 50%; transform: translateX(-50%);
+            width: 250px; background: rgba(0, 0, 0, 0.98); border: 2px solid #555;
+            border-radius: 8px; padding: 15px; z-index: 100; opacity: 0; visibility: hidden;
+            transition: 0.2s; pointer-events: auto; text-align: center; box-shadow: 0 0 30px #000;
+        }
+        .offer-card:hover .tooltip-container { opacity: 1; visibility: visible; bottom: 95%; }
+        .tooltip-name { font-family: 'MedievalSharp'; font-size: 1.2em; margin-bottom: 5px; display: block; }
+        .tooltip-name.legendary { color: var(--gold); }
+        .tooltip-name.heroic { color: var(--heroic); }
+        .tooltip-name.unique { color: var(--unique); }
+        .tooltip-stats { font-size: 0.8em; color: #ccc; margin-top: 8px; border-top: 1px solid #444; padding-top: 8px; white-space: pre-line; }
         
         /* --- TOOLTIP STYLE (JAK W GRZE) --- */
         .tooltip-container {
@@ -1859,12 +1915,12 @@ const lootTable = {
         window.renderOffers();
     };
 
-    // --- RENDEROWANIE OFERT (POPRAWIONE) ---
+// --- RENDEROWANIE OFERT (NAPRAWIONE POZYCJE I KOLORY) ---
     window.renderOffers = () => {
         const list = document.getElementById('offersList');
         const search = document.getElementById('globalSearch').value.toLowerCase();
         const selectedUser = document.getElementById('userFilterSelect').value;
-        const selectedProf = document.getElementById('profFilter').value; // Pobieramy profesję
+        const selectedProf = document.getElementById('profFilter').value;
         const minLvl = parseInt(document.getElementById('minLvlInput').value) || 0;
         const maxLvl = parseInt(document.getElementById('maxLvlInput').value) || 9999;
         const favs = JSON.parse(localStorage.getItem('targ_favs') || '[]');
@@ -1872,53 +1928,41 @@ const lootTable = {
         list.innerHTML = "";
         let count = 0;
 
-        // Pętla po wszystkich ofertach
         allOffers.forEach(data => {
-            // 1. Sprawdzanie źródła (Herosi/E2)
             const isHeros = monstersList.herosi.some(m => m.name === data.source);
             const isE2 = monstersList.e2.some(m => m.name === data.source);
             const isFav = favs.includes(data.id);
             const isOwner = currentUser && data.userId === currentUser.uid;
             const monsterLvl = extractLevel(data.source);
 
-            // 2. Podstawowe filtry (przyciski)
+            // Filtry
             if(currentFilters.type === 'fav' && !isFav) return;
             if(currentFilters.type === 'mine' && !isOwner) return;
             if(currentFilters.type !== 'fav' && currentFilters.type !== 'mine' && currentFilters.type !== 'all' && data.type !== currentFilters.type) return;
             if(currentFilters.cat === 'herosi' && !isHeros) return;
             if(currentFilters.cat === 'e2' && !isE2) return;
             
-            // 3. Wyszukiwarka i filtry zaawansowane
             if(!data.name.toLowerCase().includes(search)) return;
             if(selectedUser && data.nick !== selectedUser) return;
             if(monsterLvl < minLvl || monsterLvl > maxLvl) return;
 
-            // 4. --- FILTROWANIE PROFESJI (NAPRAWIONE) ---
-            if (selectedProf && selectedProf !== 'a') { // 'a' to wszystkie, więc pomijamy
-                // Szukamy ostatniego nawiasu w nazwie, np. "(w/p)"
+            // Filtr Profesji
+            if (selectedProf && selectedProf !== 'a') {
                 const match = data.name.match(/\(([^)]+)\)[^()]*$/);
-                
                 if (match) {
-                    // Mamy nawias z profesjami
                     const itemProfs = match[1].toLowerCase();
-                    // Jeśli wybrana profesja NIE znajduje się w nawiasie -> odrzuć
                     if (!itemProfs.includes(selectedProf)) return;
                 } else {
-                    // Przedmiot NIE ma nawiasu.
-                    // Jeśli szukamy konkretnej profy (w, p, m...), a przedmiot nie ma opisu -> odrzucamy go
-                    // Wyjątek: jeśli szukamy 'i' (inne), a przedmiot nie ma nawiasu -> to TEŻ może być inny, ale zazwyczaj 'i' jest wpisane.
-                    // Dla bezpieczeństwa: brak nawiasu = odrzuć przy filtrowaniu
                     return; 
                 }
             }
-            // ---------------------------------------------
 
             count++;
             const isAdmin = currentNick === ADMIN_NICK;
             const isOnline = isUserOnline(data.userId);
-            const onlineHtml = isOnline ? '<span class="online-dot" title="Sprzedawca jest Online!"></span>' : '';
+            const onlineHtml = isOnline ? '<span class="online-dot" title="Online"></span>' : '';
             
-            // Ustalanie klasy koloru
+            // Klasa koloru (To naprawia "Błysk" ramek)
             let typeClass = "";
             if (data.type === 'sprzedam') typeClass = "type-sprzedam";
             if (data.type === 'kupie') typeClass = "type-kupie";
@@ -1929,13 +1973,13 @@ const lootTable = {
             let btnRes = !data.reservedBy ? `<button class="small-btn reserve-btn" onclick="reserveOffer('${data.id}')">REZ</button>` : (isOwner || isAdmin ? `<button class="small-btn unreserve-btn" onclick="cancelReservation('${data.id}')">COFNIJ</button>` : "");
             let mailBtn = (!isOwner && currentUser) ? `<button class="small-btn msg-btn" onclick="openCompose('${data.userId}', '${window.escapeHtml(data.nick)}', '${window.escapeHtml(data.name)}')" title="Wiadomość">✉️</button>` : "";
             
-            // Generowanie HTML karty
+            // NOWA STRUKTURA KARTY - Serce i Tag mają position: absolute (w CSS)
             list.innerHTML += `
                 <div class="offer-card ${typeClass}">
                     ${tooltipHtml}
                     
-                    <button class="fav-btn ${isFav?'active':''}" onclick="toggleFav('${data.id}')">❤</button>
                     <div class="tag ${data.type}">${data.type.toUpperCase()}</div>
+                    <button class="fav-btn ${isFav?'active':''}" onclick="toggleFav('${data.id}')">❤</button>
 
                     ${window.isValidImageUrl(data.img) ? `<img src="${data.img}" class="item-img">` : ""}
 
@@ -1949,7 +1993,9 @@ const lootTable = {
                         ${window.escapeHtml(data.price)}
                     </div>
                     
-                    ${data.reservedBy ? `<div style="font-size:0.7em; color:var(--green); margin-bottom:5px; text-align:center;">🔒 Rezerwacja: ${data.reservedBy}</div>` : ""}
+                    ${data.reservedBy ? `<div style="font-size:0.7em; color:var(--green); margin:5px 0;">🔒 Rez: ${data.reservedBy}</div>` : ""}
+                    
+                    ${data.desc ? `<div style="font-size:0.8em; color:#888; font-style:italic; margin-bottom:10px; text-align:center;">"${window.escapeHtml(data.desc)}"</div>` : ""}
 
                     <div class="seller-info">
                         <div class="seller-left">
@@ -1966,8 +2012,7 @@ const lootTable = {
                         </div>
                     </div>
                 </div>`;
-        }); // Koniec pętli forEach
-
+        });
         document.getElementById('offerStats').innerText = `Widocznych ofert: ${count}`;
     };
     window.loginGoogle = () => { signInWithPopup(auth, provider).catch(e => alert(e.message)); };
@@ -2205,6 +2250,7 @@ const lootTable = {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
