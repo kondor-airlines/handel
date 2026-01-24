@@ -1196,12 +1196,10 @@
         document.getElementById('composeModal').style.display = 'flex';
     };
 
-    // --- SYSTEM POCZTY (Elite Mail) ---
+// --- SYSTEM POCZTY (Elite Mail) ---
     
-    // Zmienna do przechowywania wiadomości w pamięci
     let inboxMessages = []; 
 
-    // Otwórz okno pisania
     window.openCompose = (recipientId, recipientNick, itemName) => {
         if (!currentUser) return alert("Musisz być zalogowany!");
         composeTarget = { id: recipientId, nick: recipientNick, item: itemName };
@@ -1211,7 +1209,6 @@
         document.getElementById('composeModal').style.display = 'flex';
     };
 
-    // Wyślij wiadomość
     window.sendInternalMessage = async () => {
         const txt = document.getElementById('composeText').value;
         if (!txt) return alert("Wpisz treść wiadomości!");
@@ -1230,20 +1227,25 @@
         alert("Wiadomość wysłana!");
     };
 
-    // Nasłuchuj wiadomości (Powiadomienia)
+    // --- NOWA FUNKCJA: USUWANIE WIADOMOŚCI ---
+    window.deleteMessage = async (msgId) => {
+        if(confirm("Czy na pewno chcesz usunąć tę wiadomość?")) {
+            await deleteDoc(doc(db, "wiadomosci", msgId));
+            alert("Wiadomość usunięta.");
+            // Lista odświeży się sama dzięki onSnapshot
+        }
+    };
+
     let unsubscribeMail = null;
     function startMailListener() {
         if (unsubscribeMail) unsubscribeMail();
         const q = query(collection(db, "wiadomosci"), where("toId", "==", currentUser.uid), orderBy("date", "desc"));
         
         unsubscribeMail = onSnapshot(q, (snap) => {
-            // ZAPISUJEMY WIADOMOŚCI DO ZMIENNEJ GLOBALNEJ
             inboxMessages = snap.docs.map(d => ({id: d.id, ...d.data()}));
-            
             const unread = inboxMessages.filter(m => !m.read).length;
-            
-            // Aktualizuj badge (kropkę z liczbą)
             const badge = document.getElementById('mailBadge');
+            
             if (unread > 0) {
                 badge.style.display = 'flex';
                 badge.innerText = unread;
@@ -1251,23 +1253,21 @@
                 badge.style.display = 'none';
             }
             
-            // Jeśli modal jest otwarty, odśwież widok od razu
             if(document.getElementById('mailboxModal').style.display === 'flex') {
                 renderMailList(inboxMessages);
             }
         });
     }
 
-    // Otwórz skrzynkę (NAPRAWIONE: TERAZ POKAZUJE WIADOMOŚCI NATYCHMIAST)
     window.openMailbox = async () => {
         document.getElementById('mailboxModal').style.display = 'flex';
-        renderMailList(inboxMessages); // <-- TU BYŁ BŁĄD, TERAZ RENDERUJE OD RAZU
+        renderMailList(inboxMessages);
     };
 
     function renderMailList(msgs) {
         const container = document.getElementById('mailboxContent');
         if (!msgs || msgs.length === 0) {
-            container.innerHTML = '<div style="text-align:center; padding:20px; color:#666;">Brak wiadomości. Skrzynka pusta jak Twój skarbiec.</div>';
+            container.innerHTML = '<div style="text-align:center; padding:20px; color:#666;">Brak wiadomości. Skrzynka pusta.</div>';
             return;
         }
         
@@ -1277,16 +1277,14 @@
             const newItemClass = !m.read ? 'unread' : '';
             const newItemLabel = !m.read ? '<span style="color:var(--gold); font-weight:bold;">[NOWA]</span> ' : '';
             
-            // Oznacz jako przeczytane w bazie (tylko jeśli jest nieprzeczytana)
-            if (!m.read) {
-                updateDoc(doc(db, "wiadomosci", m.id), { read: true });
-            }
+            if (!m.read) { updateDoc(doc(db, "wiadomosci", m.id), { read: true }); }
 
             container.innerHTML += `
                 <div class="mail-item ${newItemClass}">
+                    <button onclick="deleteMessage('${m.id}')" class="delete-mail-btn" title="Usuń wiadomość">🗑️</button>
                     <div class="mail-meta">
                         <span>Od: <span class="mail-author">${escapeHtml(m.fromNick)}</span></span>
-                        <span>${date}</span>
+                        <span style="margin-right: 30px;">${date}</span>
                     </div>
                     <div class="mail-subject">${newItemLabel}Dotyczy: ${escapeHtml(m.item)}</div>
                     <div class="mail-body">${m.text}</div>
@@ -1532,6 +1530,7 @@
 </script>
 </body>
 </html>
+
 
 
 
