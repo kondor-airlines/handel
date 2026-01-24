@@ -15,7 +15,7 @@
             --border: #332b00;
             --green: #2ecc71; --blue: #3498db; --red: #e74c3c;
             --purple: #9b59b6;
-            --orange: #e67e22; /* Kolor dla Zamienię */
+            --orange: #e67e22;
         }
 
         body {
@@ -61,11 +61,58 @@
         .logout-link { color: #ff6666; font-size: 0.75em; text-decoration: none; cursor: pointer; text-transform: uppercase; font-weight: bold; }
 
         /* --- FILTRY I PANEL --- */
-        .filters { display: flex; gap: 10px; margin-bottom: 30px; justify-content: center; flex-wrap: wrap; align-items: center; }
+        .filters { display: flex; gap: 10px; margin-bottom: 15px; justify-content: center; flex-wrap: wrap; align-items: center; }
         .filter-btn { background: #222; color: #888; border: 1px solid #444; padding: 8px 16px; border-radius: 5px; cursor: pointer; transition: 0.3s; font-family: 'MedievalSharp'; font-size: 1em; }
         .filter-btn:hover { border-color: var(--gold); color: #fff; }
         .filter-btn.active { background: linear-gradient(135deg, #ffd700 0%, #d4af37 100%) !important; color: #000 !important; border: none !important; box-shadow: 0 0 15px rgba(255, 215, 0, 0.4) !important; }
         .filter-btn.fav-active { background: linear-gradient(135deg, #ff4d4d 0%, #a00000 100%) !important; color: white !important; }
+
+        /* NOWE STYLE DLA FILTRÓW ZAAWANSOWANYCH */
+        .advanced-filters {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            background: rgba(255, 255, 255, 0.02);
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #333;
+            align-items: center;
+        }
+
+        .filter-select {
+            background: #0a0a0a;
+            border: 1px solid #444;
+            color: var(--gold);
+            padding: 8px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        .lvl-group {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            color: #888;
+            font-size: 0.9em;
+        }
+
+        .lvl-input {
+            width: 60px;
+            background: #0a0a0a;
+            border: 1px solid #444;
+            color: #eee;
+            padding: 8px;
+            border-radius: 5px;
+            text-align: center;
+        }
+
+        .lvl-input:focus, .filter-select:focus {
+            border-color: var(--gold);
+            outline: none;
+        }
 
         .panel { background: linear-gradient(135deg, #151515 0%, #1a1a1a 100%); padding: 25px; border-radius: 12px; border: 1px solid rgba(255, 215, 0, 0.3); margin-bottom: 40px; box-shadow: 0 10px 30px rgba(0,0,0,0.8); display: none; }
         .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
@@ -94,7 +141,6 @@
         .tag { padding: 4px 10px; border-radius: 4px; font-size: 0.7em; font-weight: 800; text-transform: uppercase; }
         .tag.sprzedam { background: var(--green); color: #000; }
         .tag.kupie { background: var(--blue); color: #fff; }
-        /* Używam pomarańczowego dla "zamienie" dla lepszego kontrastu */
         .tag.zamienie { background: var(--orange); color: #fff; }
 
         .item-title { font-size: 1.1em; font-weight: bold; color: var(--gold); line-height: 1.2; flex-grow: 1; }
@@ -226,13 +272,26 @@
         <button class="filter-btn" id="f-sprzedam" onclick="setFilter('type', 'sprzedam')">Sprzedam</button>
         <button class="filter-btn" id="f-kupie" onclick="setFilter('type', 'kupie')">Kupię</button>
         <button class="filter-btn" id="f-zamienie" onclick="setFilter('type', 'zamienie')">Zamienię</button>
-        
         <button class="filter-btn" id="f-mine" onclick="setFilter('type', 'mine')">👤 Moje</button>
         <button class="filter-btn" id="f-fav" onclick="setFilter('type', 'fav')">❤️ Ulubione</button>
         <span style="color:#444; margin: 0 10px;">|</span>
         <button class="filter-btn" id="f-herosi" onclick="setFilter('cat', 'herosi')">Herosi</button>
         <button class="filter-btn" id="f-e2" onclick="setFilter('cat', 'e2')">Elity II</button>
-        <input type="text" id="globalSearch" class="search-box" placeholder="🔍 Szukaj na targu..." oninput="renderOffers()" style="max-width: 200px; padding: 8px;">
+    </div>
+
+    <div class="advanced-filters">
+        <select id="userFilterSelect" class="filter-select" onchange="renderOffers()">
+            <option value="">👤 Wszyscy sprzedawcy</option>
+        </select>
+
+        <div class="lvl-group">
+            <span>Poziom:</span>
+            <input type="number" id="minLvlInput" class="lvl-input" placeholder="Od" oninput="renderOffers()">
+            <span>-</span>
+            <input type="number" id="maxLvlInput" class="lvl-input" placeholder="Do" oninput="renderOffers()">
+        </div>
+
+        <input type="text" id="globalSearch" class="search-box" placeholder="🔍 Szukaj przedmiotu..." oninput="renderOffers()" style="width: 200px; padding: 8px;">
     </div>
     
     <div id="offerStats" style="text-align:center; font-size:0.8em; color:#666; margin-bottom:20px;"></div>
@@ -347,6 +406,11 @@
     const db = getFirestore(app);
     const provider = new GoogleAuthProvider();
 
+    // Definiujemy funkcję globalnie (na obiekcie window), aby była widoczna wszędzie
+    window.escapeHtml = function(text) { 
+        return text ? text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;") : ""; 
+    };
+
     window.isValidImageUrl = (url) => url && /^https?:\/\/[^<>"]+\.(jpeg|jpg|gif|png|webp|bmp)$/i.test(url);
     const ADMIN_NICK = "Stachu Drzymała";
     let currentUser = null;
@@ -385,7 +449,7 @@
     });
 
     // --- TWOJE LISTY (HEROSI, E2, LOOT) ---
-    // Skopiuj tutaj pełne listy z poprzedniego kodu
+    // Pamiętaj, aby wkleić tu swoje pełne listy, jeśli ich brakuje
     const monstersList = {
         herosi: [
             { name: "Mroczny Patryk (35 lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/her/bardzozlypatryk.gif" },
@@ -1255,9 +1319,7 @@
     ]
     };
 
-unction escapeHtml(text) { return text ? text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;") : ""; }
-
-    // --- SYSTEM ULUBIONYCH ---
+// --- SYSTEM ULUBIONYCH ---
     window.toggleFav = (id) => {
         let favs = JSON.parse(localStorage.getItem('targ_favs') || '[]');
         if (favs.includes(id)) {
@@ -1308,7 +1370,7 @@ unction escapeHtml(text) { return text ? text.replace(/&/g, "&amp;").replace(/</
         
         await addDoc(collection(db, "chat"), {
             nick: currentNick,
-            text: escapeHtml(txt),
+            text: window.escapeHtml(txt),
             date: new Date().toISOString()
         });
         inp.value = "";
@@ -1320,7 +1382,7 @@ unction escapeHtml(text) { return text ? text.replace(/&/g, "&amp;").replace(/</
         snap.docs.forEach(d => {
             const m = d.data();
             const time = new Date(m.date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-            div.innerHTML += `<div class="chat-msg"><b>${escapeHtml(m.nick)}</b>${m.text}<span class="time">${time}</span></div>`;
+            div.innerHTML += `<div class="chat-msg"><b>${window.escapeHtml(m.nick)}</b>${m.text}<span class="time">${time}</span></div>`;
         });
         div.scrollTop = div.scrollHeight;
     });
@@ -1338,7 +1400,7 @@ unction escapeHtml(text) { return text ? text.replace(/&/g, "&amp;").replace(/</
     window.sendInternalMessage = async () => {
         const txt = document.getElementById('composeText').value;
         if (!txt) return alert("Pusto!");
-        await addDoc(collection(db, "wiadomosci"), { fromId: currentUser.uid, fromNick: currentNick, toId: composeTarget.id, item: composeTarget.item, text: escapeHtml(txt), read: false, date: new Date().toISOString() });
+        await addDoc(collection(db, "wiadomosci"), { fromId: currentUser.uid, fromNick: currentNick, toId: composeTarget.id, item: composeTarget.item, text: window.escapeHtml(txt), read: false, date: new Date().toISOString() });
         document.getElementById('composeModal').style.display = 'none';
         window.playSound('coin');
         alert("Wysłano gołębia!");
@@ -1371,12 +1433,39 @@ unction escapeHtml(text) { return text ? text.replace(/&/g, "&amp;").replace(/</
     }
 
     // --- FILTRY I RENDEROWANIE ---
+    
+    // Funkcja pomocnicza: Wyciąganie levelu z nazwy
+    function extractLevel(sourceName) {
+        if (!sourceName) return 0;
+        const match = sourceName.match(/\((\d+)\s*lvl\)/i);
+        return match ? parseInt(match[1]) : 0;
+    }
+
+    // Funkcja pomocnicza: Aktualizacja listy sprzedawców
+    function updateUserFilterOptions() {
+        const select = document.getElementById('userFilterSelect');
+        const currentVal = select.value;
+        const uniqueUsers = [...new Set(allOffers.map(o => o.nick))].sort();
+        
+        select.innerHTML = '<option value="">👤 Wszyscy sprzedawcy</option>';
+        
+        uniqueUsers.forEach(nick => {
+            const option = document.createElement('option');
+            option.value = nick;
+            option.innerText = nick;
+            select.appendChild(option);
+        });
+
+        if (uniqueUsers.includes(currentVal)) {
+            select.value = currentVal;
+        }
+    }
+
     window.setFilter = (type, val) => {
         if (type === 'cat' && currentFilters.cat === val) currentFilters.cat = 'all';
         else currentFilters[type] = val;
         document.querySelectorAll('.filter-btn').forEach(b => {
             const id = b.id.replace('f-', '');
-            // --- ZMIANA: DODANO 'zamienie' DO TABLICY DOZWOLONYCH ID ---
             if(type==='type' && ['all','sprzedam','kupie','zamienie','fav','mine'].includes(id)) b.classList.toggle('active', id===currentFilters.type);
             if(type==='cat' && ['herosi','e2'].includes(id)) b.classList.toggle('active', id===currentFilters.cat);
         });
@@ -1386,6 +1475,10 @@ unction escapeHtml(text) { return text ? text.replace(/&/g, "&amp;").replace(/</
     window.renderOffers = () => {
         const list = document.getElementById('offersList');
         const search = document.getElementById('globalSearch').value.toLowerCase();
+        const selectedUser = document.getElementById('userFilterSelect').value;
+        const minLvl = parseInt(document.getElementById('minLvlInput').value) || 0;
+        const maxLvl = parseInt(document.getElementById('maxLvlInput').value) || 9999;
+        
         const favs = JSON.parse(localStorage.getItem('targ_favs') || '[]');
         list.innerHTML = "";
         let count = 0;
@@ -1395,15 +1488,19 @@ unction escapeHtml(text) { return text ? text.replace(/&/g, "&amp;").replace(/</
             const isE2 = monstersList.e2.some(m => m.name === data.source);
             const isFav = favs.includes(data.id);
             const isOwner = currentUser && data.userId === currentUser.uid;
+            const monsterLvl = extractLevel(data.source);
 
-            // Logika filtrowania - Dodano obsługę 'mine'
+            // Filtry
             if(currentFilters.type === 'fav' && !isFav) return;
             if(currentFilters.type === 'mine' && !isOwner) return;
             if(currentFilters.type !== 'fav' && currentFilters.type !== 'mine' && currentFilters.type !== 'all' && data.type !== currentFilters.type) return;
-            
             if(currentFilters.cat === 'herosi' && !isHeros) return;
             if(currentFilters.cat === 'e2' && !isE2) return;
+            
+            // Nowe filtry zaawansowane
             if(!data.name.toLowerCase().includes(search)) return;
+            if(selectedUser && data.nick !== selectedUser) return;
+            if(monsterLvl < minLvl || monsterLvl > maxLvl) return;
 
             count++;
             const isAdmin = currentNick === ADMIN_NICK;
@@ -1411,31 +1508,31 @@ unction escapeHtml(text) { return text ? text.replace(/&/g, "&amp;").replace(/</
             const onlineHtml = isOnline ? '<span class="online-dot" title="Sprzedawca jest Online!"></span>' : '';
             
             let btnRes = !data.reservedBy ? `<button class="small-btn reserve-btn" onclick="reserveOffer('${data.id}')">ZAREZERWUJ</button>` : (isOwner || isAdmin ? `<button class="small-btn unreserve-btn" onclick="cancelReservation('${data.id}')">COFNIJ REZ.</button>` : "");
-            let mailBtn = (!isOwner && currentUser) ? `<button class="small-btn msg-btn" onclick="openCompose('${data.userId}', '${escapeHtml(data.nick)}', '${escapeHtml(data.name)}')" title="Wyślij wiadomość">✉️</button>` : "";
+            let mailBtn = (!isOwner && currentUser) ? `<button class="small-btn msg-btn" onclick="openCompose('${data.userId}', '${window.escapeHtml(data.nick)}', '${window.escapeHtml(data.name)}')" title="Wyślij wiadomość">✉️</button>` : "";
             
             list.innerHTML += `
                 <div class="offer-card legendary-item">
                     <div class="card-header">
                         <div class="tag ${data.type}">${data.type.toUpperCase()}</div>
-                        <div class="item-title">${escapeHtml(data.name)}</div>
+                        <div class="item-title">${window.escapeHtml(data.name)}</div>
                         <button class="fav-btn ${isFav?'active':''}" onclick="toggleFav('${data.id}')">❤</button>
                         ${window.isValidImageUrl(data.img) ? `<img src="${data.img}" class="item-img">` : ""}
                     </div>
                     <div class="item-source"><img src="${data.sourceImg}"> <span>${data.source}</span></div>
-                    <div class="price-tag">Cena: <span>${escapeHtml(data.price)}</span></div>
+                    <div class="price-tag">Cena: <span>${window.escapeHtml(data.price)}</span></div>
                     ${data.reservedBy ? `<div class="reservation-box">🔒 Rez: <b>${data.reservedBy}</b></div>` : ""}
-                    <div style="color:#aaa; font-size:0.85em; margin:10px 0; font-style:italic;" class="item-description">${escapeHtml(data.desc)}</div>
+                    <div style="color:#aaa; font-size:0.85em; margin:10px 0; font-style:italic;" class="item-description">${window.escapeHtml(data.desc)}</div>
                     <div class="seller-info">
                         <div class="seller-left">
                             <div class="avatar-wrapper">
                                 <img src="${data.avatar}" class="tiny-avatar">
                                 ${onlineHtml}
                             </div>
-                            <b>${escapeHtml(data.nick)}</b>
+                            <b>${window.escapeHtml(data.nick)}</b>
                         </div>
                         <div class="btn-group">
                             ${mailBtn} ${btnRes}
-                            ${isOwner ? `<button class="small-btn edit-added" onclick="openFullEdit('${data.id}','${escapeHtml(data.name)}','${escapeHtml(data.price)}','${escapeHtml(data.desc)}','${escapeHtml(data.img)}')">EDYTUJ</button>` : ""}
+                            ${isOwner ? `<button class="small-btn edit-added" onclick="openFullEdit('${data.id}','${window.escapeHtml(data.name)}','${window.escapeHtml(data.price)}','${window.escapeHtml(data.desc)}','${window.escapeHtml(data.img)}')">EDYTUJ</button>` : ""}
                             ${isOwner || isAdmin ? `<button class="small-btn delete-btn" onclick="deleteOffer('${data.id}')">✕</button>` : ""}
                         </div>
                     </div>
@@ -1559,6 +1656,7 @@ unction escapeHtml(text) { return text ? text.replace(/&/g, "&amp;").replace(/</
 
     onSnapshot(query(collection(db, "oferty"), orderBy("date", "desc")), (snap) => {
         allOffers = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        updateUserFilterOptions(); // AKTUALIZACJA LISTY USERÓW
         window.renderOffers();
     });
 
