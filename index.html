@@ -1482,9 +1482,154 @@
         setTimeout(() => { toast.remove(); }, 4000);
     };
 </script>
+
+<style>
+    /* 1. ŻYWE TŁO (Pulsowanie mroku) */
+    body {
+        background-size: 400% 400%;
+        animation: gradientBG 15s ease infinite;
+        background-image: radial-gradient(circle at 50% 0%, #2b2200 0%, #0f0f0f 60%, #050505 100%);
+    }
+    
+    @keyframes gradientBG {
+        0% { background-position: 50% 0%; }
+        50% { background-position: 50% 100%; }
+        100% { background-position: 50% 0%; }
+    }
+
+    /* 2. TYTUŁ Z EFEKTEM OGNIA */
+    h1 {
+        background: linear-gradient(to bottom, #ffd700 30%, #ff8c00 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.4));
+        animation: glowTitle 3s ease-in-out infinite alternate;
+    }
+    @keyframes glowTitle {
+        from { filter: drop-shadow(0 0 10px rgba(255, 140, 0, 0.2)); }
+        to { filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.6)); }
+    }
+
+    /* 3. SZKLANE KARTY (GLASSMORPHISM) */
+    .offer-card {
+        background: rgba(20, 20, 20, 0.7) !important; /* Półprzezroczystość */
+        backdrop-filter: blur(5px); /* Rozmycie tła pod kartą */
+        border: 1px solid rgba(255, 215, 0, 0.15) !important;
+        transform-style: preserve-3d;
+        perspective: 1000px;
+    }
+
+    /* Efekt świetlnego refleksu (Sheen) przy najechaniu */
+    .offer-card::before {
+        content: '';
+        position: absolute;
+        top: 0; left: -100%;
+        width: 50%; height: 100%;
+        background: linear-gradient(to right, transparent, rgba(255, 215, 0, 0.1), transparent);
+        transform: skewX(-25deg);
+        transition: 0.5s;
+        pointer-events: none;
+    }
+    .offer-card:hover::before {
+        left: 150%;
+        transition: 0.7s;
+    }
+
+    .offer-card:hover {
+        box-shadow: 0 10px 30px rgba(0,0,0,0.8), 0 0 15px rgba(255, 215, 0, 0.2) !important;
+        border-color: var(--gold) !important;
+        transform: translateY(-5px) scale(1.02) !important;
+        z-index: 10;
+    }
+
+    /* 4. POLA INPUT I SELECT - RPG STYLE */
+    input, select, textarea {
+        background: #080808 !important;
+        border: 1px solid #333 !important;
+        color: #ddd !important;
+        transition: 0.3s;
+        box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+    }
+    input:focus, select:focus, textarea:focus {
+        border-color: var(--gold) !important;
+        box-shadow: 0 0 15px rgba(255, 215, 0, 0.1), inset 0 0 5px rgba(0,0,0,0.8) !important;
+        background: #111 !important;
+    }
+
+    /* 5. PRZYCISKI FILTRÓW */
+    .filter-btn {
+        position: relative;
+        overflow: hidden;
+    }
+    .filter-btn.active {
+        background: linear-gradient(45deg, #ffd700, #b8860b) !important;
+        color: #000 !important;
+        font-weight: 800;
+        box-shadow: 0 0 15px rgba(255, 215, 0, 0.4) !important;
+        border: none !important;
+    }
+
+    /* 6. ANIMACJA WEJŚCIA OFERT (Kaskada) */
+    .offer-card {
+        animation: fadeInUp 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+    }
+    /* Opóźnienia dla pierwszych 10 elementów dla efektu fali */
+    .offer-card:nth-child(1) { animation-delay: 0.1s; }
+    .offer-card:nth-child(2) { animation-delay: 0.15s; }
+    .offer-card:nth-child(3) { animation-delay: 0.2s; }
+    .offer-card:nth-child(4) { animation-delay: 0.25s; }
+    .offer-card:nth-child(5) { animation-delay: 0.3s; }
+    
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(30px) scale(0.9); }
+        to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    /* 7. DETALE UI */
+    .price-tag span {
+        color: #5eff5e !important; /* Zielonkawy odcień ceny jak w MMO */
+        text-shadow: 0 0 5px rgba(94, 255, 94, 0.5);
+    }
+    
+    /* Panel dodawania - złota poświata */
+    #addOfferPanel {
+        border: 1px solid rgba(255, 215, 0, 0.3) !important;
+        background: linear-gradient(135deg, #151515 0%, #1a1a1a 100%) !important;
+    }
+
+    /* Kursor */
+    body, button, a { cursor: default; }
+    button:hover, .filter-btn:hover, .action-btn:hover { cursor: pointer; }
+</style>
+
+<script>
+    document.addEventListener('mousemove', (e) => {
+        const cards = document.querySelectorAll('.offer-card:hover');
+        if(cards.length > 0) {
+            const card = cards[0];
+            const rect = card.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            // Obliczamy rotację
+            const xRot = ((y - rect.height / 2) / rect.height * 10); // max 5 stopni
+            const yRot = ((x - rect.width / 2) / rect.width * -10);
+
+            card.style.transform = `translateY(-5px) scale(1.02) perspective(1000px) rotateX(${xRot}deg) rotateY(${yRot}deg)`;
+        }
+    });
+
+    // Reset transformacji po zjechaniu myszką
+    document.addEventListener('mouseout', (e) => {
+        if(e.target.classList && e.target.classList.contains('offer-card')) {
+            e.target.style.transform = '';
+        }
+    });
+</script>
     
 </body>
 </html>
+
 
 
 
