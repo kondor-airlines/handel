@@ -21,6 +21,7 @@
             --legendary: #ffd700;
         }
 
+        /* --- 1. KURSOR RPG (Miecz) --- */
         body {
             font-family: 'Montserrat', sans-serif;
             background: linear-gradient(-45deg, #050505, #1a1200, #2e2000, #000000);
@@ -32,11 +33,19 @@
             padding-bottom: 80px;
             min-height: 100vh;
             background-attachment: fixed;
+            /* KURSOR */
+            cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" style="fill:gold;stroke:black;stroke-width:1px;"><path d="M7 22l-5-5 2-2 3 3 2-2 3-3-2-2-3 3-2-2 5-5 4 4 9-9 3 3-9 9-4-4-5 5 2 2 3-3 2 2-3 3 2 2z"/></svg>'), auto;
         }
+        
+        /* Kursor aktywny (czerwony miecz) na elementach klikalnych */
+        button, select, input, .item-title, a, .toggle-wrapper {
+            cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" style="fill:red;stroke:black;stroke-width:1px;"><path d="M12 2l-2 5-5 2 5 2 2 5 2-5 5-2-5-2z"/></svg>'), pointer;
+        }
+
         @keyframes livingBackground { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
 
         /* --- UI COMPONENTS --- */
-        .container { max-width: 1200px; margin: 0 auto; }
+        .container { max-width: 1200px; margin: 0 auto; margin-top: 40px; /* Miejsce na zegar */ }
 
         header {
             display: flex; justify-content: space-between; align-items: center;
@@ -255,12 +264,12 @@
         #scrollTopBtn { display: none; position: fixed; bottom: 30px; right: 30px; z-index: 9999; width: 50px; height: 50px; border: 2px solid var(--gold); background-color: rgba(0,0,0,0.8); color: var(--gold); cursor: pointer; border-radius: 50%; font-size: 24px; box-shadow: 0 0 20px rgba(255, 215, 0, 0.2); transition: 0.3s; backdrop-filter: blur(2px); }
         #scrollTopBtn:hover { background-color: var(--gold); color: #000; transform: translateY(-5px); }
         
-        /* --- POWIADOMIENIA (TOASTS) - POPRAWIONE POZYCJONOWANIE --- */
+        /* --- POWIADOMIENIA (TOASTS) - W PRAWYM GÓRNYM ROGU --- */
         #toast-container {
             position: fixed;
             top: 20px;
-            right: 20px; /* ZAWSZE W PRAWYM GÓRNYM ROGU */
-            z-index: 100000; /* NA SAMYM WIERZCHU */
+            right: 20px;
+            z-index: 100000;
             display: flex;
             flex-direction: column;
             gap: 10px;
@@ -268,8 +277,8 @@
 
         .toast {
             background: rgba(18, 18, 18, 0.95);
-            border-left: 4px solid var(--gold); /* ZŁOTY PASEK Z LEWEJ */
-            border: 1px solid #444; /* DELIKATNA RAMKA */
+            border-left: 4px solid var(--gold);
+            border: 1px solid #444;
             color: #fff;
             padding: 15px 25px;
             border-radius: 5px;
@@ -278,7 +287,7 @@
             align-items: center;
             gap: 15px;
             min-width: 250px;
-            animation: slideIn 0.3s ease-out; /* ANIMACJA WJAZDU */
+            animation: slideIn 0.3s ease-out;
             backdrop-filter: blur(5px);
         }
 
@@ -289,6 +298,50 @@
             from { transform: translateX(100%); opacity: 0; }
             to { transform: translateX(0); opacity: 1; }
         }
+
+        /* --- 2. ZEGAR GRY --- */
+        .game-clock-wrapper {
+            position: fixed;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            border: 1px solid var(--gold);
+            padding: 5px 20px;
+            border-radius: 20px;
+            z-index: 1000;
+            font-family: 'MedievalSharp';
+            color: var(--gold);
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.2);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.1em;
+        }
+        .clock-icon { animation: spin 10s linear infinite; font-size: 0.8em; }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+
+        /* --- 3. KALKULATOR ŁUPÓW (CSS) --- */
+        .calc-inputs { display: flex; gap: 10px; margin-bottom: 10px; }
+        .calc-result { 
+            background: #111; border: 1px dashed var(--gold); padding: 15px; 
+            text-align: center; color: var(--green); font-size: 1.1em; 
+            border-radius: 8px; margin-top: 15px; line-height: 1.6;
+        }
+        .calc-btn-toggle {
+            position: fixed; bottom: 90px; right: 30px; /* Nad przyciskiem "do góry" */
+            width: 50px; height: 50px; border-radius: 50%;
+            background: linear-gradient(135deg, #1a1a1a, #332b00);
+            border: 2px solid var(--gold); color: var(--gold);
+            font-size: 1.5em; cursor: pointer; z-index: 999;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5); transition: 0.3s;
+        }
+        .calc-btn-toggle:hover { transform: scale(1.1); box-shadow: 0 0 20px var(--gold); }
+
+        /* Checkbox Switch */
+        .toggle-wrapper { display: flex; align-items: center; gap: 10px; margin-bottom: 15px; font-size: 0.9em; color: #ccc; background: rgba(255,255,255,0.05); padding: 8px; border-radius: 6px; cursor: pointer; }
+        .toggle-wrapper input { width: auto; margin: 0; cursor: pointer; }
+        .highlight-text { color: var(--gold); font-weight: bold; }
         
         @keyframes shine { 0% { left: -150%; } 100% { left: 150%; } }
         @keyframes cardAppear { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
@@ -296,6 +349,11 @@
     </style>
 </head>
 <body>
+
+<div class="game-clock-wrapper">
+    <span class="clock-icon">⏳</span>
+    <span id="gameClock">00:00:00</span>
+</div>
 
 <audio id="snd-click" src="https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3"></audio>
 <audio id="snd-coin" src="https://assets.mixkit.co/active_storage/sfx/2019/2019-preview.mp3"></audio>
@@ -453,6 +511,41 @@
     </div>
 </div>
 
+<button class="calc-btn-toggle" onclick="toggleCalc()" title="Kalkulator Podziału Łupu">💰</button>
+
+<div id="calcModal" style="display: none; position: fixed; z-index: 10005; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.85); align-items: center; justify-content: center; backdrop-filter: blur(3px);">
+    <div style="background: #1a1a1a; padding: 25px; border: 2px solid var(--gold); border-radius: 12px; width: 90%; max-width: 400px; position:relative;">
+        <button onclick="document.getElementById('calcModal').style.display='none'" style="position:absolute; top:10px; right:15px; background:none; border:none; color:#888; cursor:pointer; font-size:1.2em;">✕</button>
+        
+        <h3 style="color:var(--gold); font-family:'MedievalSharp'; margin-top:0; text-align:center;">Kalkulator Łupu</h3>
+        
+        <label style="color:#aaa; font-size:0.8em;">Kwota sprzedaży (np. 1.2g, 150m)</label>
+        <input type="text" id="calcAmount" placeholder="np. 1.2g lub 1200m" style="margin-bottom:10px;">
+        
+        <div class="calc-inputs">
+            <div style="flex:1;">
+                <label style="color:#aaa; font-size:0.8em;">Liczba osób (razem)</label>
+                <input type="number" id="calcPlayers" value="2" min="1">
+            </div>
+            <div style="flex:1;">
+                <label style="color:#aaa; font-size:0.8em;">Podatek klanowy %</label>
+                <input type="number" id="calcTax" value="0" min="0" max="100">
+            </div>
+        </div>
+
+        <label class="toggle-wrapper">
+            <input type="checkbox" id="calcFinderRule" checked> 
+            <span>Zasada Znalazcy (50%)</span>
+        </label>
+        
+        <button onclick="calculateLoot()" class="action-btn" style="background:var(--green);">OBLICZ PODZIAŁ</button>
+        
+        <div id="calcOutput" class="calc-result" style="display:none;">
+            Wynik...
+        </div>
+    </div>
+</div>
+
 <button onclick="topFunction()" id="scrollTopBtn" title="Wróć na górę">▲</button>
 <div id="toast-container"></div>
 
@@ -515,6 +608,19 @@
     document.addEventListener('click', (e) => {
         if(e.target.tagName === 'BUTTON' || e.target.closest('button')) window.playSound('click');
     });
+
+    // --- ZEGAR GRY ---
+    function updateClock() {
+        const now = new Date();
+        const timeString = now.toLocaleTimeString('pl-PL');
+        const clockEl = document.getElementById('gameClock');
+        if(clockEl) clockEl.innerText = timeString;
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    // --- LISTY DANYCH ---
+    // !!! UWAGA: Wklej tutaj swoje pełne listy z poprzedniego kodu !!!
     const monstersList = {
         herosi: [
             { name: "Mroczny Patryk (35 lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/her/bardzozlypatryk.gif" },
@@ -1497,7 +1603,7 @@
         });
     }
 
-    // --- FUNKCJE POMOCNICZE I LOGIKA FORMULARZA ---
+    // --- FUNKCJE POMOCNICZE ---
     
     function extractLevel(sourceName) {
         if (!sourceName) return 0;
@@ -1632,6 +1738,76 @@
             </div>
         `;
     }
+
+    // --- KALKULATOR ŁUPÓW (LOGIKA) ---
+    function parseGold(str) {
+        if(!str) return 0;
+        // Zamień przecinek na kropkę, usuń spacje, zmniejsz litery
+        str = str.toString().toLowerCase().replace(',', '.').replace(/\s/g, '');
+        
+        let multiplier = 1;
+        if (str.endsWith('g')) multiplier = 1000000000; // 1g = 1 000 000 000
+        else if (str.endsWith('m')) multiplier = 1000000; // 1m = 1 000 000
+        else if (str.endsWith('k')) multiplier = 1000;    // 1k = 1 000
+        
+        const num = parseFloat(str);
+        if (isNaN(num)) return 0;
+        return Math.floor(num * multiplier);
+    }
+
+    window.toggleCalc = () => {
+        const modal = document.getElementById('calcModal');
+        modal.style.display = (modal.style.display === 'flex') ? 'none' : 'flex';
+    };
+
+    window.calculateLoot = () => {
+        const rawAmount = document.getElementById('calcAmount').value;
+        const amount = parseGold(rawAmount);
+        
+        const totalPlayers = parseInt(document.getElementById('calcPlayers').value) || 1;
+        const tax = parseFloat(document.getElementById('calcTax').value) || 0;
+        const useFinderRule = document.getElementById('calcFinderRule').checked;
+        const resultBox = document.getElementById('calcOutput');
+
+        if(amount <= 0 || totalPlayers < 1) {
+            resultBox.style.display = 'block';
+            resultBox.style.color = 'var(--red)';
+            resultBox.innerText = "Podaj poprawną kwotę i liczbę graczy!";
+            return;
+        }
+
+        const taxAmount = Math.floor(amount * (tax / 100));
+        const netAmount = amount - taxAmount;
+        const format = (num) => num.toLocaleString('pl-PL');
+
+        let html = `<div style="font-size:0.8em; color:#888; border-bottom:1px solid #333; padding-bottom:5px; margin-bottom:10px;">
+            Sprzedaż: <b>${format(amount)}</b><br>
+            - Podatek (${tax}%): ${format(taxAmount)}<br>
+            = Do podziału: <b style="color:#eee">${format(netAmount)}</b>
+        </div>`;
+
+        if (useFinderRule && totalPlayers > 1) {
+            const finderShare = Math.floor(netAmount * 0.5);
+            const remainder = netAmount - finderShare;
+            const othersCount = totalPlayers - 1;
+            const othersShare = Math.floor(remainder / othersCount);
+
+            html += `
+                <div>👑 Znalazca (50%): <br><span class="highlight-text" style="font-size:1.3em;">${format(finderShare)} złota</span></div>
+                <div style="margin-top:10px;">👥 Reszta ekipy (${othersCount} os.): <br><span style="color:#4fffa8; font-weight:bold;">${format(othersShare)} złota</span> <small>/os.</small></div>
+            `;
+        } else {
+            const share = Math.floor(netAmount / totalPlayers);
+            html += `
+                <div>Dla każdego (${totalPlayers} os.): <br><span class="highlight-text" style="font-size:1.4em;">${format(share)} złota</span></div>
+            `;
+        }
+
+        resultBox.style.display = 'block';
+        resultBox.style.color = '#eee';
+        resultBox.innerHTML = html;
+        window.playSound('coin');
+    };
 
     window.setFilter = (type, val) => {
         if (type === 'cat' && currentFilters.cat === val) currentFilters.cat = 'all';
@@ -1787,7 +1963,7 @@
         monstersList[cat].filter(m => m.name.toLowerCase().includes(search.value.toLowerCase())).forEach(m => {
             let o = document.createElement('option'); 
             o.value = m.name; 
-            o.dataset.img = m.img; // DODAWANIE ATRYBUTU DATA-IMG
+            o.dataset.img = m.img; 
             o.innerText = m.name; 
             sel.appendChild(o);
         });
@@ -1804,7 +1980,6 @@
         const previewIcon = document.getElementById('previewIcon');
         const previewName = document.getElementById('previewName');
 
-        // AKTUALIZACJA PODGLĄDU NA POTWORA
         if (srcImg) {
             preview.style.display = 'flex';
             previewIcon.src = srcImg;
@@ -1828,7 +2003,6 @@
         const previewName = document.getElementById('previewName');
 
         if(!val) {
-            // Jeśli odznaczono przedmiot, pokaż z powrotem potwora
             window.updateLootList();
             return;
         }
@@ -1838,7 +2012,6 @@
         document.getElementById('itemName').value = name;
         document.getElementById('itemImg').value = data.img;
         
-        // AKTUALIZACJA PODGLĄDU NA PRZEDMIOT
         preview.style.display = 'flex'; 
         previewIcon.src = data.img;
         previewName.innerText = name;
@@ -1871,9 +2044,8 @@
         }
         
         toast.innerHTML = `<span style="font-size:1.2em;">${icon}</span> <span>${message}</span>`;
-        container.appendChild(toast); // Dodaj na dół stosu
+        container.appendChild(toast);
         
-        // Usuwanie po 4s
         setTimeout(() => { 
             toast.style.opacity = '0';
             setTimeout(() => toast.remove(), 300);
@@ -1892,6 +2064,7 @@
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
