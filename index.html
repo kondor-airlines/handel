@@ -1778,16 +1778,6 @@ const lootTable = {
         `;
     }
 
-        // Dodano style="pointer-events: auto;" żeby dało się kliknąć w link
-        return `
-            <div class="tooltip-container" style="pointer-events: auto;">
-                <div class="tooltip-name ${rarityClass}">${window.escapeHtml(dataName)}</div>
-                <img src="${dataImg}" class="tooltip-img">
-                ${contentHtml}
-            </div>
-        `;
-    }
-
     // --- KALKULATOR ŁUPÓW (LOGIKA) ---
     function parseGold(str) {
         if(!str) return 0;
@@ -2215,6 +2205,7 @@ const lootTable = {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
