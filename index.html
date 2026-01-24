@@ -1939,38 +1939,47 @@
 
     // --- DODAWANIE OFERTY Z WALIDACJĄ CENY ---
     // --- DODAWANIE OFERTY (ŚCISŁA WALIDACJA) ---
+   // --- DODAWANIE OFERTY (WERSJA PANCERNA - NAPRAWIONY BŁĄD) ---
     window.addOffer = async () => {
         const sel = document.getElementById('itemSource');
         const priceInput = document.getElementById('itemPrice');
-        const priceVal = priceInput.value.trim().replace(',', '.'); // Zamiana przecinka na kropkę
+        
+        // Zabezpieczenie: czy pola w ogóle istnieją?
+        if (!sel || !priceInput) {
+            console.error("Błąd: Nie znaleziono pól formularza.");
+            return;
+        }
+
+        const priceVal = priceInput.value.trim().replace(',', '.');
         
         // 1. Walidacja wyboru przeciwnika
         if(!sel.value) return window.alert("Błąd: Wybierz przeciwnika z listy!");
 
-        // 2. Walidacja ceny (Regex Ścisły)
-        // ^ = start, \d+ = liczby, (\.\d+)? = opcjonalnie ułamek, [kmg] = OBOWIĄZKOWO jedna z liter, $ = koniec
+        // 2. Walidacja ceny
         const pricePattern = /^\d+(\.\d+)?[kmg]$/i; 
 
-        if (!priceVal) {
-            return window.alert("Błąd: Podaj cenę!");
-        }
+        if (!priceVal) return window.alert("Błąd: Podaj cenę!");
+        if (!pricePattern.test(priceVal)) return window.alert("Błąd formatu! Cena MUSI kończyć się literą k, m lub g (np. 500k, 150m, 1.2g).");
 
-        if (!pricePattern.test(priceVal)) {
-            return window.alert("Błąd formatu! Cena MUSI kończyć się literą k, m lub g (np. 500k, 150m, 1.2g).");
-        }
+        // 3. Pobranie danych opcjonalnych (bezpiecznie)
+        const typeEl = document.getElementById('offerType');
+        const nameEl = document.getElementById('itemName');
+        const descEl = document.getElementById('itemDesc');
+        const imgEl = document.getElementById('itemImg');
+        const previewEl = document.getElementById('livePreview'); // To powodowało błąd u Ciebie
 
-        // Jeśli wszystko ok -> Wysyłamy do Firebase
+        // 4. Wysyłka do bazy
         await addDoc(collection(db, "oferty"), {
             userId: currentUser.uid, 
             nick: currentNick, 
             avatar: currentUser.photoURL,
-            type: document.getElementById('offerType').value,
-            name: document.getElementById('itemName').value || "Nieznany przedmiot",
-            price: priceVal.toLowerCase(), // Zapisujemy np. 150M jako 150m
+            type: typeEl ? typeEl.value : 'sprzedam',
+            name: nameEl ? (nameEl.value || "Nieznany przedmiot") : "Nieznany",
+            price: priceVal.toLowerCase(),
             source: sel.value, 
-            sourceImg: sel.options[sel.selectedIndex].dataset.img,
-            desc: document.getElementById('itemDesc').value,
-            img: document.getElementById('itemImg').value,
+            sourceImg: sel.options[sel.selectedIndex].dataset.img || "",
+            desc: descEl ? descEl.value : "",
+            img: imgEl ? imgEl.value : "",
             date: new Date().toISOString(), 
             reservedBy: null
         });
@@ -1978,13 +1987,23 @@
         window.playSound('coin');
         window.alert("Dodano ofertę!");
         
-        // Czyścimy pola
-        document.getElementById('itemPrice').value = "";
-        document.getElementById('itemPrice').style.borderColor = "#333"; // Reset koloru ramki
-        document.getElementById('itemName').value = "";
-        document.getElementById('itemImg').value = "";
-        document.getElementById('itemDesc').value = "";
-        document.getElementById('livePreview').style.display = 'none';
+        // 5. Bezpieczne czyszczenie pól (TERAZ NIE WYWALI BŁĘDU)
+        if(priceInput) {
+            priceInput.value = "";
+            priceInput.style.borderColor = "#333";
+        }
+        if(nameEl) nameEl.value = "";
+        if(imgEl) imgEl.value = "";
+        if(descEl) descEl.value = "";
+        
+        // Naprawa Twojego błędu: sprawdzamy czy preview istnieje przed zmianą stylu
+        if(previewEl) {
+            previewEl.style.display = 'none';
+        }
+
+        // Zamknięcie modala
+        const modal = document.getElementById('addOfferModal');
+        if(modal) modal.style.display = 'none';
     };
     
     window.reserveOffer = async (id) => { if(!currentNick) return alert("Zaloguj się!"); await updateDoc(doc(db, "oferty", id), { reservedBy: currentNick }); window.playSound('click'); };
@@ -2111,5 +2130,6 @@
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
