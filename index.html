@@ -2115,7 +2115,12 @@ const lootTable = {
     window.cancelReservation = async (id) => { await updateDoc(doc(db, "oferty", id), { reservedBy: null }); window.playSound('click'); };
     window.deleteOffer = async (id) => { if(confirm("Usunąć?")) await deleteDoc(doc(db, "oferty", id)); };
     window.logout = () => signOut(auth);
-    window.searchMargo = () => window.open(`https://margoworld.pl/item?name=${encodeURIComponent(document.getElementById('itemName').value)}`);
+    window.searchMargo = () => {
+        const val = document.getElementById('itemName').value;
+        // Usuwa spację i nawias z zawartością na końcu, np. "Miecz (woj)" -> "Miecz"
+        const cleanVal = val.replace(/\s*\([^)]*\)$/, ""); 
+        window.open(`https://margoworld.pl/item?name=${encodeURIComponent(cleanVal)}`);
+    };
     window.openFullEdit = (id, n, p, d, i) => { currentEditId = id; document.getElementById('fullEditName').value=n; document.getElementById('fullEditPrice').value=p; document.getElementById('fullEditDesc').value=d; document.getElementById('fullEditImg').value=i; document.getElementById('editModal').style.display='flex'; };
     window.closeFullEdit = () => document.getElementById('editModal').style.display='none';
     window.confirmFullEdit = async () => { await updateDoc(doc(db, "oferty", currentEditId), { name: document.getElementById('fullEditName').value, price: document.getElementById('fullEditPrice').value, desc: document.getElementById('fullEditDesc').value, img: document.getElementById('fullEditImg').value }); window.closeFullEdit(); };
@@ -2253,3 +2258,4 @@ const lootTable = {
 <div id="toast-container"></div>
 </body>
 </html>
+
