@@ -1716,11 +1716,12 @@
         }
     };
 
-    // Generowanie Tooltipa (dymek po najechaniu na ofertę)
+   // Generowanie Tooltipa (dymek po najechaniu na ofertę)
     function getTooltipHtml(dataName, dataImg) {
         let foundStats = "";
         let rarityClass = "legendary";
 
+        // Szukamy statystyk w tabeli
         for (const mob in lootTable) {
             const item = lootTable[mob].find(i => i.img === dataImg || i.stats.split('||')[0] === dataName);
             if (item) {
@@ -1734,11 +1735,31 @@
             }
         }
 
+        let contentHtml = "";
+        
+        if (foundStats) {
+            // Jeśli mamy statystyki w bazie -> wyświetl je
+            contentHtml = `<div class="tooltip-stats">${foundStats}</div>`;
+        } else {
+            // Jeśli NIE mamy statystyk -> wyświetl link do MargoWorld
+            const safeName = encodeURIComponent(dataName); // Zamienia spacje na %20 itp.
+            const mwLink = `https://margoworld.pl/item?name=${safeName}`;
+            
+            contentHtml = `
+                <div class="tooltip-stats" style="margin-top:8px; padding-top:8px; border-top:1px dashed #555;">
+                    <a href="${mwLink}" target="_blank" style="color:var(--gold); text-decoration:none; font-weight:bold; cursor:pointer;">
+                        🔗 Sprawdź na MargoWorld
+                    </a>
+                </div>
+            `;
+        }
+
+        // Dodano style="pointer-events: auto;" żeby dało się kliknąć w link
         return `
-            <div class="tooltip-container">
+            <div class="tooltip-container" style="pointer-events: auto;">
                 <div class="tooltip-name ${rarityClass}">${window.escapeHtml(dataName)}</div>
                 <img src="${dataImg}" class="tooltip-img">
-                <div class="tooltip-stats">${foundStats || "Brak szczegółowych statystyk"}</div>
+                ${contentHtml}
             </div>
         `;
     }
@@ -2128,5 +2149,6 @@
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
