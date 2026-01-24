@@ -401,6 +401,18 @@
             <option value="">👤 Wszyscy sprzedawcy</option>
         </select>
 
+		<select id="profFilter" class="filter-select" onchange="renderOffers()">
+            <option value="">⚔️ Wszystkie profesje</option>
+            <option value="w">Wojownik</option>
+            <option value="p">Paladyn</option>
+            <option value="b">Tancerz Ostrzy</option>
+            <option value="m">Mag</option>
+            <option value="t">Tropiciel</option>
+            <option value="h">Łowca</option>
+            <option value="a">Ogólne (A)</option>
+            <option value="i">Inne</option>
+        </select>
+		
         <div class="lvl-group">
             <span>Poziom:</span>
             <input type="number" id="minLvlInput" class="lvl-input" placeholder="Od" oninput="renderOffers()">
@@ -1850,6 +1862,7 @@ const lootTable = {
         const list = document.getElementById('offersList');
         const search = document.getElementById('globalSearch').value.toLowerCase();
         const selectedUser = document.getElementById('userFilterSelect').value;
+        const selectedProf = document.getElementById('profFilter').value; // <--- NOWE: Pobieramy profesję
         const minLvl = parseInt(document.getElementById('minLvlInput').value) || 0;
         const maxLvl = parseInt(document.getElementById('maxLvlInput').value) || 9999;
         const favs = JSON.parse(localStorage.getItem('targ_favs') || '[]');
@@ -1863,6 +1876,7 @@ const lootTable = {
             const isOwner = currentUser && data.userId === currentUser.uid;
             const monsterLvl = extractLevel(data.source);
 
+            // Podstawowe filtry
             if(currentFilters.type === 'fav' && !isFav) return;
             if(currentFilters.type === 'mine' && !isOwner) return;
             if(currentFilters.type !== 'fav' && currentFilters.type !== 'mine' && currentFilters.type !== 'all' && data.type !== currentFilters.type) return;
@@ -1873,30 +1887,60 @@ const lootTable = {
             if(selectedUser && data.nick !== selectedUser) return;
             if(monsterLvl < minLvl || monsterLvl > maxLvl) return;
 
+            // --- NOWE: FILTROWANIE PO PROFESJI ---
+            if (selectedProf) {
+                // Szukamy tekstu w nawiasach na końcu nazwy, np. "(w/p)"
+                const match = data.name.match(/\(([^)]+)\)[^()]*$/);
+                
+                if (match) {
+                    // Mamy nawias (np. "w/p")
+                    const profs = match[1].toLowerCase();
+                    if (selectedProf !== 'i' && !profs.includes(selectedProf)) return;
+                } else {
+                    // Brak nawiasu = traktujemy jako "Inne" (i)
+                    if (selectedProf !== 'i') return;
+                }
+            }
+            // -------------------------------------
+
             count++;
             const isAdmin = currentNick === ADMIN_NICK;
             const isOnline = isUserOnline(data.userId);
             const onlineHtml = isOnline ? '<span class="online-dot" title="Sprzedawca jest Online!"></span>' : '';
             
-            // Tooltip
+            // Stylizacja kart (Sprzedam/Kupię/Zamienię)
+            let typeClass = "";
+            if (data.type === 'sprzedam') typeClass = "type-sprzedam";
+            if (data.type === 'kupie') typeClass = "type-kupie";
+            if (data.type === 'zamienie') typeClass = "type-zamienie";
+
             const tooltipHtml = getTooltipHtml(data.name, data.img);
 
             let btnRes = !data.reservedBy ? `<button class="small-btn reserve-btn" onclick="reserveOffer('${data.id}')">ZAREZERWUJ</button>` : (isOwner || isAdmin ? `<button class="small-btn unreserve-btn" onclick="cancelReservation('${data.id}')">COFNIJ REZ.</button>` : "");
             let mailBtn = (!isOwner && currentUser) ? `<button class="small-btn msg-btn" onclick="openCompose('${data.userId}', '${window.escapeHtml(data.nick)}', '${window.escapeHtml(data.name)}')" title="Wyślij wiadomość">✉️</button>` : "";
             
             list.innerHTML += `
-                <div class="offer-card legendary-item">
+                <div class="offer-card ${typeClass}">
+                    ${tooltipHtml}
                     <div class="card-header">
-                        ${tooltipHtml}
                         <div class="tag ${data.type}">${data.type.toUpperCase()}</div>
-                        <div class="item-title">${window.escapeHtml(data.name)}</div>
                         <button class="fav-btn ${isFav?'active':''}" onclick="toggleFav('${data.id}')">❤</button>
-                        ${window.isValidImageUrl(data.img) ? `<img src="${data.img}" class="item-img">` : ""}
                     </div>
-                    <div class="item-source"><img src="${data.sourceImg}"> <span>${data.source}</span></div>
+                    
+                    ${window.isValidImageUrl(data.img) ? `<img src="${data.img}" class="item-img">` : ""}
+                    
+                    <div class="item-title">${window.escapeHtml(data.name)}</div>
+                    
+                    <div class="item-source">
+                        <img src="${data.sourceImg}"> <span>${data.source}</span>
+                    </div>
+
                     <div class="price-tag">Cena: <span>${window.escapeHtml(data.price)}</span></div>
+                    
                     ${data.reservedBy ? `<div class="reservation-box">🔒 Rez: <b>${data.reservedBy}</b></div>` : ""}
+                    
                     <div style="color:#aaa; font-size:0.85em; margin:10px 0; font-style:italic;" class="item-description">${window.escapeHtml(data.desc)}</div>
+                    
                     <div class="seller-info">
                         <div class="seller-left">
                             <div class="avatar-wrapper">
@@ -2151,6 +2195,7 @@ const lootTable = {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
