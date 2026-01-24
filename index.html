@@ -8,76 +8,43 @@
     <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
     <style>
         :root {
-            --gold: #ffd700;
-            --gold-bright: #fff2a6;
-            --bg: #0f0f0f;
-            --card: #1a1a1a;
-            --border: #332b00;
-            --green: #2ecc71; --blue: #3498db; --red: #e74c3c;
-            --purple: #9b59b6;
-            --orange: #e67e22;
-            --heroic: #3498db;
-            --unique: #e67e22;
-            --legendary: #ffd700;
+            --gold: #ffd700; --gold-bright: #fff2a6; --bg: #0f0f0f; --card: #1a1a1a;
+            --border: #332b00; --green: #2ecc71; --blue: #3498db; --red: #e74c3c;
+            --purple: #9b59b6; --orange: #e67e22; --heroic: #3498db; --unique: #e67e22; --legendary: #ffd700;
         }
 
         body {
             font-family: 'Montserrat', sans-serif;
             background: linear-gradient(-45deg, #050505, #1a1200, #2e2000, #000000);
-            background-size: 400% 400%;
-            animation: livingBackground 20s ease infinite;
-            color: #eee;
-            margin: 0;
-            padding: 20px;
-            padding-bottom: 80px;
-            min-height: 100vh;
-            background-attachment: fixed;
+            background-size: 400% 400%; animation: livingBackground 20s ease infinite;
+            color: #eee; margin: 0; padding: 20px; padding-bottom: 80px; min-height: 100vh; background-attachment: fixed;
         }
-        
         @keyframes livingBackground { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
 
-        /* --- UI COMPONENTS --- */
+        /* UI COMPONENTS */
         .container { max-width: 1200px; margin: 0 auto; margin-top: 40px; }
+        header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--border); padding-bottom: 20px; margin-bottom: 30px; flex-wrap: wrap; gap: 10px; }
+        h1 { font-family: 'MedievalSharp', cursive; margin: 0; font-size: 2.5em; letter-spacing: 2px; background: linear-gradient(to bottom, #ffd700 20%, #b8860b 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 0 15px rgba(255, 215, 0, 0.3)); }
 
-        header {
-            display: flex; justify-content: space-between; align-items: center;
-            border-bottom: 2px solid var(--border); padding-bottom: 20px; margin-bottom: 30px;
-            flex-wrap: wrap; gap: 10px;
-        }
-
-        h1 { 
-            font-family: 'MedievalSharp', cursive; margin: 0; font-size: 2.5em; letter-spacing: 2px; 
-            background: linear-gradient(to bottom, #ffd700 20%, #b8860b 100%);
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-            filter: drop-shadow(0 0 15px rgba(255, 215, 0, 0.3));
-        }
-
-        .login-btn {
-            background: rgba(255, 255, 255, 0.05); color: #fff; border: 1px solid var(--gold);
-            padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600;
-            display: flex; align-items: center; gap: 12px; transition: all 0.3s ease;
-            text-transform: uppercase; font-size: 0.85em; z-index: 99; position: relative;
-        }
+        .login-btn { background: rgba(255, 255, 255, 0.05); color: #fff; border: 1px solid var(--gold); padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 12px; transition: all 0.3s ease; text-transform: uppercase; font-size: 0.85em; z-index: 99; position: relative; }
         .login-btn:hover { background: var(--gold); color: #000; box-shadow: 0 0 20px rgba(255, 215, 0, 0.4); transform: translateY(-2px); }
 
         .user-profile { display: none; align-items: center; gap: 12px; background: rgba(255,255,255,0.05); padding: 5px 15px; border-radius: 50px; border: 1px solid var(--border); }
         .user-avatar { width: 35px; height: 35px; border-radius: 50%; border: 2px solid var(--gold); position: relative; }
         .logout-link { color: #ff6666; font-size: 0.75em; text-decoration: none; cursor: pointer; text-transform: uppercase; font-weight: bold; }
 
-        /* --- FILTRY I PANEL --- */
+        /* FILTRY */
         .filters { display: flex; gap: 10px; margin-bottom: 15px; justify-content: center; flex-wrap: wrap; align-items: center; }
         .filter-btn { background: #222; color: #888; border: 1px solid #444; padding: 8px 16px; border-radius: 5px; cursor: pointer; transition: 0.3s; font-family: 'MedievalSharp'; font-size: 1em; }
         .filter-btn:hover { border-color: var(--gold); color: #fff; }
         .filter-btn.active { background: linear-gradient(135deg, #ffd700 0%, #d4af37 100%) !important; color: #000 !important; border: none !important; box-shadow: 0 0 15px rgba(255, 215, 0, 0.4) !important; }
         .filter-btn.fav-active { background: linear-gradient(135deg, #ff4d4d 0%, #a00000 100%) !important; color: white !important; }
 
-        /* ZAAWANSOWANE FILTRY */
         .advanced-filters { display: flex; justify-content: center; gap: 15px; margin-bottom: 30px; flex-wrap: wrap; background: rgba(255, 255, 255, 0.02); padding: 10px; border-radius: 8px; border: 1px solid #333; align-items: center; }
         .filter-select { background: #0a0a0a; border: 1px solid #444; color: var(--gold); padding: 8px; border-radius: 5px; cursor: pointer; font-family: 'Montserrat', sans-serif; }
         .lvl-group { display: flex; align-items: center; gap: 5px; color: #888; font-size: 0.9em; }
         .lvl-input { width: 60px; background: #0a0a0a; border: 1px solid #444; color: #eee; padding: 8px; border-radius: 5px; text-align: center; }
-        .lvl-input:focus, .filter-select:focus { border-color: var(--gold); outline: none; }
-
+        
         .panel { background: linear-gradient(135deg, #151515 0%, #1a1a1a 100%); padding: 25px; border-radius: 12px; border: 1px solid rgba(255, 215, 0, 0.3); margin-bottom: 40px; box-shadow: 0 10px 30px rgba(0,0,0,0.8); display: none; }
         .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
         .full-width { grid-column: 1 / -1; }
@@ -86,51 +53,43 @@
         .search-box { background: #151500; border-color: var(--border); color: var(--gold); }
         .action-btn { background: linear-gradient(to bottom, #ffd700, #b89b00); color: #000; border: none; padding: 15px; font-weight: 800; width: 100%; cursor: pointer; border-radius: 6px; text-transform: uppercase; transition: 0.3s; }
 
-        /* --- PODGLĄD GRAFIKI W PANELU DODAWANIA --- */
-        .preview-box { grid-column: 1 / -1; display: none; align-items: center; justify-content: flex-end; background: linear-gradient(270deg, #251f00 0%, #1a1a1a 100%); border: 2px solid var(--gold); padding: 15px 25px; border-radius: 12px; margin-bottom: 15px; gap: 20px; animation: fadeIn 0.5s ease; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        /* PODGLĄD */
+        .preview-box { grid-column: 1 / -1; display: none; align-items: center; justify-content: flex-end; background: linear-gradient(270deg, #251f00 0%, #1a1a1a 100%); border: 2px solid var(--gold); padding: 15px 25px; border-radius: 12px; margin-bottom: 15px; gap: 20px; }
         .preview-content { display: flex; flex-direction: column; align-items: flex-end; text-align: right; }
-        .preview-label { font-size: 0.7em; text-transform: uppercase; color: #888; letter-spacing: 1px; }
-        .preview-text { font-size: 1.4em; color: var(--gold); font-family: 'MedievalSharp'; text-shadow: 0 0 10px rgba(255, 215, 0, 0.3); }
-        .preview-icon-wrapper { width: 70px; height: 70px; background: radial-gradient(circle, #333 0%, #000 100%); border-radius: 10px; border: 2px solid var(--gold); display: flex; align-items: center; justify-content: center; box-shadow: 0 0 20px rgba(255, 215, 0, 0.2); }
-        .preview-icon-wrapper img { max-width: 90%; max-height: 90%; object-fit: contain; filter: drop-shadow(0 0 5px rgba(255,255,255,0.2)); }
+        .preview-text { font-size: 1.4em; color: var(--gold); font-family: 'MedievalSharp'; }
+        .preview-icon-wrapper { width: 70px; height: 70px; background: radial-gradient(circle, #333 0%, #000 100%); border-radius: 10px; border: 2px solid var(--gold); display: flex; align-items: center; justify-content: center; }
+        .preview-icon-wrapper img { max-width: 90%; max-height: 90%; object-fit: contain; }
 
-        /* --- KARTY OFERT (POPRAWIONE) --- */
+        /* KARTY OFERT */
         .offers-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 25px; }
-        .offer-card { background: rgba(18, 18, 18, 0.9); backdrop-filter: blur(5px); border: 2px solid #333; border-radius: 12px; padding: 20px; position: relative; transition: 0.3s; display: flex; flex-direction: column; align-items: center; box-shadow: 0 5px 15px rgba(0,0,0,0.5); animation: cardAppear 0.5s ease-out backwards; overflow: visible; }
+        .offer-card { background: rgba(18, 18, 18, 0.9); backdrop-filter: blur(5px); border: 2px solid #333; border-radius: 12px; padding: 15px; position: relative; transition: 0.3s; display: flex; flex-direction: column; align-items: center; box-shadow: 0 5px 15px rgba(0,0,0,0.5); animation: cardAppear 0.5s ease-out backwards; overflow: visible; }
         .offer-card:hover { transform: translateY(-5px); box-shadow: 0 10px 25px rgba(0,0,0,0.7); }
         .offer-card.type-sprzedam { border-color: var(--green); box-shadow: inset 0 0 20px rgba(46, 204, 113, 0.1); }
         .offer-card.type-kupie { border-color: var(--blue); box-shadow: inset 0 0 20px rgba(52, 152, 219, 0.1); }
         .offer-card.type-zamienie { border-color: var(--orange); box-shadow: inset 0 0 20px rgba(230, 126, 34, 0.1); }
 
-        /* --- ELEMENTY KARTY --- */
         .tag { position: absolute; top: 10px; left: 10px; padding: 4px 8px; border-radius: 4px; font-size: 0.65em; font-weight: 800; text-transform: uppercase; z-index: 2; }
         .tag.sprzedam { background: var(--green); color: #000; }
         .tag.kupie { background: var(--blue); color: #fff; }
         .tag.zamienie { background: var(--orange); color: #fff; }
-        
         .fav-btn { position: absolute; top: 5px; right: 5px; background: none; border: none; font-size: 1.5em; cursor: pointer; color: #555; transition: 0.3s; z-index: 5; }
         .fav-btn:hover, .fav-btn.active { color: var(--red); transform: scale(1.2); }
 
         .item-img { width: 70px; height: 70px; object-fit: contain; margin: 25px auto 10px auto; filter: drop-shadow(0 0 8px rgba(255,255,255,0.2)); transition: 0.3s; }
         .offer-card:hover .item-img { transform: scale(1.1); }
         .item-title { font-size: 1.1em; font-weight: bold; text-align: center; color: var(--gold); margin-bottom: 5px; line-height: 1.3; }
-        .offer-card.type-sprzedam .item-title { color: var(--green); }
-        .offer-card.type-kupie .item-title { color: var(--blue); }
-        .offer-card.type-zamienie .item-title { color: var(--orange); }
         .item-source { display: flex; align-items: center; gap: 5px; font-size: 0.8em; color: #888; margin-bottom: 10px; }
-        .item-source img { height: 18px; width: auto; }
         .price-tag { font-size: 1.4em; color: #fff; font-weight: bold; margin: 5px 0; border-top: 1px solid #333; padding-top: 10px; width: 100%; text-align: center; }
         .price-tag span { color: #4fffa8; text-shadow: 0 0 10px rgba(79, 255, 168, 0.3); }
 
-        /* --- ZMIENIONA STOPKA (NAPRAWA PRZYCISKÓW) --- */
+        /* --- STOPKA I PRZYCISKI (NAPRAWIONE) --- */
         .seller-info { 
             margin-top: auto; 
             width: 100%; 
             padding-top: 15px; 
             border-top: 1px dotted #444; 
             display: flex; 
-            flex-direction: column; /* Zmiana na pionowy układ */
+            flex-direction: column; /* UKŁAD PIONOWY */
             gap: 12px; 
         }
         
@@ -142,107 +101,85 @@
             font-size: 0.9em;
         }
         
-        .seller-left b { 
-            max-width: 150px; 
-            white-space: nowrap; 
-            overflow: hidden; 
-            text-overflow: ellipsis; 
-            display: block; 
-        }
-
+        .tiny-avatar { width: 30px; height: 30px; border-radius: 50%; border: 1px solid var(--gold); }
+        
         .btn-group { 
             display: flex; 
-            gap: 8px; 
+            gap: 5px; 
             width: 100%; 
-            justify-content: center;
+            justify-content: space-between;
         }
 
         .small-btn { 
-            flex: 1; /* Przyciski zajmują równą szerokość */
-            padding: 8px 0; 
+            flex: 1; /* Równe rozciągnięcie */
+            padding: 8px 0;
             border-radius: 6px; 
             cursor: pointer; 
             font-weight: bold; 
-            font-size: 1.1em; /* Większe ikony */
+            font-size: 1.2em; /* Ikony */
             border: 1px solid #333; 
             background: rgba(255,255,255,0.05);
-            color: #ccc;
+            color: #aaa;
             transition: 0.2s;
             display: flex; align-items: center; justify-content: center;
         }
-        
         .small-btn:hover { background: var(--gold); color: #000; border-color: var(--gold); transform: translateY(-2px); }
         .msg-btn:hover { background: var(--purple); color: #fff; border-color: var(--purple); }
         .reserve-btn:hover { background: var(--green); color: #000; border-color: var(--green); }
         .unreserve-btn:hover { background: #555; color: #fff; }
         .delete-btn:hover { background: var(--red); color: #fff; border-color: var(--red); }
-        
-        /* --- TOOLTIP STYLE (JAK W GRZE) --- */
+
+        /* TOOLTIP */
         .tooltip-container { position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%) translateY(-10px); width: 280px; background: rgba(0, 0, 0, 0.95); border: 2px solid #555; border-radius: 8px; padding: 15px; z-index: 1000; opacity: 0; visibility: hidden; transition: all 0.2s ease; pointer-events: none; box-shadow: 0 0 20px rgba(0,0,0,0.8); text-align: center; }
         .offer-card:hover .tooltip-container { opacity: 1; visibility: visible; transform: translateX(-50%) translateY(-5px); }
         .tooltip-name { font-family: 'MedievalSharp'; font-size: 1.3em; margin-bottom: 5px; display: block; }
-        .tooltip-name.legendary { color: var(--gold); text-shadow: 0 0 5px rgba(255,215,0,0.5); }
-        .tooltip-name.heroic { color: var(--heroic); text-shadow: 0 0 5px rgba(52,152,219,0.5); }
-        .tooltip-name.unique { color: var(--unique); }
+        .tooltip-name.legendary { color: var(--gold); } .tooltip-name.heroic { color: var(--heroic); } .tooltip-name.unique { color: var(--unique); }
         .tooltip-stats { font-size: 0.8em; color: #ccc; line-height: 1.4; text-align: center; white-space: pre-line; border-top: 1px solid #333; padding-top: 8px; margin-top: 8px; }
-        .tooltip-img { width: 64px; height: 64px; object-fit: contain; margin: 0 auto; display: block; filter: drop-shadow(0 0 10px rgba(255,255,255,0.1)); }
-        
+        .tooltip-img { width: 64px; height: 64px; object-fit: contain; margin: 0 auto; display: block; }
+
         .avatar-wrapper { position: relative; width: 30px; height: 30px; display: block; }
         .avatar-wrapper img { width: 100%; height: 100%; object-fit: cover; }
         .online-dot { position: absolute; bottom: -2px; right: -2px; width: 9px; height: 9px; background: #2ecc71; border-radius: 50%; border: 2px solid #1a1a1a; box-shadow: 0 0 5px #2ecc71; z-index: 5; }
+        
         .icon-btn { background: transparent; border: none; cursor: pointer; position: relative; font-size: 1.5em; margin-right: 15px; transition: 0.3s; }
         .icon-btn:hover { transform: scale(1.1); filter: drop-shadow(0 0 5px var(--gold)); }
         .badge { position: absolute; top: -5px; right: -5px; background: var(--red); color: white; border-radius: 50%; width: 18px; height: 18px; font-size: 0.7em; font-weight: bold; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 10px var(--red); animation: pulseBadge 2s infinite; }
 
-        /* KARCZMA (CZAT) */
+        /* KARCZMA */
         #karczmaPanel { position: fixed; top: 0; right: -350px; width: 320px; height: 100vh; background: rgba(10, 10, 10, 0.95); border-left: 2px solid var(--gold); backdrop-filter: blur(10px); z-index: 20000; transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1); display: flex; flex-direction: column; }
         #karczmaPanel.open { right: 0; box-shadow: -10px 0 50px rgba(0,0,0,0.8); }
         .chat-header { padding: 20px; background: linear-gradient(90deg, #332b00, transparent); border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center; }
         .chat-messages { flex-grow: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 10px; }
         .chat-msg { font-size: 0.85em; padding: 8px 12px; border-radius: 8px; background: rgba(255,255,255,0.05); border: 1px solid #333; }
-        .chat-msg b { color: var(--gold); display: block; margin-bottom: 2px; font-size: 0.9em; }
-        .chat-msg .time { font-size: 0.7em; color: #666; float: right; margin-top: 5px; }
         .chat-input-area { padding: 15px; border-top: 1px solid #333; display: flex; gap: 5px; }
 
-        /* INNE */
-        .msg-btn { background: var(--purple); color: #fff; box-shadow: 0 0 10px rgba(155, 89, 182, 0.3); }
-        
-        .helper-btn { background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%); color: var(--gold); border: 1px solid var(--border); padding: 0 15px; height: 42px; cursor: pointer; border-radius: 6px; font-size: 1.2em; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.5); }
-        .helper-btn:hover { border-color: var(--gold); background: linear-gradient(135deg, #332b00 0%, #1a1500 100%); box-shadow: 0 0 10px rgba(255, 215, 0, 0.3); transform: translateY(-1px); }
-
-        /* SKRZYNKA */
+        /* SKRZYNKA & SCROLL */
         .mail-list { display: flex; flex-direction: column; gap: 10px; max-height: 400px; overflow-y: auto; }
         .mail-item { background: rgba(255,255,255,0.05); border: 1px solid #444; padding: 15px; border-radius: 8px; position: relative; }
         .mail-item.unread { border-left: 4px solid var(--gold); background: rgba(255, 215, 0, 0.05); }
         .delete-mail-btn { position: absolute; top: 10px; right: 10px; background: none; border: none; cursor: pointer; color: #ff6666; transition: 0.3s; opacity: 0.5; }
         .delete-mail-btn:hover { opacity: 1; transform: scale(1.2); }
-
-        /* SCROLLBAR */
+        
         ::-webkit-scrollbar { width: 10px; } ::-webkit-scrollbar-track { background: #050505; }
         ::-webkit-scrollbar-thumb { background: linear-gradient(180deg, #332b00 0%, #ffd700 50%, #332b00 100%); border-radius: 6px; border: 1px solid #000; }
-        
         #scrollTopBtn { display: none; position: fixed; bottom: 30px; right: 30px; z-index: 9999; width: 50px; height: 50px; border: 2px solid var(--gold); background-color: rgba(0,0,0,0.8); color: var(--gold); cursor: pointer; border-radius: 50%; font-size: 24px; box-shadow: 0 0 20px rgba(255, 215, 0, 0.2); transition: 0.3s; backdrop-filter: blur(2px); }
         #scrollTopBtn:hover { background-color: var(--gold); color: #000; transform: translateY(-5px); }
         
-        /* --- POWIADOMIENIA (TOASTS) - W PRAWYM GÓRNYM ROGU --- */
+        /* TOASTS */
         #toast-container { position: fixed; top: 20px; right: 20px; z-index: 100000; display: flex; flex-direction: column; gap: 10px; }
         .toast { background: rgba(18, 18, 18, 0.95); border-left: 4px solid var(--gold); border: 1px solid #444; color: #fff; padding: 15px 25px; border-radius: 5px; box-shadow: 0 5px 20px rgba(0,0,0,0.8); display: flex; align-items: center; gap: 15px; min-width: 250px; animation: slideIn 0.3s ease-out; backdrop-filter: blur(5px); }
-        .toast.success { border-left-color: var(--green); }
-        .toast.error { border-left-color: var(--red); }
+        .toast.success { border-left-color: var(--green); } .toast.error { border-left-color: var(--red); }
         @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-
-        /* --- 2. ZEGAR GRY --- */
+        
+        /* ZEGAR & KALKULATOR */
         .game-clock-wrapper { position: fixed; top: 10px; left: 50%; transform: translateX(-50%); background: rgba(0, 0, 0, 0.8); border: 1px solid var(--gold); padding: 5px 20px; border-radius: 20px; z-index: 1000; font-family: 'MedievalSharp'; color: var(--gold); box-shadow: 0 0 15px rgba(255, 215, 0, 0.2); display: flex; align-items: center; gap: 10px; font-size: 1.1em; }
         .clock-icon { animation: spin 10s linear infinite; font-size: 0.8em; }
         @keyframes spin { 100% { transform: rotate(360deg); } }
-
-        /* --- 3. KALKULATOR ŁUPÓW (CSS) --- */
         .calc-inputs { display: flex; gap: 10px; margin-bottom: 10px; }
         .calc-result { background: #111; border: 1px dashed var(--gold); padding: 15px; text-align: center; color: var(--green); font-size: 1.1em; border-radius: 8px; margin-top: 15px; line-height: 1.6; }
         .calc-btn-toggle { position: fixed; bottom: 90px; right: 30px; width: 50px; height: 50px; border-radius: 50%; background: linear-gradient(135deg, #1a1a1a, #332b00); border: 2px solid var(--gold); color: var(--gold); font-size: 1.5em; cursor: pointer; z-index: 999; box-shadow: 0 5px 15px rgba(0,0,0,0.5); transition: 0.3s; }
         .calc-btn-toggle:hover { transform: scale(1.1); box-shadow: 0 0 20px var(--gold); }
         .toggle-wrapper { display: flex; align-items: center; gap: 10px; margin-bottom: 15px; font-size: 0.9em; color: #ccc; background: rgba(255,255,255,0.05); padding: 8px; border-radius: 6px; cursor: pointer; }
-        .toggle-wrapper input { width: auto; margin: 0; cursor: pointer; }
         .highlight-text { color: var(--gold); font-weight: bold; }
         
         @keyframes shine { 0% { left: -150%; } 100% { left: 150%; } }
@@ -270,8 +207,7 @@
             <span>Zaloguj przez Google</span>
         </button>
         <div id="userProfile" class="user-profile">
-    
-             <button class="icon-btn" onclick="toggleMute()" title="Włącz/Wyłącz dźwięk">
+            <button class="icon-btn" onclick="toggleMute()" title="Włącz/Wyłącz dźwięk">
                 <span id="muteIcon">🔊</span>
             </button>
             <button class="icon-btn" onclick="toggleKarczma()" title="Karczma (Czat)">
@@ -284,8 +220,7 @@
                 <img id="userAvatar" class="user-avatar" src="" alt="">
             </div>
             <div>
-          
-                 <div id="userNickDisplay" style="font-weight:bold; color:var(--gold); font-size:0.9em;">...</div>
+                <div id="userNickDisplay" style="font-weight:bold; color:var(--gold); font-size:0.9em;">...</div>
                 <div class="logout-link" onclick="logout()">Wyloguj</div>
             </div>
         </div>
@@ -296,8 +231,7 @@
         <button class="filter-btn" id="f-sprzedam" onclick="setFilter('type', 'sprzedam')">Sprzedam</button>
         <button class="filter-btn" id="f-kupie" onclick="setFilter('type', 'kupie')">Kupię</button>
         <button class="filter-btn" id="f-zamienie" onclick="setFilter('type', 'zamienie')">Zamienię</button>
-    
-     <button class="filter-btn" id="f-mine" onclick="setFilter('type', 'mine')">👤 Moje</button>
+        <button class="filter-btn" id="f-mine" onclick="setFilter('type', 'mine')">👤 Moje</button>
         <button class="filter-btn" id="f-fav" onclick="setFilter('type', 'fav')">❤️ Ulubione</button>
         <span style="color:#444; margin: 0 10px;">|</span>
         <button class="filter-btn" id="f-herosi" onclick="setFilter('cat', 'herosi')">Herosi</button>
@@ -309,18 +243,16 @@
             <option value="">👤 Wszyscy sprzedawcy</option>
         </select>
 
-	<select id="profFilter" class="filter-select" onchange="renderOffers()">
+	    <select id="profFilter" class="filter-select" onchange="renderOffers()">
             <option value="">⚔️ Wszystkie profesje</option>
-            
- <option value="w">Wojownik (w)</option>
+            <option value="w">Wojownik (w)</option>
             <option value="p">Paladyn (p)</option>
             <option value="b">Tancerz Ostrzy (b)</option>
             <option value="m">Mag (m)</option>
             <option value="t">Tropiciel (t)</option>
             <option value="h">Łowca (h)</option>
             <option value="a">Wszystkie profesje (a)</option>
-            
- <option value="i">Inne (i)</option>
+            <option value="i">Inne (i)</option>
         </select>
 		
         <div class="lvl-group">
@@ -356,21 +288,17 @@
                 <option value="herosi">Herosi</option>
                 <option value="e2">Elity II</option>
             </select>
-    
-             <input type="text" id="sourceSearch" class="full-width search-box" placeholder="🔍 Szukaj przeciwnika..." oninput="updateSourceList()" style="display:none;">
             
+            <input type="text" id="sourceSearch" class="full-width search-box" placeholder="🔍 Szukaj przeciwnika..." oninput="updateSourceList()" style="display:none;">
             <select id="itemSource" class="full-width" onchange="updateLootList()"><option value="">-- Przeciwnik --</option></select>
-            
             <input type="text" id="itemSearch" class="full-width search-box" placeholder="🔍 Szukaj przedmiotu..." oninput="updateLootList()" style="display:none;">
             <select id="itemSelect" class="full-width" onchange="fillItemDetails()"><option value="">-- Przedmiot --</option></select>
-  
-           
-            <div id="livePreview" class="preview-box">
+            
+            <div id="livePreview" class="preview-box" style="display: none;">
                 <div class="preview-content">
                     <span class="preview-label">Podgląd</span>
                     <span id="previewName" class="preview-text">Wybierz coś...</span>
-               
- </div>
+                </div>
                 <div class="preview-icon-wrapper">
                     <img id="previewIcon" src="https://micc.garmory-cdn.cloud/obrazki/itemy/bag/bag.gif" alt="">
                 </div>
@@ -388,8 +316,7 @@
         </div>
     </div>
 
-    
- <div id="offersList" class="offers-grid"></div>
+    <div id="offersList" class="offers-grid"></div>
 </div>
 
 <div id="karczmaPanel">
@@ -446,12 +373,9 @@
 <div id="calcModal" style="display: none; position: fixed; z-index: 10005; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.85); align-items: center; justify-content: center; backdrop-filter: blur(3px);">
     <div style="background: #1a1a1a; padding: 25px; border: 2px solid var(--gold); border-radius: 12px; width: 90%; max-width: 400px; position:relative;">
         <button onclick="document.getElementById('calcModal').style.display='none'" style="position:absolute; top:10px; right:15px; background:none; border:none; color:#888; cursor:pointer; font-size:1.2em;">✕</button>
-        
         <h3 style="color:var(--gold); font-family:'MedievalSharp'; margin-top:0; text-align:center;">Kalkulator Łupu</h3>
-        
         <label style="color:#aaa; font-size:0.8em;">Kwota sprzedaży (np. 1.2g, 150m)</label>
         <input type="text" id="calcAmount" placeholder="np. 1.2g lub 1200m" style="margin-bottom:10px;">
-        
         <div class="calc-inputs">
             <div style="flex:1;">
                 <label style="color:#aaa; font-size:0.8em;">Liczba osób (razem)</label>
@@ -462,17 +386,12 @@
                 <input type="number" id="calcTax" value="0" min="0" max="100">
             </div>
         </div>
-
         <label class="toggle-wrapper">
             <input type="checkbox" id="calcFinderRule" checked> 
             <span>Zasada Znalazcy (50%)</span>
         </label>
-        
-         <button onclick="calculateLoot()" class="action-btn" style="background:var(--green);">OBLICZ PODZIAŁ</button>
-        
-        <div id="calcOutput" class="calc-result" style="display:none;">
-            Wynik...
-        </div>
+        <button onclick="calculateLoot()" class="action-btn" style="background:var(--green);">OBLICZ PODZIAŁ</button>
+        <div id="calcOutput" class="calc-result" style="display:none;">Wynik...</div>
     </div>
 </div>
 
@@ -495,10 +414,8 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
     const provider = new GoogleAuthProvider();
-    window.escapeHtml = function(text) { 
-        return text ? text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;") : ""; 
-    };
-
+    
+    window.escapeHtml = function(text) { return text ? text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;") : ""; };
     window.isValidImageUrl = (url) => url && /^https?:\/\/[^<>"]+\.(jpeg|jpg|gif|png|webp|bmp)$/i.test(url);
     const ADMIN_NICK = "Stachu Drzymała";
     let currentUser = null;
@@ -510,6 +427,7 @@
     let currentEditId = null;
     let composeTarget = {};
     let isMuted = false;
+
     // --- SOUND SYSTEM ---
     const sounds = {
         click: document.getElementById('snd-click'),
@@ -523,7 +441,6 @@
         sounds[type].volume = 0.4;
         sounds[type].play().catch(e => {});
     };
-
     window.toggleMute = () => {
         isMuted = !isMuted;
         document.getElementById('muteIcon').innerText = isMuted ? '🔇' : '🔊';
@@ -532,6 +449,7 @@
     document.addEventListener('click', (e) => {
         if(e.target.tagName === 'BUTTON' || e.target.closest('button')) window.playSound('click');
     });
+
     // --- ZEGAR GRY ---
     function updateClock() {
         const now = new Date();
@@ -541,8 +459,9 @@
     }
     setInterval(updateClock, 1000);
     updateClock();
-    // --- LISTY DANYCH ---
-    // !!! UWAGA: Wklej tutaj swoje pełne listy z poprzedniego kodu !!!
+
+    // --- MIEJSCE NA TWOJE BAZY DANYCH (WKLEJ TU SWOJE PEŁNE LISTY) ---
+    // Poniżej wstawiłem skrócone wersje jako placeholdery, zamień je na swoje!
     const monstersList = {
         herosi: [
             { name: "Mroczny Patryk (35 lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/her/bardzozlypatryk.gif" },
@@ -1427,15 +1346,15 @@ const lootTable = {
         localStorage.setItem('targ_favs', JSON.stringify(favs));
         window.renderOffers();
     };
+
     // --- SYSTEM STATUSU ONLINE ---
     function startHeartbeat() {
         setInterval(async () => {
             if(currentUser) {
                 await updateDoc(doc(db, "users", currentUser.uid), { lastActive: new Date().toISOString() });
             }
-        }, 120000);
+        }, 120000); 
     }
-
     onSnapshot(collection(db, "users"), (snap) => {
         snap.docs.forEach(d => {
             activeUsers[d.id] = d.data().lastActive;
@@ -1454,7 +1373,6 @@ const lootTable = {
         const p = document.getElementById('karczmaPanel');
         p.classList.toggle('open');
     };
-
     window.sendChatMessage = async () => {
         const inp = document.getElementById('chatInput');
         const txt = inp.value.trim();
@@ -1467,7 +1385,6 @@ const lootTable = {
         });
         inp.value = "";
     };
-
     onSnapshot(query(collection(db, "chat"), orderBy("date", "asc"), limit(50)), (snap) => {
         const div = document.getElementById('chatMessages');
         div.innerHTML = "";
@@ -1475,10 +1392,10 @@ const lootTable = {
             const m = d.data();
             const time = new Date(m.date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
             div.innerHTML += `<div class="chat-msg"><b>${window.escapeHtml(m.nick)}</b>${m.text}<span class="time">${time}</span></div>`;
-        
-});
+        });
         div.scrollTop = div.scrollHeight;
     });
+
     // --- POCZTA ---
     window.openCompose = (recipientId, recipientNick, itemName) => {
         if (!currentUser) return alert("Zaloguj się!");
@@ -1488,7 +1405,6 @@ const lootTable = {
         document.getElementById('composeText').value = "";
         document.getElementById('composeModal').style.display = 'flex';
     };
-
     window.sendInternalMessage = async () => {
         const txt = document.getElementById('composeText').value;
         if (!txt) return alert("Pusto!");
@@ -1497,7 +1413,6 @@ const lootTable = {
         window.playSound('coin');
         alert("Wysłano gołębia!");
     };
-
     window.deleteMessage = async (msgId) => { if(confirm("Usunąć?")) await deleteDoc(doc(db, "wiadomosci", msgId)); };
     let unsubscribeMail = null;
     function startMailListener() {
@@ -1508,17 +1423,13 @@ const lootTable = {
             const unread = inboxMessages.filter(m => !m.read).length;
             const badge = document.getElementById('mailBadge');
             if (unread > 0) { badge.style.display = 'flex'; badge.innerText = unread; window.playSound('mail'); } else { badge.style.display = 'none'; }
-            if(document.getElementById('mailboxModal').style.display === 'flex') 
-            renderMailList(inboxMessages);
+            if(document.getElementById('mailboxModal').style.display === 'flex') renderMailList(inboxMessages);
         });
     }
-
-    window.openMailbox = () => { document.getElementById('mailboxModal').style.display = 'flex';
-    renderMailList(inboxMessages); };
+    window.openMailbox = () => { document.getElementById('mailboxModal').style.display = 'flex'; renderMailList(inboxMessages); };
     function renderMailList(msgs) {
         const c = document.getElementById('mailboxContent');
-        if (!msgs || msgs.length === 0) { c.innerHTML = '<div style="text-align:center;color:#666;padding:20px;">Pusto.</div>'; return;
-        }
+        if (!msgs || msgs.length === 0) { c.innerHTML = '<div style="text-align:center;color:#666;padding:20px;">Pusto.</div>'; return; }
         c.innerHTML = "";
         msgs.forEach(m => {
             if (!m.read) updateDoc(doc(db, "wiadomosci", m.id), { read: true });
@@ -1526,14 +1437,12 @@ const lootTable = {
         });
     }
 
-    // --- FUNKCJE POMOCNICZE ---
-    
+    // --- RENDEROWANIE OFERT ---
     function extractLevel(sourceName) {
         if (!sourceName) return 0;
         const match = sourceName.match(/\((\d+)\s*lvl\)/i);
         return match ? parseInt(match[1]) : 0;
     }
-
     function updateUserFilterOptions() {
         const select = document.getElementById('userFilterSelect');
         const currentVal = select.value;
@@ -1547,40 +1456,27 @@ const lootTable = {
         });
         if (uniqueUsers.includes(currentVal)) select.value = currentVal;
     }
-
     window.updateSourceList = () => {
         const cat = document.getElementById('sourceCategory').value;
         const sel = document.getElementById('itemSource');
         const search = document.getElementById('sourceSearch');
-        const preview = document.getElementById('livePreview'); 
-        
-        preview.style.display = 'none'; 
-        
-        if(!cat) { search.style.display = 'none';
-        return; }
+        document.getElementById('livePreview').style.display = 'none'; 
+        if(!cat) { search.style.display = 'none'; return; }
         search.style.display = 'block';
         sel.innerHTML = '<option value="">-- Przeciwnik --</option>';
         monstersList[cat].filter(m => m.name.toLowerCase().includes(search.value.toLowerCase())).forEach(m => {
-            let o = document.createElement('option'); 
-            o.value = m.name; 
-            o.dataset.img = m.img; // DODAWANIE ATRYBUTU DATA-IMG
-            o.innerText = m.name; 
-            sel.appendChild(o);
+            let o = document.createElement('option'); o.value = m.name; o.dataset.img = m.img; o.innerText = m.name; sel.appendChild(o);
         });
     };
-
     window.updateLootList = () => {
         const selSource = document.getElementById('itemSource');
         const srcName = selSource.value;
         const srcImg = selSource.options[selSource.selectedIndex]?.dataset.img;
-        
         const selItem = document.getElementById('itemSelect');
         const searchItem = document.getElementById('itemSearch');
         const preview = document.getElementById('livePreview');
         const previewIcon = document.getElementById('previewIcon');
         const previewName = document.getElementById('previewName');
-
-        // AKTUALIZACJA PODGLĄDU NA POTWORA
         if (srcImg) {
             preview.style.display = 'flex';
             previewIcon.src = srcImg;
@@ -1588,43 +1484,34 @@ const lootTable = {
         } else {
             preview.style.display = 'none';
         }
-
-        if(!srcName || !lootTable[srcName]) { searchItem.style.display = 'none'; selItem.style.display = 'none'; return;
-        }
+        if(!srcName || !lootTable[srcName]) { searchItem.style.display = 'none'; selItem.style.display = 'none'; return; }
         searchItem.style.display = 'block'; selItem.style.display = 'block';
         selItem.innerHTML = '<option value="">-- Przedmiot --</option>';
         lootTable[srcName].filter(i => i.stats.split('||')[0].toLowerCase().includes(searchItem.value.toLowerCase())).forEach(i => {
             let o = document.createElement('option'); o.value = JSON.stringify(i); o.innerText = i.stats.split('||')[0]; selItem.appendChild(o);
         });
     };
-
     window.fillItemDetails = () => {
         const val = document.getElementById('itemSelect').value;
         const preview = document.getElementById('livePreview');
         const previewIcon = document.getElementById('previewIcon');
         const previewName = document.getElementById('previewName');
         if(!val) {
-            // Jeśli odznaczono przedmiot, pokaż z powrotem potwora
             window.updateLootList();
             return;
         }
-
         const data = JSON.parse(val);
         const name = data.stats.split('||')[0];
         document.getElementById('itemName').value = name;
         document.getElementById('itemImg').value = data.img;
-        
-        // AKTUALIZACJA PODGLĄDU NA PRZEDMIOT
-        preview.style.display = 'flex';
+        preview.style.display = 'flex'; 
         previewIcon.src = data.img;
         previewName.innerText = name;
-        
         const statsPart = data.stats.split('||')[1];
         if (statsPart && statsPart.includes('opis=')) {
             document.getElementById('itemDesc').value = statsPart.split('opis=')[1].split(';')[0].replaceAll('[br]', '\n');
         } else { document.getElementById('itemDesc').value = ""; }
     };
-    // Ręczny podgląd gdy ktoś wklei link
     window.manualImgPreview = () => {
         const url = document.getElementById('itemImg').value;
         if(window.isValidImageUrl(url)) {
@@ -1633,14 +1520,10 @@ const lootTable = {
             document.getElementById('previewName').innerText = document.getElementById('itemName').value || "Twój przedmiot";
         }
     };
-    // Generowanie Tooltipa - WERSJA CZYSTA (bez nawiasów w tytule)
     function getTooltipHtml(dataName, dataImg) {
-        // Tworzymy "czystą" nazwę do wyświetlania (usuwamy nawiasy z końca)
         const cleanName = dataName.replace(/\s*\([^)]*\)$/, "");
         let foundStats = "";
         let rarityClass = "legendary";
-
-        // Szukamy statystyk w tabeli UŻYWAJĄC PEŁNEJ NAZWY (dataName), żeby znaleźć pasujący przedmiot
         for (const mob in lootTable) {
             const item = lootTable[mob].find(i => i.img === dataImg || i.stats.split('||')[0] === dataName);
             if (item) {
@@ -1653,25 +1536,20 @@ const lootTable = {
                 break;
             }
         }
-
         let contentHtml = "";
         if (foundStats) {
             contentHtml = `<div class="tooltip-stats">${foundStats}</div>`;
         } else {
-            // W linku też używamy czystej nazwy, żeby lepiej szukało
             const safeName = encodeURIComponent(cleanName);
             const mwLink = `https://margoworld.pl/item?name=${safeName}`;
-            
             contentHtml = `
                 <div class="tooltip-stats" style="margin-top:8px; padding-top:8px; border-top:1px dashed #555;">
                     <a href="${mwLink}" target="_blank" style="color:var(--gold); text-decoration:none; font-weight:bold; cursor:pointer; display:block; padding:5px; background:rgba(255,215,0,0.1); border-radius:4px;">
                         🔗 Sprawdź na MargoWorld
-               
                      </a>
                 </div>
             `;
         }
-
         return `
             <div class="tooltip-container" style="pointer-events: auto;">
                 <div class="tooltip-name ${rarityClass}">${window.escapeHtml(cleanName)}</div>
@@ -1680,24 +1558,17 @@ const lootTable = {
             </div>
         `;
     }
-
-    // --- KALKULATOR ŁUPÓW (LOGIKA) ---
     function parseGold(str) {
         if(!str) return 0;
-        // Zamień przecinek na kropkę, usuń spacje, zmniejsz litery
         str = str.toString().toLowerCase().replace(',', '.').replace(/\s/g, '');
         let multiplier = 1;
-        if (str.endsWith('g')) multiplier = 1000000000; // 1g = 1 000 000 000
+        if (str.endsWith('g')) multiplier = 1000000000;
         else if (str.endsWith('m')) multiplier = 1000000;
-        // 1m = 1 000 000
         else if (str.endsWith('k')) multiplier = 1000;
-        // 1k = 1 000
-        
         const num = parseFloat(str);
         if (isNaN(num)) return 0;
         return Math.floor(num * multiplier);
     }
-
     window.toggleCalc = () => {
         const modal = document.getElementById('calcModal');
         modal.style.display = (modal.style.display === 'flex') ? 'none' : 'flex';
@@ -1715,7 +1586,6 @@ const lootTable = {
             resultBox.innerText = "Podaj poprawną kwotę i liczbę graczy!";
             return;
         }
-
         const taxAmount = Math.floor(amount * (tax / 100));
         const netAmount = amount - taxAmount;
         const format = (num) => num.toLocaleString('pl-PL');
@@ -1739,7 +1609,6 @@ const lootTable = {
                 <div>Dla każdego (${totalPlayers} os.): <br><span class="highlight-text" style="font-size:1.4em;">${format(share)} złota</span></div>
             `;
         }
-
         resultBox.style.display = 'block';
         resultBox.style.color = '#eee';
         resultBox.innerHTML = html;
@@ -1755,8 +1624,6 @@ const lootTable = {
         });
         window.renderOffers();
     };
-
-// --- RENDEROWANIE OFERT (CZYSTE NAZWY) ---
     window.renderOffers = () => {
         const list = document.getElementById('offersList');
         const search = document.getElementById('globalSearch').value.toLowerCase();
@@ -1775,21 +1642,19 @@ const lootTable = {
             const isOwner = currentUser && data.userId === currentUser.uid;
             const monsterLvl = extractLevel(data.source);
 
-           
-             // Filtry
+            // Filtry
             if(currentFilters.type === 'fav' && !isFav) return;
             if(currentFilters.type === 'mine' && !isOwner) return;
             if(currentFilters.type !== 'fav' && currentFilters.type !== 'mine' && currentFilters.type !== 'all' && data.type !== currentFilters.type) return;
             if(currentFilters.cat === 'herosi' && !isHeros) return;
             if(currentFilters.cat === 'e2' && !isE2) return;
    
-         
             // Wyszukiwanie
             if(!data.name.toLowerCase().includes(search)) return;
             if(selectedUser && data.nick !== selectedUser) return;
             if(monsterLvl < minLvl || monsterLvl > maxLvl) return;
 
-            // Filtrowanie profesji (logika zostaje po staremu, używa pełnej nazwy)
+            // Filtrowanie profesji
             if (selectedProf && selectedProf !== 'a') {
                 const match = data.name.match(/\(([^)]+)\)[^()]*$/);
                 if (match) {
@@ -1810,10 +1675,9 @@ const lootTable = {
             if (data.type === 'zamienie') typeClass = "type-zamienie";
 
             const tooltipHtml = getTooltipHtml(data.name, data.img);
-            // --- NOWOŚĆ: Tworzymy czystą nazwę tylko do wyświetlenia na karcie ---
             const displayName = data.name.replace(/\s*\([^)]*\)$/, "");
-            // ---------------------------------------------------------------------
 
+            // --- NOWE PRZYCISKI ---
             let btnRes = "";
             if (!data.reservedBy) {
                 btnRes = `<button class="small-btn reserve-btn" onclick="reserveOffer('${data.id}')" title="Zarezerwuj">🛡️</button>`;
@@ -1821,7 +1685,7 @@ const lootTable = {
                 btnRes = `<button class="small-btn unreserve-btn" onclick="cancelReservation('${data.id}')" title="Cofnij rezerwację">🔓</button>`;
             }
 
-            let mailBtn = (!isOwner && currentUser) ? `<button class="small-btn msg-btn" onclick="openCompose('${data.userId}', '${window.escapeHtml(data.nick)}', '${window.escapeHtml(data.name)}')" title="Wiadomość">✉️</button>` : "";
+            let mailBtn = (!isOwner && currentUser) ? `<button class="small-btn msg-btn" onclick="openCompose('${data.userId}', '${window.escapeHtml(data.nick)}', '${window.escapeHtml(data.name)}')" title="Wyślij wiadomość">✉️</button>` : "";
             
             let ownerBtns = "";
             if (isOwner) {
@@ -1835,41 +1699,26 @@ const lootTable = {
             list.innerHTML += `
                 <div class="offer-card ${typeClass}">
                     ${tooltipHtml}
-                    
                     <div class="tag ${data.type}">${data.type.toUpperCase()}</div>
-                  
                     <button class="fav-btn ${isFav?'active':''}" onclick="toggleFav('${data.id}')">❤</button>
-
-                    ${window.isValidImageUrl(data.img) ?
-                    `<img src="${data.img}" class="item-img">` : ""}
-
+                    ${window.isValidImageUrl(data.img) ? `<img src="${data.img}" class="item-img">` : ""}
                     <div class="item-title">${window.escapeHtml(displayName)}</div>
-                    
                     <div class="item-source">
                         <img src="${data.sourceImg}"> <span>${data.source}</span>
-        
                     </div>
-
                     <div class="price-tag">
                         ${window.escapeHtml(data.price)}
                     </div>
+                     ${data.reservedBy ? `<div style="font-size:0.7em; color:var(--green); margin:5px 0;">🔒 Rez: ${data.reservedBy}</div>` : ""}
+                    ${data.desc ? `<div style="font-size:0.8em; color:#888; font-style:italic; margin-bottom:10px; text-align:center;">"${window.escapeHtml(data.desc)}"</div>` : ""}
                     
-   
-                     ${data.reservedBy ?
-                    `<div style="font-size:0.7em; color:var(--green); margin:5px 0;">🔒 Rez: ${data.reservedBy}</div>` : ""}
-
-                    ${data.desc ?
-                    `<div style="font-size:0.8em; color:#888; font-style:italic; margin-bottom:10px; text-align:center;">"${window.escapeHtml(data.desc)}"</div>` : ""}
-
                     <div class="seller-info">
                         <div class="seller-left">
                             <div class="avatar-wrapper">
-                  
                                 <img src="${data.avatar}" class="tiny-avatar">
                                 ${onlineHtml}
                             </div>
-                        
-                             <b>${window.escapeHtml(data.nick)}</b>
+                            <b>${window.escapeHtml(data.nick)}</b>
                         </div>
                         <div class="btn-group">
                             ${mailBtn}
@@ -1891,369 +1740,162 @@ const lootTable = {
             const snap = await getDoc(ref);
             if(snap.exists()) {
                 currentNick = snap.data().nick;
-             
                 await updateDoc(ref, { lastActive: new Date().toISOString() });
             } else {
                 let n = prompt("Twój nick:");
                 if(n && n.trim()) { 
                     currentNick = n.trim(); 
-              
                     await setDoc(ref, {nick:currentNick, lastActive: new Date().toISOString()}); 
                 } else await signOut(auth);
             }
-
-            // 1. Ukrywamy przycisk logowania
             document.getElementById('googleLoginBtn').style.display = 'none';
-
-            // 2. POKAZUJEMY PROFIL I USTAWIAMY AVATAR (To ci zniknęło)
-      
-            document.getElementById('userProfile').style.display = 'flex';      // <--- POKAZUJE PASEK PROFILU
+            document.getElementById('userProfile').style.display = 'flex';
             document.getElementById('userAvatar').src = user.photoURL;
-            // <--- USTAWIA ZDJĘCIE
             document.getElementById('userNickDisplay').innerText = currentNick;
-            // <--- USTAWIA NICK
-
-            // 3. Logika przycisku Wystaw Artefakt (To co chciałeś wcześniej)
             document.getElementById('toggleAddBtn').style.display = 'block';
             document.getElementById('addOfferPanel').style.display = 'none'; 
-            
             startMailListener();
             startHeartbeat();
         } else {
-            // Stan wylogowania
             document.getElementById('googleLoginBtn').style.display = 'flex';
-            document.getElementById('userProfile').style.display = 'none'; // Ukrywa profil
+            document.getElementById('userProfile').style.display = 'none';
             document.getElementById('addOfferPanel').style.display = 'none';
             document.getElementById('toggleAddBtn').style.display = 'none';
         }
         window.renderOffers();
     });
-    // --- DODAWANIE OFERTY Z WALIDACJĄ CENY ---
-    // --- DODAWANIE OFERTY (ŚCISŁA WALIDACJA) ---
     window.addOffer = async () => {
         const sel = document.getElementById('itemSource');
         const priceInput = document.getElementById('itemPrice');
-        const priceVal = priceInput.value.trim().replace(',', '.'); // Zamiana przecinka na kropkę
-        
-        // 1. Walidacja wyboru przeciwnika
+        const priceVal = priceInput.value.trim().replace(',', '.'); 
         if(!sel.value) return window.alert("Błąd: Wybierz przeciwnika z listy!");
-        // 2. Walidacja ceny (Regex Ścisły)
-        // ^ = start, \d+ = liczby, (\.\d+)?
-        // = opcjonalnie ułamek, [kmg] = OBOWIĄZKOWO jedna z liter, $ = koniec
         const pricePattern = /^\d+(\.\d+)?[kmg]$/i;
-        if (!priceVal) {
-            return window.alert("Błąd: Podaj cenę!");
-        }
-
-        if (!pricePattern.test(priceVal)) {
-            return window.alert("Błąd formatu! Cena MUSI kończyć się literą k, m lub g (np. 500k, 150m, 1.2g).");
-        }
-
-        // Jeśli wszystko ok -> Wysyłamy do Firebase
+        if (!priceVal) { return window.alert("Błąd: Podaj cenę!"); }
+        if (!pricePattern.test(priceVal)) { return window.alert("Błąd formatu! Cena MUSI kończyć się literą k, m lub g (np. 500k, 150m, 1.2g)."); }
         await addDoc(collection(db, "oferty"), {
             userId: currentUser.uid, 
             nick: currentNick, 
             avatar: currentUser.photoURL,
             type: document.getElementById('offerType').value,
             name: document.getElementById('itemName').value || "Nieznany przedmiot",
-    
-            price: priceVal.toLowerCase(), // Zapisujemy np. 150M jako 150m
+            price: priceVal.toLowerCase(), 
             source: sel.value, 
             sourceImg: sel.options[sel.selectedIndex].dataset.img,
             desc: document.getElementById('itemDesc').value,
             img: document.getElementById('itemImg').value,
             date: new Date().toISOString(), 
             reservedBy: null
-    
         });
-        
         window.playSound('coin');
         window.alert("Dodano ofertę!");
-        
-        // Czyścimy pola
         document.getElementById('itemPrice').value = "";
-        document.getElementById('itemPrice').style.borderColor = "#333"; // Reset koloru ramki
+        document.getElementById('itemPrice').style.borderColor = "#333"; 
         document.getElementById('itemName').value = "";
         document.getElementById('itemImg').value = "";
         document.getElementById('itemDesc').value = "";
         document.getElementById('livePreview').style.display = 'none';
     };
     
-    window.reserveOffer = async (id) => { if(!currentNick) return alert("Zaloguj się!");
-    await updateDoc(doc(db, "oferty", id), { reservedBy: currentNick }); window.playSound('click'); };
+    window.reserveOffer = async (id) => { if(!currentNick) return alert("Zaloguj się!"); await updateDoc(doc(db, "oferty", id), { reservedBy: currentNick }); window.playSound('click'); };
     window.cancelReservation = async (id) => { await updateDoc(doc(db, "oferty", id), { reservedBy: null }); window.playSound('click'); };
     window.deleteOffer = async (id) => { if(confirm("Usunąć?")) await deleteDoc(doc(db, "oferty", id)); };
     window.logout = () => signOut(auth);
     window.searchMargo = () => window.open(`https://margoworld.pl/item?name=${encodeURIComponent(document.getElementById('itemName').value)}`);
-    window.openFullEdit = (id, n, p, d, i) => { currentEditId = id; document.getElementById('fullEditName').value=n; document.getElementById('fullEditPrice').value=p; document.getElementById('fullEditDesc').value=d;
-    document.getElementById('fullEditImg').value=i; document.getElementById('editModal').style.display='flex'; };
+    window.openFullEdit = (id, n, p, d, i) => { currentEditId = id; document.getElementById('fullEditName').value=n; document.getElementById('fullEditPrice').value=p; document.getElementById('fullEditDesc').value=d; document.getElementById('fullEditImg').value=i; document.getElementById('editModal').style.display='flex'; };
     window.closeFullEdit = () => document.getElementById('editModal').style.display='none';
-    window.confirmFullEdit = async () => { await updateDoc(doc(db, "oferty", currentEditId), { name: document.getElementById('fullEditName').value, price: document.getElementById('fullEditPrice').value, desc: document.getElementById('fullEditDesc').value, img: document.getElementById('fullEditImg').value });
-    window.closeFullEdit(); };
-
+    window.confirmFullEdit = async () => { await updateDoc(doc(db, "oferty", currentEditId), { name: document.getElementById('fullEditName').value, price: document.getElementById('fullEditPrice').value, desc: document.getElementById('fullEditDesc').value, img: document.getElementById('fullEditImg').value }); window.closeFullEdit(); };
     window.updateSourceList = () => {
         const cat = document.getElementById('sourceCategory').value;
         const sel = document.getElementById('itemSource');
         const search = document.getElementById('sourceSearch');
         const preview = document.getElementById('livePreview'); 
-        
         preview.style.display = 'none'; 
-        
-        if(!cat) { search.style.display = 'none';
-        return; }
+        if(!cat) { search.style.display = 'none'; return; }
         search.style.display = 'block';
         sel.innerHTML = '<option value="">-- Przeciwnik --</option>';
         monstersList[cat].filter(m => m.name.toLowerCase().includes(search.value.toLowerCase())).forEach(m => {
-            let o = document.createElement('option'); 
-            o.value = m.name; 
-            o.dataset.img = m.img; // DODAWANIE ATRYBUTU DATA-IMG
-            o.innerText = m.name; 
-            sel.appendChild(o);
+            let o = document.createElement('option'); o.value = m.name; o.dataset.img = m.img; o.innerText = m.name; sel.appendChild(o);
         });
     };
-
     window.updateLootList = () => {
         const selSource = document.getElementById('itemSource');
         const srcName = selSource.value;
         const srcImg = selSource.options[selSource.selectedIndex]?.dataset.img;
-        
         const selItem = document.getElementById('itemSelect');
         const searchItem = document.getElementById('itemSearch');
         const preview = document.getElementById('livePreview');
         const previewIcon = document.getElementById('previewIcon');
         const previewName = document.getElementById('previewName');
-
-        // AKTUALIZACJA PODGLĄDU NA POTWORA
-        if (srcImg) {
-            preview.style.display = 'flex';
-            previewIcon.src = srcImg;
-            previewName.innerText = srcName;
-        } else {
-            preview.style.display = 'none';
-        }
-
-        if(!srcName || !lootTable[srcName]) { searchItem.style.display = 'none'; selItem.style.display = 'none'; return;
-        }
+        if (srcImg) { preview.style.display = 'flex'; previewIcon.src = srcImg; previewName.innerText = srcName; } else { preview.style.display = 'none'; }
+        if(!srcName || !lootTable[srcName]) { searchItem.style.display = 'none'; selItem.style.display = 'none'; return; }
         searchItem.style.display = 'block'; selItem.style.display = 'block';
         selItem.innerHTML = '<option value="">-- Przedmiot --</option>';
         lootTable[srcName].filter(i => i.stats.split('||')[0].toLowerCase().includes(searchItem.value.toLowerCase())).forEach(i => {
             let o = document.createElement('option'); o.value = JSON.stringify(i); o.innerText = i.stats.split('||')[0]; selItem.appendChild(o);
         });
     };
-
     window.fillItemDetails = () => {
         const val = document.getElementById('itemSelect').value;
         const preview = document.getElementById('livePreview');
         const previewIcon = document.getElementById('previewIcon');
         const previewName = document.getElementById('previewName');
-        if(!val) {
-            // Jeśli odznaczono przedmiot, pokaż z powrotem potwora
-            window.updateLootList();
-            return;
-        }
-
+        if(!val) { window.updateLootList(); return; }
         const data = JSON.parse(val);
         const name = data.stats.split('||')[0];
         document.getElementById('itemName').value = name;
         document.getElementById('itemImg').value = data.img;
-        
-        // AKTUALIZACJA PODGLĄDU NA PRZEDMIOT
-        preview.style.display = 'flex';
+        preview.style.display = 'flex'; 
         previewIcon.src = data.img;
         previewName.innerText = name;
-        
         const statsPart = data.stats.split('||')[1];
         if (statsPart && statsPart.includes('opis=')) {
             document.getElementById('itemDesc').value = statsPart.split('opis=')[1].split(';')[0].replaceAll('[br]', '\n');
         } else { document.getElementById('itemDesc').value = ""; }
     };
-    // Ręczny podgląd gdy ktoś wklei link
-    window.manualImgPreview = () => {
-        const url = document.getElementById('itemImg').value;
-        if(window.isValidImageUrl(url)) {
-            document.getElementById('livePreview').style.display = 'flex';
-            document.getElementById('previewIcon').src = url;
-            document.getElementById('previewName').innerText = document.getElementById('itemName').value || "Twój przedmiot";
-        }
-    };
-    // Generowanie Tooltipa - WERSJA CZYSTA (bez nawiasów w tytule)
-    function getTooltipHtml(dataName, dataImg) {
-        // Tworzymy "czystą" nazwę do wyświetlania (usuwamy nawiasy z końca)
-        const cleanName = dataName.replace(/\s*\([^)]*\)$/, "");
-        let foundStats = "";
-        let rarityClass = "legendary";
-
-        // Szukamy statystyk w tabeli UŻYWAJĄC PEŁNEJ NAZWY (dataName), żeby znaleźć pasujący przedmiot
-        for (const mob in lootTable) {
-            const item = lootTable[mob].find(i => i.img === dataImg || i.stats.split('||')[0] === dataName);
-            if (item) {
-                const parts = item.stats.split('||');
-                if(parts[1]) {
-                    if(parts[1].includes('rarity=heroic')) rarityClass = 'heroic';
-                    if(parts[1].includes('rarity=unique')) rarityClass = 'unique';
-                    foundStats = parts[1].replace(/;/g, '<br>').replace(/rarity=[^<]+/, '');
-                }
-                break;
-            }
-        }
-
-        let contentHtml = "";
-        if (foundStats) {
-            contentHtml = `<div class="tooltip-stats">${foundStats}</div>`;
-        } else {
-            // W linku też używamy czystej nazwy, żeby lepiej szukało
-            const safeName = encodeURIComponent(cleanName);
-            const mwLink = `https://margoworld.pl/item?name=${safeName}`;
-            
-            contentHtml = `
-                <div class="tooltip-stats" style="margin-top:8px; padding-top:8px; border-top:1px dashed #555;">
-                    <a href="${mwLink}" target="_blank" style="color:var(--gold); text-decoration:none; font-weight:bold; cursor:pointer; display:block; padding:5px; background:rgba(255,215,0,0.1); border-radius:4px;">
-                        🔗 Sprawdź na MargoWorld
-               
-                     </a>
-                </div>
-            `;
-        }
-
-        return `
-            <div class="tooltip-container" style="pointer-events: auto;">
-                <div class="tooltip-name ${rarityClass}">${window.escapeHtml(cleanName)}</div>
-                <img src="${dataImg}" class="tooltip-img">
-                ${contentHtml}
-            </div>
-        `;
-    }
-
-    // --- KALKULATOR ŁUPÓW (LOGIKA) ---
-    function parseGold(str) {
-        if(!str) return 0;
-        // Zamień przecinek na kropkę, usuń spacje, zmniejsz litery
-        str = str.toString().toLowerCase().replace(',', '.').replace(/\s/g, '');
-        let multiplier = 1;
-        if (str.endsWith('g')) multiplier = 1000000000; // 1g = 1 000 000 000
-        else if (str.endsWith('m')) multiplier = 1000000;
-        // 1m = 1 000 000
-        else if (str.endsWith('k')) multiplier = 1000;
-        // 1k = 1 000
-        
-        const num = parseFloat(str);
-        if (isNaN(num)) return 0;
-        return Math.floor(num * multiplier);
-    }
-
-    window.toggleCalc = () => {
-        const modal = document.getElementById('calcModal');
-        modal.style.display = (modal.style.display === 'flex') ? 'none' : 'flex';
-    };
-    window.calculateLoot = () => {
-        const rawAmount = document.getElementById('calcAmount').value;
-        const amount = parseGold(rawAmount);
-        const totalPlayers = parseInt(document.getElementById('calcPlayers').value) || 1;
-        const tax = parseFloat(document.getElementById('calcTax').value) || 0;
-        const useFinderRule = document.getElementById('calcFinderRule').checked;
-        const resultBox = document.getElementById('calcOutput');
-        if(amount <= 0 || totalPlayers < 1) {
-            resultBox.style.display = 'block';
-            resultBox.style.color = 'var(--red)';
-            resultBox.innerText = "Podaj poprawną kwotę i liczbę graczy!";
-            return;
-        }
-
-        const taxAmount = Math.floor(amount * (tax / 100));
-        const netAmount = amount - taxAmount;
-        const format = (num) => num.toLocaleString('pl-PL');
-        let html = `<div style="font-size:0.8em; color:#888; border-bottom:1px solid #333; padding-bottom:5px; margin-bottom:10px;">
-            Sprzedaż: <b>${format(amount)}</b><br>
-            - Podatek (${tax}%): ${format(taxAmount)}<br>
-            = Do podziału: <b style="color:#eee">${format(netAmount)}</b>
-        </div>`;
-        if (useFinderRule && totalPlayers > 1) {
-            const finderShare = Math.floor(netAmount * 0.5);
-            const remainder = netAmount - finderShare;
-            const othersCount = totalPlayers - 1;
-            const othersShare = Math.floor(remainder / othersCount);
-            html += `
-                <div>👑 Znalazca (50%): <br><span class="highlight-text" style="font-size:1.3em;">${format(finderShare)} złota</span></div>
-                <div style="margin-top:10px;">👥 Reszta ekipy (${othersCount} os.): <br><span style="color:#4fffa8; font-weight:bold;">${format(othersShare)} złota</span> <small>/os.</small></div>
-            `;
-        } else {
-            const share = Math.floor(netAmount / totalPlayers);
-            html += `
-                <div>Dla każdego (${totalPlayers} os.): <br><span class="highlight-text" style="font-size:1.4em;">${format(share)} złota</span></div>
-            `;
-        }
-
-        resultBox.style.display = 'block';
-        resultBox.style.color = '#eee';
-        resultBox.innerHTML = html;
-        window.playSound('coin');
-    };
-    window.setFilter = (type, val) => {
-        if (type === 'cat' && currentFilters.cat === val) currentFilters.cat = 'all';
-        else currentFilters[type] = val;
-        document.querySelectorAll('.filter-btn').forEach(b => {
-            const id = b.id.replace('f-', '');
-            if(type==='type' && ['all','sprzedam','kupie','zamienie','fav','mine'].includes(id)) b.classList.toggle('active', id===currentFilters.type);
-            if(type==='cat' && ['herosi','e2'].includes(id)) b.classList.toggle('active', id===currentFilters.cat);
-        });
+    onSnapshot(query(collection(db, "oferty"), orderBy("date", "desc")), (snap) => {
+        allOffers = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        updateUserFilterOptions();
         window.renderOffers();
-    };
-
-    // --- SYSTEM POWIADOMIEN W PRAWYM GÓRNYM ROGU ---
+    });
     window.alert = function(message) {
         const container = document.getElementById('toast-container');
         const toast = document.createElement('div');
         toast.className = 'toast';
         let icon = '⚔️';
-        if (message.toLowerCase().includes('błąd') || message.toLowerCase().includes('wybierz')) { 
-            toast.classList.add('error');
-            icon = '⚠️'; 
-        } else if (message.toLowerCase().includes('wysłana') || message.toLowerCase().includes('skopiowano') || message.toLowerCase().includes('dodano')) { 
-            toast.classList.add('success');
-            icon = '✅'; 
-        }
-        
+        if (message.toLowerCase().includes('błąd') || message.toLowerCase().includes('wybierz')) { toast.classList.add('error'); icon = '⚠️'; 
+        } else if (message.toLowerCase().includes('wysłana') || message.toLowerCase().includes('skopiowano') || message.toLowerCase().includes('dodano')) { toast.classList.add('success'); icon = '✅'; }
         toast.innerHTML = `<span style="font-size:1.2em;">${icon}</span> <span>${message}</span>`;
         container.appendChild(toast);
-        
-        setTimeout(() => { 
-            toast.style.opacity = '0';
-            setTimeout(() => toast.remove(), 300);
-        }, 4000);
+        setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 300); }, 4000);
     };
-
     const scrollBtn = document.getElementById("scrollTopBtn");
     window.onscroll = function() { 
         if (document.body.scrollTop > 300 || document.documentElement.scrollTop > 300) {
-            scrollBtn.style.display = "flex";
-            scrollBtn.style.alignItems = "center"; scrollBtn.style.justifyContent = "center";
+            scrollBtn.style.display = "flex"; scrollBtn.style.alignItems = "center"; scrollBtn.style.justifyContent = "center";
         } else { scrollBtn.style.display = "none"; }
     };
     window.topFunction = function() { window.scrollTo({top: 0, behavior: 'smooth'}); }
-
-	// --- FUNKCJA ZWIJANIA PANELU ---
     window.toggleAddOfferPanel = () => {
         const panel = document.getElementById('addOfferPanel');
         const btn = document.getElementById('toggleAddBtn');
         if (panel.style.display === 'none') {
             panel.style.display = 'block';
             btn.innerText = '− UKRYJ FORMULARZ';
-            btn.style.background = '#333'; // Zmiana koloru na ciemny po otwarciu
+            btn.style.background = '#333'; 
             btn.style.color = '#fff';
         } else {
             panel.style.display = 'none';
             btn.innerText = '+ WYSTAW ARTEFAKT';
             btn.style.background = 'linear-gradient(to bottom, #ffd700, #b8860b)';
-            // Powrót do złotego
             btn.style.color = '#000';
         }
     };
-	
 </script>
 
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
