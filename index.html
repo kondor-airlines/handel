@@ -110,19 +110,16 @@
         .icon-btn:hover { transform: scale(1.1); filter: drop-shadow(0 0 5px var(--gold)); }
         .badge { position: absolute; top: -5px; right: -5px; background: var(--red); color: white; border-radius: 50%; width: 18px; height: 18px; font-size: 0.7em; font-weight: bold; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 10px var(--red); animation: pulseBadge 2s infinite; }
 
-        /* KARCZMA (NAPRAWIONA) */
+        /* KARCZMA */
         #karczmaPanel { position: fixed; top: 0; right: -350px; width: 320px; height: 100vh; background: rgba(10, 10, 10, 0.95); border-left: 2px solid var(--gold); backdrop-filter: blur(10px); z-index: 20000; transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1); display: flex; flex-direction: column; }
         #karczmaPanel.open { right: 0; box-shadow: -10px 0 50px rgba(0,0,0,0.8); }
         .chat-header { padding: 20px; background: linear-gradient(90deg, #332b00, transparent); border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center; }
         .chat-messages { flex-grow: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 12px; }
-        
-        /* NOWE STYLE WIADOMOŚCI */
         .chat-msg { font-size: 0.85em; padding: 10px; border-radius: 8px; background: rgba(255,255,255,0.05); border: 1px solid #333; display: flex; flex-direction: column; gap: 5px; }
         .chat-top-row { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 4px; margin-bottom: 2px; }
         .chat-nick { color: var(--gold); font-weight: bold; }
         .chat-time { font-size: 0.85em; color: #666; }
         .chat-text { color: #eee; word-wrap: break-word; line-height: 1.4; }
-        
         .chat-input-area { padding: 15px; border-top: 1px solid #333; display: flex; gap: 5px; }
 
         /* SKRZYNKA & SCROLL */
@@ -153,6 +150,26 @@
         .calc-btn-toggle:hover { transform: scale(1.1); box-shadow: 0 0 20px var(--gold); }
         .toggle-wrapper { display: flex; align-items: center; gap: 10px; margin-bottom: 15px; font-size: 0.9em; color: #ccc; background: rgba(255,255,255,0.05); padding: 8px; border-radius: 6px; cursor: pointer; }
         .highlight-text { color: var(--gold); font-weight: bold; }
+        
+        /* --- NOWE STYLE DLA ENCYKLOPEDII (Bestiariusza) --- */
+        .encyclo-btn-toggle { position: fixed; bottom: 150px; right: 30px; width: 50px; height: 50px; border-radius: 50%; background: linear-gradient(135deg, #1a1a1a, #2a2a2a); border: 2px solid #ccc; color: #ccc; font-size: 1.5em; cursor: pointer; z-index: 999; box-shadow: 0 5px 15px rgba(0,0,0,0.5); transition: 0.3s; }
+        .encyclo-btn-toggle:hover { transform: scale(1.1); box-shadow: 0 0 20px white; color: white; border-color: white; }
+        
+        .bestiary-tabs { display: flex; gap: 10px; margin-bottom: 20px; justify-content: center; }
+        .tab-btn { background: #333; border: 1px solid #555; color: #888; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-family: 'MedievalSharp'; font-size: 1.1em; transition: 0.3s; }
+        .tab-btn:hover { color: white; border-color: #777; }
+        .tab-btn.active { background: var(--gold); color: black; border-color: var(--gold); }
+        
+        .bestiary-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 15px; max-height: 60vh; overflow-y: auto; padding-right: 5px; }
+        .bestiary-card { background: rgba(255,255,255,0.03); border: 1px solid #333; border-radius: 8px; padding: 15px; display: flex; flex-direction: column; align-items: center; }
+        .bestiary-mob-name { font-weight: bold; color: var(--gold); margin: 10px 0; text-align: center; }
+        .bestiary-mob-img { height: 60px; object-fit: contain; filter: drop-shadow(0 0 5px rgba(255,215,0,0.2)); }
+        
+        .loot-grid { display: flex; flex-wrap: wrap; gap: 5px; justify-content: center; width: 100%; margin-top: 10px; border-top: 1px solid #333; padding-top: 10px; }
+        .loot-item { width: 40px; height: 40px; border: 1px solid #444; border-radius: 4px; padding: 2px; background: rgba(0,0,0,0.3); transition: 0.2s; position: relative; }
+        .loot-item img { width: 100%; height: 100%; object-fit: contain; }
+        .loot-item:hover { border-color: var(--green); transform: scale(1.1); }
+        .loot-item:hover::after { content: attr(title); position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%); background: black; color: white; padding: 5px; border-radius: 4px; font-size: 0.7em; white-space: nowrap; z-index: 10; pointer-events: none; border: 1px solid #555; }
         
         @keyframes shine { 0% { left: -150%; } 100% { left: 150%; } }
         @keyframes cardAppear { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
@@ -340,6 +357,23 @@
     </div>
 </div>
 
+<button class="encyclo-btn-toggle" onclick="toggleEncyclopedia()" title="Encyklopedia Dropu">📖</button>
+
+<div id="encyclopediaModal" style="display: none; position: fixed; z-index: 10006; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.9); align-items: center; justify-content: center; backdrop-filter: blur(5px);">
+    <div style="background: #1a1a1a; padding: 25px; border: 2px solid #ccc; border-radius: 12px; width: 95%; max-width: 700px; height: 80vh; display:flex; flex-direction:column; position:relative;">
+        <button onclick="document.getElementById('encyclopediaModal').style.display='none'" style="position:absolute; top:10px; right:15px; background:none; border:none; color:#888; cursor:pointer; font-size:1.5em;">✕</button>
+        <h3 style="color:#ccc; font-family:'MedievalSharp'; margin-top:0; text-align:center; font-size: 1.8em;">Bestiariusz & Drop</h3>
+        
+        <div class="bestiary-tabs">
+            <button class="tab-btn active" onclick="switchBestiaryTab('herosi')">Herosi</button>
+            <button class="tab-btn" onclick="switchBestiaryTab('e2')">Elity II</button>
+        </div>
+        
+        <div id="bestiaryContent" class="bestiary-grid">
+            </div>
+    </div>
+</div>
+
 <button class="calc-btn-toggle" onclick="toggleCalc()" title="Kalkulator Podziału Łupu">💰</button>
 
 <div id="calcModal" style="display: none; position: fixed; z-index: 10005; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.85); align-items: center; justify-content: center; backdrop-filter: blur(3px);">
@@ -431,9 +465,6 @@
     }
     setInterval(updateClock, 1000);
     updateClock();
-
-    // --- MIEJSCE NA TWOJE BAZY DANYCH (WKLEJ TU SWOJE PEŁNE LISTY) ---
-    // Poniżej wstawiłem skrócone wersje jako placeholdery, zamień je na swoje!
     const monstersList = {
         herosi: [
             { name: "Mroczny Patryk (35 lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/her/bardzozlypatryk.gif" },
@@ -1358,7 +1389,7 @@ const lootTable = {
         inp.value = "";
     };
     
-    // NASŁUCH ENTER W CZACIE
+    // NASŁUCH ENTER W CZACIE (NAPRAWIONE)
     document.getElementById('chatInput').addEventListener('keypress', function (e) {
         if (e.key === 'Enter') {
             sendChatMessage();
@@ -1371,7 +1402,7 @@ const lootTable = {
         snap.docs.forEach(d => {
             const m = d.data();
             const time = new Date(m.date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-            // NOWA STRUKTURA WIADOMOŚCI
+            // POPRAWIONE WYŚWIETLANIE WIADOMOŚCI
             div.innerHTML += `
                 <div class="chat-msg">
                     <div class="chat-top-row">
@@ -1424,6 +1455,46 @@ const lootTable = {
             c.innerHTML += `<div class="mail-item ${!m.read?'unread':''}"><button onclick="deleteMessage('${m.id}')" class="delete-mail-btn">🗑️</button><div class="mail-meta"><span>Od: <span class="mail-author">${m.fromNick}</span></span><span>${new Date(m.date).toLocaleString()}</span></div><div class="mail-subject">${!m.read?'<span style="color:var(--gold)">[NOWA]</span> ':''}Dotyczy: ${m.item}</div><div class="mail-body">${m.text}</div></div>`;
         });
     }
+
+    // --- ENCYKLOPEDIA (NOWOŚĆ) ---
+    window.toggleEncyclopedia = () => {
+        const modal = document.getElementById('encyclopediaModal');
+        modal.style.display = (modal.style.display === 'flex') ? 'none' : 'flex';
+        if(modal.style.display === 'flex') window.switchBestiaryTab('herosi');
+    };
+
+    window.switchBestiaryTab = (cat) => {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelector(`.tab-btn[onclick*="${cat}"]`).classList.add('active');
+        window.renderBestiary(cat);
+    };
+
+    window.renderBestiary = (category) => {
+        const container = document.getElementById('bestiaryContent');
+        container.innerHTML = "";
+        
+        if (!monstersList[category]) return;
+
+        monstersList[category].forEach(mob => {
+            const loot = lootTable[mob.name] || [];
+            let lootHtml = "";
+            
+            loot.forEach(item => {
+                const pureName = item.stats.split('||')[0].replace(/\s*\([^)]*\)$/, "");
+                lootHtml += `<div class="loot-item" title="${pureName}"><img src="${item.img}"></div>`;
+            });
+
+            container.innerHTML += `
+                <div class="bestiary-card">
+                    <img src="${mob.img}" class="bestiary-mob-img">
+                    <div class="bestiary-mob-name">${mob.name}</div>
+                    <div class="loot-grid">
+                        ${lootHtml || '<div style="color:#666;font-size:0.8em;">Brak danych o dropie</div>'}
+                    </div>
+                </div>
+            `;
+        });
+    };
 
     // --- RENDEROWANIE OFERT ---
     function extractLevel(sourceName) {
@@ -1874,3 +1945,4 @@ const lootTable = {
 <div id="toast-container"></div>
 </body>
 </html>
+
