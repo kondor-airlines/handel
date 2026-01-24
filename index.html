@@ -291,17 +291,72 @@
         .chat-msg .time { font-size: 0.7em; color: #666; float: right; margin-top: 5px; }
         .chat-input-area { padding: 15px; border-top: 1px solid #333; display: flex; gap: 5px; }
 
-        /* INNE */
-        .btn-group { display: flex; gap: 5px; }
-        .small-btn { padding: 4px 8px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 0.7em; border: 1px solid transparent; }
-        .reserve-btn { background: var(--green); color: #000; }
-        .unreserve-btn { background: #444; color: #fff; }
-        .edit-added { border: 1px solid var(--gold); color: var(--gold); background: none; }
-        .delete-btn { background: #333; color: #888; }
-        .msg-btn { background: var(--purple); color: #fff; box-shadow: 0 0 10px rgba(155, 89, 182, 0.3); }
-        
-        .helper-btn { background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%); color: var(--gold); border: 1px solid var(--border); padding: 0 15px; height: 42px; cursor: pointer; border-radius: 6px; font-size: 1.2em; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.5); }
-        .helper-btn:hover { border-color: var(--gold); background: linear-gradient(135deg, #332b00 0%, #1a1500 100%); box-shadow: 0 0 10px rgba(255, 215, 0, 0.3); transform: translateY(-1px); }
+/* --- POPRAWIONE PRZYCISKI (Zgrabne i małe) --- */
+.btn-group { 
+    display: flex; 
+    align-items: center; 
+    gap: 4px; /* Mniejszy odstęp między guzikami */
+}
+
+.small-btn { 
+    height: 24px; /* Stała, niska wysokość */
+    padding: 0 8px; /* Wąskie boki */
+    border-radius: 4px; 
+    cursor: pointer; 
+    font-weight: 700; 
+    font-size: 0.7em; /* Mała, czytelna czcionka */
+    border: 1px solid transparent; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center;
+    transition: all 0.2s;
+    font-family: 'Montserrat', sans-serif;
+    text-transform: uppercase;
+}
+
+/* Przycisk REZ (Zielony) */
+.reserve-btn { 
+    background: rgba(46, 204, 113, 0.2); 
+    color: var(--green); 
+    border: 1px solid var(--green);
+}
+.reserve-btn:hover { background: var(--green); color: #000; }
+
+/* Przycisk COFNIJ (Szary) */
+.unreserve-btn { 
+    background: #333; 
+    color: #ccc; 
+    border: 1px solid #555;
+}
+
+/* Przycisk EDYTUJ (Złoty - sam tekst, bez tła) */
+.edit-added { 
+    background: rgba(255, 215, 0, 0.1); 
+    color: var(--gold); 
+    border: 1px solid var(--gold);
+}
+.edit-added:hover { background: var(--gold); color: #000; }
+
+/* Przyciski Ikony (Koperta, X) - muszą być kwadratowe */
+.icon-only {
+    width: 24px; 
+    padding: 0;
+    font-size: 1.1em; /* Nieco większa ikona */
+}
+
+.msg-btn { 
+    background: rgba(155, 89, 182, 0.2); 
+    color: #cca3ff; 
+    border: 1px solid var(--purple);
+}
+.msg-btn:hover { background: var(--purple); color: #fff; }
+
+.delete-btn { 
+    background: rgba(255, 255, 255, 0.05); 
+    color: #888; 
+    border: 1px solid #444;
+}
+.delete-btn:hover { background: var(--red); color: #fff; border-color: var(--red); }
 
         /* SKRZYNKA */
         .mail-list { display: flex; flex-direction: column; gap: 10px; max-height: 400px; overflow-y: auto; }
@@ -1915,109 +1970,116 @@ const lootTable = {
         window.renderOffers();
     };
 
-// --- RENDEROWANIE OFERT (CZYSTE NAZWY) ---
-    window.renderOffers = () => {
-        const list = document.getElementById('offersList');
-        const search = document.getElementById('globalSearch').value.toLowerCase();
-        const selectedUser = document.getElementById('userFilterSelect').value;
-        const selectedProf = document.getElementById('profFilter').value;
-        const minLvl = parseInt(document.getElementById('minLvlInput').value) || 0;
-        const maxLvl = parseInt(document.getElementById('maxLvlInput').value) || 9999;
-        const favs = JSON.parse(localStorage.getItem('targ_favs') || '[]');
+// --- RENDEROWANIE OFERT (Z POPRAWIONYMI PRZYCISKAMI) ---
+window.renderOffers = () => {
+    const list = document.getElementById('offersList');
+    const search = document.getElementById('globalSearch').value.toLowerCase();
+    const selectedUser = document.getElementById('userFilterSelect').value;
+    const selectedProf = document.getElementById('profFilter').value;
+    const minLvl = parseInt(document.getElementById('minLvlInput').value) || 0;
+    const maxLvl = parseInt(document.getElementById('maxLvlInput').value) || 9999;
+    const favs = JSON.parse(localStorage.getItem('targ_favs') || '[]');
+    
+    list.innerHTML = "";
+    let count = 0;
+
+    allOffers.forEach(data => {
+        // --- LOGIKA FILTRÓW (bez zmian) ---
+        const isHeros = monstersList.herosi.some(m => m.name === data.source);
+        const isE2 = monstersList.e2.some(m => m.name === data.source);
+        const isFav = favs.includes(data.id);
+        const isOwner = currentUser && data.userId === currentUser.uid;
+        const monsterLvl = extractLevel(data.source);
+
+        if(currentFilters.type === 'fav' && !isFav) return;
+        if(currentFilters.type === 'mine' && !isOwner) return;
+        if(currentFilters.type !== 'fav' && currentFilters.type !== 'mine' && currentFilters.type !== 'all' && data.type !== currentFilters.type) return;
+        if(currentFilters.cat === 'herosi' && !isHeros) return;
+        if(currentFilters.cat === 'e2' && !isE2) return;
         
-        list.innerHTML = "";
-        let count = 0;
+        if(!data.name.toLowerCase().includes(search)) return;
+        if(selectedUser && data.nick !== selectedUser) return;
+        if(monsterLvl < minLvl || monsterLvl > maxLvl) return;
 
-        allOffers.forEach(data => {
-            const isHeros = monstersList.herosi.some(m => m.name === data.source);
-            const isE2 = monstersList.e2.some(m => m.name === data.source);
-            const isFav = favs.includes(data.id);
-            const isOwner = currentUser && data.userId === currentUser.uid;
-            const monsterLvl = extractLevel(data.source);
+        if (selectedProf && selectedProf !== 'a') {
+            const match = data.name.match(/\(([^)]+)\)[^()]*$/);
+            if (match) {
+                const itemProfs = match[1].toLowerCase();
+                if (!itemProfs.includes(selectedProf)) return;
+            } else { return; }
+        }
 
-            // Filtry
-            if(currentFilters.type === 'fav' && !isFav) return;
-            if(currentFilters.type === 'mine' && !isOwner) return;
-            if(currentFilters.type !== 'fav' && currentFilters.type !== 'mine' && currentFilters.type !== 'all' && data.type !== currentFilters.type) return;
-            if(currentFilters.cat === 'herosi' && !isHeros) return;
-            if(currentFilters.cat === 'e2' && !isE2) return;
-            
-            // Wyszukiwanie
-            if(!data.name.toLowerCase().includes(search)) return;
-            if(selectedUser && data.nick !== selectedUser) return;
-            if(monsterLvl < minLvl || monsterLvl > maxLvl) return;
+        count++;
+        const isAdmin = currentNick === ADMIN_NICK;
+        const isOnline = isUserOnline(data.userId);
+        const onlineHtml = isOnline ? '<span class="online-dot" title="Online"></span>' : '';
+        
+        let typeClass = "";
+        if (data.type === 'sprzedam') typeClass = "type-sprzedam";
+        if (data.type === 'kupie') typeClass = "type-kupie";
+        if (data.type === 'zamienie') typeClass = "type-zamienie";
 
-            // Filtrowanie profesji (logika zostaje po staremu, używa pełnej nazwy)
-            if (selectedProf && selectedProf !== 'a') {
-                const match = data.name.match(/\(([^)]+)\)[^()]*$/);
-                if (match) {
-                    const itemProfs = match[1].toLowerCase();
-                    if (!itemProfs.includes(selectedProf)) return;
-                } else {
-                    return; 
-                }
-            }
+        const tooltipHtml = getTooltipHtml(data.name, data.img);
+        const displayName = data.name.replace(/\s*\([^)]*\)$/, "");
 
-            count++;
-            const isAdmin = currentNick === ADMIN_NICK;
-            const isOnline = isUserOnline(data.userId);
-            const onlineHtml = isOnline ? '<span class="online-dot" title="Online"></span>' : '';
-            
-            let typeClass = "";
-            if (data.type === 'sprzedam') typeClass = "type-sprzedam";
-            if (data.type === 'kupie') typeClass = "type-kupie";
-            if (data.type === 'zamienie') typeClass = "type-zamienie";
+        // --- PRZYCISKI AKCJI (Z NOWYMI KLASAMI) ---
+        
+        // Przycisk REZ / COFNIJ
+        let btnRes = !data.reservedBy ? 
+            `<button class="small-btn reserve-btn" onclick="reserveOffer('${data.id}')">REZ</button>` : 
+            (isOwner || isAdmin ? `<button class="small-btn unreserve-btn" onclick="cancelReservation('${data.id}')">COFNIJ</button>` : "");
+        
+        // Przycisk Wiadomości (Koperta) - klasa icon-only
+        let mailBtn = (!isOwner && currentUser) ? 
+            `<button class="small-btn msg-btn icon-only" onclick="openCompose('${data.userId}', '${window.escapeHtml(data.nick)}', '${window.escapeHtml(data.name)}')" title="Wiadomość">✉️</button>` : "";
 
-            const tooltipHtml = getTooltipHtml(data.name, data.img);
+        // Przycisk Edycji
+        let editBtn = isOwner ? 
+            `<button class="small-btn edit-added" onclick="openFullEdit('${data.id}','${window.escapeHtml(data.name)}','${window.escapeHtml(data.price)}','${window.escapeHtml(data.desc)}','${window.escapeHtml(data.img)}')">EDYTUJ</button>` : "";
 
-            // --- NOWOŚĆ: Tworzymy czystą nazwę tylko do wyświetlenia na karcie ---
-            const displayName = data.name.replace(/\s*\([^)]*\)$/, "");
-            // ---------------------------------------------------------------------
+        // Przycisk Usuwania (X) - klasa icon-only
+        let delBtn = (isOwner || isAdmin) ? 
+            `<button class="small-btn delete-btn icon-only" onclick="deleteOffer('${data.id}')">✕</button>` : "";
+        
+        // --- HTML KARTY ---
+        list.innerHTML += `
+            <div class="offer-card ${typeClass}">
+                ${tooltipHtml}
+                <div class="tag ${data.type}">${data.type.toUpperCase()}</div>
+                <button class="fav-btn ${isFav?'active':''}" onclick="toggleFav('${data.id}')">❤</button>
 
-            let btnRes = !data.reservedBy ? `<button class="small-btn reserve-btn" onclick="reserveOffer('${data.id}')">REZ</button>` : (isOwner || isAdmin ? `<button class="small-btn unreserve-btn" onclick="cancelReservation('${data.id}')">COFNIJ</button>` : "");
-            let mailBtn = (!isOwner && currentUser) ? `<button class="small-btn msg-btn" onclick="openCompose('${data.userId}', '${window.escapeHtml(data.nick)}', '${window.escapeHtml(data.name)}')" title="Wiadomość">✉️</button>` : "";
-            
-            list.innerHTML += `
-                <div class="offer-card ${typeClass}">
-                    ${tooltipHtml}
-                    
-                    <div class="tag ${data.type}">${data.type.toUpperCase()}</div>
-                    <button class="fav-btn ${isFav?'active':''}" onclick="toggleFav('${data.id}')">❤</button>
+                ${window.isValidImageUrl(data.img) ? `<img src="${data.img}" class="item-img">` : ""}
 
-                    ${window.isValidImageUrl(data.img) ? `<img src="${data.img}" class="item-img">` : ""}
+                <div class="item-title">${window.escapeHtml(displayName)}</div>
+                
+                <div class="item-source">
+                    <img src="${data.sourceImg}"> <span>${data.source}</span>
+                </div>
 
-                    <div class="item-title">${window.escapeHtml(displayName)}</div>
-                    
-                    <div class="item-source">
-                        <img src="${data.sourceImg}"> <span>${data.source}</span>
-                    </div>
+                <div class="price-tag">${window.escapeHtml(data.price)}</div>
+                
+                ${data.reservedBy ? `<div style="font-size:0.7em; color:var(--green); margin:5px 0;">🔒 Rez: ${data.reservedBy}</div>` : ""}
+                ${data.desc ? `<div style="font-size:0.8em; color:#888; font-style:italic; margin-bottom:10px; text-align:center;">"${window.escapeHtml(data.desc)}"</div>` : ""}
 
-                    <div class="price-tag">
-                        ${window.escapeHtml(data.price)}
-                    </div>
-                    
-                    ${data.reservedBy ? `<div style="font-size:0.7em; color:var(--green); margin:5px 0;">🔒 Rez: ${data.reservedBy}</div>` : ""}
-
-                    ${data.desc ? `<div style="font-size:0.8em; color:#888; font-style:italic; margin-bottom:10px; text-align:center;">"${window.escapeHtml(data.desc)}"</div>` : ""}
-
-                    <div class="seller-info">
-                        <div class="seller-left">
-                            <div class="avatar-wrapper">
-                                <img src="${data.avatar}" class="tiny-avatar">
-                                ${onlineHtml}
-                            </div>
-                            <b>${window.escapeHtml(data.nick)}</b>
+                <div class="seller-info">
+                    <div class="seller-left">
+                        <div class="avatar-wrapper">
+                            <img src="${data.avatar}" class="tiny-avatar">
+                            ${onlineHtml}
                         </div>
-                        <div class="btn-group">
-                            ${mailBtn} ${btnRes}
-                            ${isOwner ? `<button class="small-btn edit-added" onclick="openFullEdit('${data.id}','${window.escapeHtml(data.name)}','${window.escapeHtml(data.price)}','${window.escapeHtml(data.desc)}','${window.escapeHtml(data.img)}')">EDYTUJ</button>` : ""}
-                            ${isOwner || isAdmin ? `<button class="small-btn delete-btn" onclick="deleteOffer('${data.id}')">✕</button>` : ""}
-                        </div>
+                        <b>${window.escapeHtml(data.nick)}</b>
                     </div>
-                </div>`;
-        });
-        document.getElementById('offerStats').innerText = `Widocznych ofert: ${count}`;
-    };
+                    <div class="btn-group">
+                        ${mailBtn}
+                        ${btnRes}
+                        ${editBtn}
+                        ${delBtn}
+                    </div>
+                </div>
+            </div>`;
+    });
+    document.getElementById('offerStats').innerText = `Widocznych ofert: ${count}`;
+};
     window.loginGoogle = () => { signInWithPopup(auth, provider).catch(e => alert(e.message)); };
     document.getElementById('googleLoginBtn').addEventListener('click', window.loginGoogle);
     
@@ -2253,3 +2315,4 @@ const lootTable = {
 <div id="toast-container"></div>
 </body>
 </html>
+
