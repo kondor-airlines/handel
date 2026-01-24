@@ -42,7 +42,7 @@
         header {
             display: flex; justify-content: space-between; align-items: center;
             border-bottom: 2px solid var(--border); padding-bottom: 20px; margin-bottom: 20px;
-            flex-wrap: wrap; gap: 10px;
+            flex-wrap: wrap; gap: 15px;
         }
 
         h1 { 
@@ -60,9 +60,23 @@
         }
         .login-btn:hover { background: var(--gold); color: #000; box-shadow: 0 0 20px rgba(255, 215, 0, 0.4); transform: translateY(-2px); }
 
-        .user-profile { display: none; align-items: center; gap: 12px; background: rgba(255,255,255,0.05); padding: 5px 15px; border-radius: 50px; border: 1px solid var(--border); }
-        .user-avatar { width: 35px; height: 35px; border-radius: 50%; border: 2px solid var(--gold); position: relative; }
+        .user-profile { display: none; align-items: center; gap: 15px; background: rgba(255,255,255,0.05); padding: 8px 20px; border-radius: 50px; border: 1px solid var(--border); }
+        .user-avatar { width: 40px; height: 40px; border-radius: 50%; border: 2px solid var(--gold); position: relative; object-fit: cover; }
         .logout-link { color: #ff6666; font-size: 0.75em; text-decoration: none; cursor: pointer; text-transform: uppercase; font-weight: bold; }
+
+        /* --- NAPRAWIONE IKONKI --- */
+        .icon-btn { 
+            background: transparent !important; 
+            border: none !important; 
+            cursor: pointer; 
+            position: relative; 
+            font-size: 1.6em; /* Powiększone */
+            transition: 0.3s; 
+            padding: 0 5px;
+            display: flex; align-items: center; justify-content: center;
+            line-height: 1;
+        }
+        .icon-btn:hover { transform: scale(1.15); filter: drop-shadow(0 0 5px var(--gold)); }
 
         /* --- FILTRY --- */
         .filters { display: flex; gap: 10px; margin-bottom: 15px; justify-content: center; flex-wrap: wrap; align-items: center; }
@@ -80,7 +94,6 @@
         .lvl-input { width: 60px; color: #eee; text-align: center; }
         .search-box { background: #151500; border-color: var(--border); color: var(--gold); padding: 8px; border-radius: 6px; width: 200px; }
 
-        /* --- NOWY PRZYCISK DODAWANIA (Zastępuje stały panel) --- */
         .add-offer-trigger {
             display: block; margin: 0 auto 30px auto;
             background: linear-gradient(to bottom, #ffd700, #b8860b);
@@ -97,81 +110,82 @@
         input, select, textarea { background: #0a0a0a; border: 1px solid #333; color: #eee; padding: 12px; border-radius: 6px; width: 100%; box-sizing: border-box; outline: none; transition: 0.3s; }
         .action-btn { background: var(--green); color: #000; border: none; padding: 15px; font-weight: 800; width: 100%; cursor: pointer; border-radius: 6px; text-transform: uppercase; transition: 0.3s; }
 
-        /* --- SLIM CARDS (POZIOME KARTY) --- */
-        .offers-grid { display: flex; flex-direction: column; gap: 10px; } /* Zmieniono z Grid na Flex Column */
+        /* --- KARTY OFERT (PIONOWE - PRZYWRÓCONE) --- */
+        .offers-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); /* Powrót do siatki */
+            gap: 25px; 
+        } 
         
         .offer-card { 
-            background: rgba(10, 10, 10, 0.9); backdrop-filter: blur(4px); 
-            border: 1px solid #333; border-radius: 8px; padding: 10px 15px; 
-            position: relative; transition: 0.2s; 
-            display: flex; flex-direction: row; align-items: center; /* UKŁAD POZIOMY */
-            box-shadow: 0 2px 5px rgba(0,0,0,0.5); overflow: visible; 
-            animation: slideInLeft 0.4s ease-out backwards;
+            background: rgba(15, 15, 15, 0.95); backdrop-filter: blur(4px); 
+            border: 2px solid #333; /* Domyślna ramka */
+            border-radius: 10px; padding: 20px; 
+            position: relative; transition: 0.3s; 
+            display: flex; flex-direction: column; /* Powrót do pionu */
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5); overflow: visible; 
+            animation: cardAppear 0.5s ease-out backwards;
         }
-        @keyframes slideInLeft { from { opacity: 0; transform: translateX(-20px); } to { opacity: 1; transform: translateX(0); } }
+        @keyframes cardAppear { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
-        .offer-card:hover { transform: translateX(5px); border-color: #555; background: rgba(30, 30, 30, 0.95); }
+        .offer-card:hover { transform: translateY(-5px); }
 
-        /* Kolory Rzadkości (Boczne paski zamiast całej ramki) */
-        .offer-card.legendary { border-left: 4px solid var(--gold); }
-        .offer-card.heroic { border-left: 4px solid var(--heroic); }
-        .offer-card.unique { border-left: 4px solid var(--unique); }
+        /* --- KOLOROWANIE KART WEDŁUG TYPU OGŁOSZENIA --- */
+        .offer-card.type-sprzedam { border-color: var(--green); box-shadow: 0 0 15px rgba(46, 204, 113, 0.15) inset; }
+        .offer-card.type-kupie { border-color: var(--blue); box-shadow: 0 0 15px rgba(52, 152, 219, 0.15) inset; }
+        .offer-card.type-zamienie { border-color: var(--orange); box-shadow: 0 0 15px rgba(230, 126, 34, 0.15) inset; }
 
-        /* Sekcja Lewa: Obrazek */
-        .card-img-wrapper { width: 50px; height: 50px; flex-shrink: 0; margin-right: 15px; position: relative; }
-        .item-img { width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 0 3px rgba(255,255,255,0.2)); }
-
-        /* Sekcja Środkowa: Info */
-        .card-main-info { flex-grow: 1; display: flex; flex-direction: column; justify-content: center; }
-        .item-title { font-size: 1.1em; font-weight: bold; line-height: 1.2; margin-bottom: 3px; cursor: help; }
-        .offer-card.legendary .item-title { color: var(--gold); }
-        .offer-card.heroic .item-title { color: var(--heroic); }
-        .offer-card.unique .item-title { color: var(--unique); }
+        /* Card Header */
+        .card-header { display: flex; justify-content: space-between; align-items: flex-start; width: 100%; margin-bottom: 10px; }
         
-        .item-meta { font-size: 0.8em; color: #888; display: flex; gap: 10px; align-items: center; }
-        .item-meta img { height: 16px; width: auto; vertical-align: middle; margin-right: 4px; }
-        .tag { padding: 2px 6px; border-radius: 3px; font-size: 0.7em; font-weight: 800; text-transform: uppercase; }
+        /* Central Image */
+        .item-img { width: 80px; height: 80px; object-fit: contain; margin: 10px auto; display: block; filter: drop-shadow(0 0 8px rgba(255,215,0,0.2)); transition: 0.3s; }
+        .offer-card:hover .item-img { transform: scale(1.1); }
+
+        /* Title & Info */
+        .item-title { font-size: 1.2em; font-weight: bold; text-align: center; margin-bottom: 5px; color: var(--gold); }
+        .offer-card.type-sprzedam .item-title { color: var(--green); }
+        .offer-card.type-kupie .item-title { color: var(--blue); }
+        .offer-card.type-zamienie .item-title { color: var(--orange); }
+
+        .item-source { display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.85em; color: #888; margin-bottom: 15px; }
+        .item-source img { height: 20px; width: auto; }
+
+        .price-tag { font-size: 1.4em; color: #fff; font-weight: bold; text-align: center; margin: 10px 0; border-top: 1px solid #333; padding-top: 10px; }
+        
+        .tag { padding: 4px 8px; border-radius: 4px; font-size: 0.7em; font-weight: 800; text-transform: uppercase; position: absolute; top: 10px; left: 10px; }
         .tag.sprzedam { background: var(--green); color: #000; }
         .tag.kupie { background: var(--blue); color: #fff; }
         .tag.zamienie { background: var(--orange); color: #fff; }
 
-        /* Sekcja Prawa: Cena i Akcje */
-        .card-actions { display: flex; flex-direction: column; align-items: flex-end; justify-content: center; min-width: 140px; text-align: right; }
-        .price-tag { font-size: 1.2em; color: #4fffa8; font-weight: bold; margin-bottom: 5px; text-shadow: 0 0 5px rgba(79, 255, 168, 0.2); }
-        .seller-nick { font-size: 0.75em; color: #666; margin-bottom: 5px; display: flex; align-items: center; gap: 5px; }
-        .online-dot { width: 6px; height: 6px; background: #2ecc71; border-radius: 50%; display: inline-block; box-shadow: 0 0 4px #2ecc71; }
+        /* Seller Info (Bottom) */
+        .seller-info { margin-top: auto; display: flex; align-items: center; justify-content: space-between; width: 100%; padding-top: 10px; border-top: 1px dotted #444; }
+        .seller-left { display: flex; align-items: center; gap: 8px; font-size: 0.85em; }
+        .online-dot { width: 8px; height: 8px; background: #2ecc71; border-radius: 50%; box-shadow: 0 0 5px #2ecc71; display: inline-block; }
         
         .btn-group { display: flex; gap: 5px; }
-        .small-btn { padding: 4px 8px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 0.7em; border: none; }
-        .reserve-btn { background: #333; color: #888; border: 1px solid #444; }
-        .reserve-btn:hover { border-color: var(--green); color: var(--green); }
+        .small-btn { padding: 5px 10px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 0.75em; border: none; }
+        .reserve-btn { background: #333; color: #ccc; border: 1px solid #555; }
+        .reserve-btn:hover { border-color: var(--gold); color: var(--gold); }
         .msg-btn { background: var(--purple); color: #fff; }
-        .edit-added { color: var(--gold); background: transparent; border: 1px solid var(--gold); }
-        .delete-btn { background: #333; color: #aaa; }
-        .fav-btn { background: none; border: none; color: #444; font-size: 1.2em; cursor: pointer; transition: 0.3s; padding: 0 5px; }
-        .fav-btn.active, .fav-btn:hover { color: var(--red); }
-
-        /* Responsywność dla Slim Cards */
-        @media (max-width: 600px) {
-            .offer-card { flex-wrap: wrap; }
-            .card-main-info { width: 100%; margin-bottom: 10px; order: 2; }
-            .card-img-wrapper { order: 1; }
-            .card-actions { width: 100%; flex-direction: row; justify-content: space-between; align-items: center; order: 3; border-top: 1px solid #222; padding-top: 8px; }
-        }
+        .delete-btn { background: #333; color: #888; }
+        .fav-btn { background: none; border: none; font-size: 1.4em; cursor: pointer; color: #444; transition: 0.3s; position: absolute; top: 5px; right: 5px; }
+        .fav-btn.active, .fav-btn:hover { color: var(--red); transform: scale(1.2); }
 
         /* --- TOOLTIP --- */
         .tooltip-container {
-            position: absolute; bottom: 100%; left: 10%; transform: translateY(-5px);
-            width: 250px; background: rgba(0, 0, 0, 0.95); border: 2px solid #555; border-radius: 8px; padding: 10px;
+            position: absolute; bottom: 80%; left: 50%; transform: translateX(-50%);
+            width: 260px; background: rgba(0, 0, 0, 0.98); border: 2px solid #555; border-radius: 8px; padding: 15px;
             z-index: 1000; opacity: 0; visibility: hidden; transition: 0.2s; pointer-events: none; text-align: center;
+            box-shadow: 0 5px 25px rgba(0,0,0,0.9);
         }
-        .offer-card:hover .tooltip-container { opacity: 1; visibility: visible; }
-        .tooltip-name { font-family: 'MedievalSharp'; font-size: 1.1em; margin-bottom: 5px; display: block; }
+        .offer-card:hover .tooltip-container { opacity: 1; visibility: visible; bottom: 100%; }
+        .tooltip-name { font-family: 'MedievalSharp'; font-size: 1.2em; margin-bottom: 8px; display: block; }
         .tooltip-name.legendary { color: var(--gold); }
         .tooltip-name.heroic { color: var(--heroic); }
         .tooltip-name.unique { color: var(--unique); }
-        .tooltip-stats { font-size: 0.75em; color: #ccc; border-top: 1px solid #333; padding-top: 5px; margin-top: 5px; white-space: pre-line; }
-        .tooltip-img { width: 48px; height: 48px; object-fit: contain; margin: 0 auto; display: block; }
+        .tooltip-stats { font-size: 0.8em; color: #ccc; border-top: 1px solid #444; padding-top: 8px; margin-top: 8px; white-space: pre-line; text-align: center; }
+        .tooltip-img { width: 50px; height: 50px; object-fit: contain; margin: 0 auto 10px auto; display: block; }
 
         /* --- PREVIEW W MODALU --- */
         .preview-box { display: none; align-items: center; justify-content: space-between; background: #111; border: 1px solid var(--gold); padding: 10px; border-radius: 8px; margin-bottom: 15px; }
@@ -1688,7 +1702,7 @@
         window.renderOffers();
     };
 
-    // --- RENDEROWANIE OFERT (SLIM CARDS) ---
+    // --- RENDEROWANIE OFERT (PIONOWE KARTY) ---
     window.renderOffers = () => {
         const list = document.getElementById('offersList');
         const search = document.getElementById('globalSearch').value.toLowerCase();
@@ -1721,55 +1735,52 @@
             const isOnline = isUserOnline(data.userId);
             const onlineHtml = isOnline ? '<span class="online-dot" title="Online"></span>' : '';
             
-            // CSS Class dla Rzadkości
-            let rarityClass = "";
-            for (const mob in lootTable) {
-                const itemData = lootTable[mob].find(i => i.img === data.img || i.stats.split('||')[0] === data.name);
-                if (itemData && itemData.stats) {
-                    if (itemData.stats.includes('rarity=legendary')) rarityClass = 'legendary';
-                    else if (itemData.stats.includes('rarity=heroic')) rarityClass = 'heroic';
-                    else if (itemData.stats.includes('rarity=unique')) rarityClass = 'unique';
-                    break; 
-                }
-            }
+            // CSS Class dla Typu Ogłoszenia
+            let typeClass = "";
+            if (data.type === 'sprzedam') typeClass = "type-sprzedam";
+            if (data.type === 'kupie') typeClass = "type-kupie";
+            if (data.type === 'zamienie') typeClass = "type-zamienie";
 
             const tooltipHtml = getTooltipHtml(data.name, data.img);
 
             let btnRes = !data.reservedBy ? `<button class="small-btn reserve-btn" onclick="reserveOffer('${data.id}')">REZ</button>` : (isOwner || isAdmin ? `<button class="small-btn unreserve-btn" onclick="cancelReservation('${data.id}')">COFNIJ</button>` : "");
             let mailBtn = (!isOwner && currentUser) ? `<button class="small-btn msg-btn" onclick="openCompose('${data.userId}', '${window.escapeHtml(data.nick)}', '${window.escapeHtml(data.name)}')" title="Wiadomość">✉️</button>` : "";
             
-            // NOWY UKŁAD: SLIM CARD
+            // KARTA PIONOWA
             list.innerHTML += `
-                <div class="offer-card ${rarityClass}">
+                <div class="offer-card ${typeClass}">
                     ${tooltipHtml}
                     
-                    <div class="card-img-wrapper">
-                        ${window.isValidImageUrl(data.img) ? `<img src="${data.img}" class="item-img">` : ""}
+                    <button class="fav-btn ${isFav?'active':''}" onclick="toggleFav('${data.id}')">❤</button>
+                    <div class="tag ${data.type}">${data.type.toUpperCase()}</div>
+
+                    ${window.isValidImageUrl(data.img) ? `<img src="${data.img}" class="item-img">` : ""}
+
+                    <div class="item-title">${window.escapeHtml(data.name)}</div>
+                    
+                    <div class="item-source">
+                        <img src="${data.sourceImg}"> ${data.source}
                     </div>
 
-                    <div class="card-main-info">
-                        <div class="item-title">${window.escapeHtml(data.name)}</div>
-                        <div class="item-meta">
-                            <span class="tag ${data.type}">${data.type.toUpperCase()}</span>
-                            <span><img src="${data.sourceImg}"> ${data.source}</span>
-                        </div>
+                    <div class="price-tag">
+                        ${window.escapeHtml(data.price)}
                     </div>
+                    
+                    ${data.reservedBy ? `<div style="font-size:0.7em; color:var(--green); margin-bottom:5px; text-align:center;">🔒 Rezerwacja: ${data.reservedBy}</div>` : ""}
 
-                    <div class="card-actions">
-                        <div class="price-tag">${window.escapeHtml(data.price)}</div>
-                        
-                        <div class="seller-nick">
-                            ${onlineHtml} ${window.escapeHtml(data.nick)}
+                    <div class="seller-info">
+                        <div class="seller-left">
+                            <div class="avatar-wrapper">
+                                <img src="${data.avatar}" class="tiny-avatar">
+                                ${onlineHtml}
+                            </div>
+                            <b>${window.escapeHtml(data.nick)}</b>
                         </div>
-
                         <div class="btn-group">
-                            <button class="fav-btn ${isFav?'active':''}" onclick="toggleFav('${data.id}')">❤</button>
                             ${mailBtn} ${btnRes}
                             ${isOwner ? `<button class="small-btn edit-added" onclick="openFullEdit('${data.id}','${window.escapeHtml(data.name)}','${window.escapeHtml(data.price)}','${window.escapeHtml(data.desc)}','${window.escapeHtml(data.img)}')">EDYTUJ</button>` : ""}
                             ${isOwner || isAdmin ? `<button class="small-btn delete-btn" onclick="deleteOffer('${data.id}')">✕</button>` : ""}
                         </div>
-                        
-                        ${data.reservedBy ? `<div style="font-size:0.7em; color:var(--green); margin-top:5px;">🔒 Rezerwacja: ${data.reservedBy}</div>` : ""}
                     </div>
                 </div>`;
         });
