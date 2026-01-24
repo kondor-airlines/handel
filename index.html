@@ -1934,26 +1934,27 @@ const lootTable = {
                     await setDoc(ref, {nick:currentNick, lastActive: new Date().toISOString()}); 
                 } else await signOut(auth);
             }
-            // UKRYWAMY PRZYCISK LOGOWANIA
+
+            // 1. Ukrywamy przycisk logowania
             document.getElementById('googleLoginBtn').style.display = 'none';
-            // POKAZUJEMY PROFIL
-            // ...
-			document.getElementById('userProfile').style.display = 'flex';
 
-// POPRAWKA: Pokazujemy przycisk, ale panel zostawiamy ukryty
-			document.getElementById('toggleAddBtn').style.display = 'block'; 
-			document.getElementById('addOfferPanel').style.display = 'none'; 
+            // 2. POKAZUJEMY PROFIL I USTAWIAMY AVATAR (To ci zniknęło)
+            document.getElementById('userProfile').style.display = 'flex';      // <--- POKAZUJE PASEK PROFILU
+            document.getElementById('userAvatar').src = user.photoURL;          // <--- USTAWIA ZDJĘCIE
+            document.getElementById('userNickDisplay').innerText = currentNick; // <--- USTAWIA NICK
 
-			document.getElementById('userNickDisplay').innerText = currentNick;
-// ...
+            // 3. Logika przycisku Wystaw Artefakt (To co chciałeś wcześniej)
+            document.getElementById('toggleAddBtn').style.display = 'block'; 
+            document.getElementById('addOfferPanel').style.display = 'none'; 
             
             startMailListener();
             startHeartbeat();
         } else {
+            // Stan wylogowania
             document.getElementById('googleLoginBtn').style.display = 'flex';
-            document.getElementById('userProfile').style.display = 'none';
+            document.getElementById('userProfile').style.display = 'none'; // Ukrywa profil
             document.getElementById('addOfferPanel').style.display = 'none';
-            document.getElementById('toggleAddBtn').style.display = 'none'; // Ukryj przycisk jak niezalogowany
+            document.getElementById('toggleAddBtn').style.display = 'none';
         }
         window.renderOffers();
     });
@@ -2150,6 +2151,7 @@ const lootTable = {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
