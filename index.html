@@ -1869,57 +1869,66 @@ const lootTable = {
         window.renderOffers();
     };
 
+    // --- RENDEROWANIE OFERT (POPRAWIONE) ---
     window.renderOffers = () => {
         const list = document.getElementById('offersList');
         const search = document.getElementById('globalSearch').value.toLowerCase();
         const selectedUser = document.getElementById('userFilterSelect').value;
-        const selectedProf = document.getElementById('profFilter').value; // Pobieramy wybraną literkę (np. 'i', 'w')
+        const selectedProf = document.getElementById('profFilter').value; // Pobieramy profesję
         const minLvl = parseInt(document.getElementById('minLvlInput').value) || 0;
         const maxLvl = parseInt(document.getElementById('maxLvlInput').value) || 9999;
         const favs = JSON.parse(localStorage.getItem('targ_favs') || '[]');
+        
         list.innerHTML = "";
         let count = 0;
 
+        // Pętla po wszystkich ofertach
         allOffers.forEach(data => {
+            // 1. Sprawdzanie źródła (Herosi/E2)
             const isHeros = monstersList.herosi.some(m => m.name === data.source);
             const isE2 = monstersList.e2.some(m => m.name === data.source);
             const isFav = favs.includes(data.id);
             const isOwner = currentUser && data.userId === currentUser.uid;
             const monsterLvl = extractLevel(data.source);
 
-            // Podstawowe filtry
+            // 2. Podstawowe filtry (przyciski)
             if(currentFilters.type === 'fav' && !isFav) return;
             if(currentFilters.type === 'mine' && !isOwner) return;
             if(currentFilters.type !== 'fav' && currentFilters.type !== 'mine' && currentFilters.type !== 'all' && data.type !== currentFilters.type) return;
             if(currentFilters.cat === 'herosi' && !isHeros) return;
             if(currentFilters.cat === 'e2' && !isE2) return;
             
+            // 3. Wyszukiwarka i filtry zaawansowane
             if(!data.name.toLowerCase().includes(search)) return;
             if(selectedUser && data.nick !== selectedUser) return;
             if(monsterLvl < minLvl || monsterLvl > maxLvl) return;
 
-            // --- NAPRAWIONE FILTROWANIE PROFESJI ---
-            if (selectedProf) {
-                // Wyciągamy zawartość ostatniego nawiasu w nazwie, np. "Miecz (w/p)" -> "w/p"
+            // 4. --- FILTROWANIE PROFESJI (NAPRAWIONE) ---
+            if (selectedProf && selectedProf !== 'a') { // 'a' to wszystkie, więc pomijamy
+                // Szukamy ostatniego nawiasu w nazwie, np. "(w/p)"
                 const match = data.name.match(/\(([^)]+)\)[^()]*$/);
                 
                 if (match) {
+                    // Mamy nawias z profesjami
                     const itemProfs = match[1].toLowerCase();
-                    // Sprawdzamy czy wybrana literka (np. 'i') znajduje się w nawiasie
+                    // Jeśli wybrana profesja NIE znajduje się w nawiasie -> odrzuć
                     if (!itemProfs.includes(selectedProf)) return;
                 } else {
-                    // Jeśli przedmiot NIE MA nawiasu, a filtr jest włączony -> ukrywamy go
-                    return;
+                    // Przedmiot NIE ma nawiasu.
+                    // Jeśli szukamy konkretnej profy (w, p, m...), a przedmiot nie ma opisu -> odrzucamy go
+                    // Wyjątek: jeśli szukamy 'i' (inne), a przedmiot nie ma nawiasu -> to TEŻ może być inny, ale zazwyczaj 'i' jest wpisane.
+                    // Dla bezpieczeństwa: brak nawiasu = odrzuć przy filtrowaniu
+                    return; 
                 }
             }
-            // ---------------------------------------
+            // ---------------------------------------------
 
             count++;
             const isAdmin = currentNick === ADMIN_NICK;
             const isOnline = isUserOnline(data.userId);
             const onlineHtml = isOnline ? '<span class="online-dot" title="Sprzedawca jest Online!"></span>' : '';
             
-            // Stylizacja kart
+            // Ustalanie klasy koloru
             let typeClass = "";
             if (data.type === 'sprzedam') typeClass = "type-sprzedam";
             if (data.type === 'kupie') typeClass = "type-kupie";
@@ -1927,17 +1936,18 @@ const lootTable = {
 
             const tooltipHtml = getTooltipHtml(data.name, data.img);
 
-            let btnRes = !data.reservedBy ? `<button class="small-btn reserve-btn" onclick="reserveOffer('${data.id}')">ZAREZERWUJ</button>` : (isOwner || isAdmin ? `<button class="small-btn unreserve-btn" onclick="cancelReservation('${data.id}')">COFNIJ REZ.</button>` : "");
-            let mailBtn = (!isOwner && currentUser) ? `<button class="small-btn msg-btn" onclick="openCompose('${data.userId}', '${window.escapeHtml(data.nick)}', '${window.escapeHtml(data.name)}')" title="Wyślij wiadomość">✉️</button>` : "";
+            let btnRes = !data.reservedBy ? `<button class="small-btn reserve-btn" onclick="reserveOffer('${data.id}')">REZ</button>` : (isOwner || isAdmin ? `<button class="small-btn unreserve-btn" onclick="cancelReservation('${data.id}')">COFNIJ</button>` : "");
+            let mailBtn = (!isOwner && currentUser) ? `<button class="small-btn msg-btn" onclick="openCompose('${data.userId}', '${window.escapeHtml(data.nick)}', '${window.escapeHtml(data.name)}')" title="Wiadomość">✉️</button>` : "";
             
+            // Generowanie HTML karty
             list.innerHTML += `
                 <div class="offer-card ${typeClass}">
                     ${tooltipHtml}
-                    <div class="card-header">
-                        <button class="fav-btn ${isFav?'active':''}" onclick="toggleFav('${data.id}')">❤</button>
-                        <div class="tag ${data.type}">${data.type.toUpperCase()}</div>
-                        ${window.isValidImageUrl(data.img) ? `<img src="${data.img}" class="item-img">` : ""}
-                    </div>
+                    
+                    <button class="fav-btn ${isFav?'active':''}" onclick="toggleFav('${data.id}')">❤</button>
+                    <div class="tag ${data.type}">${data.type.toUpperCase()}</div>
+
+                    ${window.isValidImageUrl(data.img) ? `<img src="${data.img}" class="item-img">` : ""}
 
                     <div class="item-title">${window.escapeHtml(data.name)}</div>
                     
@@ -1949,7 +1959,7 @@ const lootTable = {
                         ${window.escapeHtml(data.price)}
                     </div>
                     
-                    ${data.reservedBy ? `<div class="reservation-box" style="margin:5px auto; width: fit-content;">🔒 Rez: <b>${data.reservedBy}</b></div>` : ""}
+                    ${data.reservedBy ? `<div style="font-size:0.7em; color:var(--green); margin-bottom:5px; text-align:center;">🔒 Rezerwacja: ${data.reservedBy}</div>` : ""}
 
                     <div class="seller-info">
                         <div class="seller-left">
@@ -1966,10 +1976,10 @@ const lootTable = {
                         </div>
                     </div>
                 </div>`;
-        });
+        }); // Koniec pętli forEach
+
         document.getElementById('offerStats').innerText = `Widocznych ofert: ${count}`;
     };
-
     window.loginGoogle = () => { signInWithPopup(auth, provider).catch(e => alert(e.message)); };
     document.getElementById('googleLoginBtn').addEventListener('click', window.loginGoogle);
     
@@ -2205,6 +2215,7 @@ const lootTable = {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
