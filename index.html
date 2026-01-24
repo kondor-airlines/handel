@@ -16,6 +16,9 @@
             --green: #2ecc71; --blue: #3498db; --red: #e74c3c;
             --purple: #9b59b6;
             --orange: #e67e22;
+            --heroic: #3498db;
+            --unique: #e67e22;
+            --legendary: #ffd700;
         }
 
         body {
@@ -67,7 +70,7 @@
         .filter-btn.active { background: linear-gradient(135deg, #ffd700 0%, #d4af37 100%) !important; color: #000 !important; border: none !important; box-shadow: 0 0 15px rgba(255, 215, 0, 0.4) !important; }
         .filter-btn.fav-active { background: linear-gradient(135deg, #ff4d4d 0%, #a00000 100%) !important; color: white !important; }
 
-        /* NOWE STYLE DLA FILTRÓW ZAAWANSOWANYCH */
+        /* ZAAWANSOWANE FILTRY */
         .advanced-filters {
             display: flex;
             justify-content: center;
@@ -127,7 +130,7 @@
         .offer-card { 
             background: rgba(18, 18, 18, 0.85); backdrop-filter: blur(4px); border: 1px solid rgba(255, 215, 0, 0.15); 
             border-radius: 10px; padding: 20px; position: relative; transition: 0.4s; display: flex; flex-direction: column; 
-            box-shadow: 0 5px 15px rgba(0,0,0,0.5); overflow: hidden; z-index: 1; animation: cardAppear 0.5s ease-out backwards;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5); overflow: visible; z-index: 1; animation: cardAppear 0.5s ease-out backwards;
         }
         .offer-card::after {
             content: ''; position: absolute; top: 0; left: -150%; width: 100%; height: 100%;
@@ -135,16 +138,48 @@
             transform: skewX(-20deg); transition: none; pointer-events: none; z-index: 2;
         }
         .offer-card:hover::after { animation: shine 0.7s cubic-bezier(0.4, 0, 0.2, 1); }
-        .offer-card:hover { border-color: var(--gold); transform: translateY(-5px); box-shadow: 0 10px 40px rgba(0,0,0,0.8), 0 0 20px rgba(255, 215, 0, 0.15); }
+        .offer-card:hover { border-color: var(--gold); transform: translateY(-5px); box-shadow: 0 10px 40px rgba(0,0,0,0.8), 0 0 20px rgba(255, 215, 0, 0.15); z-index: 10; }
         
-        .card-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+        .card-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; position: relative; }
         .tag { padding: 4px 10px; border-radius: 4px; font-size: 0.7em; font-weight: 800; text-transform: uppercase; }
         .tag.sprzedam { background: var(--green); color: #000; }
         .tag.kupie { background: var(--blue); color: #fff; }
         .tag.zamienie { background: var(--orange); color: #fff; }
 
-        .item-title { font-size: 1.1em; font-weight: bold; color: var(--gold); line-height: 1.2; flex-grow: 1; }
+        .item-title { font-size: 1.1em; font-weight: bold; color: var(--gold); line-height: 1.2; flex-grow: 1; cursor: help; }
         .item-img { width: 60px; height: 60px; object-fit: contain; filter: drop-shadow(0 0 5px rgba(255,215,0,0.3)); }
+        
+        /* --- TOOLTIP STYLE (JAK W GRZE) --- */
+        .tooltip-container {
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%) translateY(-10px);
+            width: 280px;
+            background: rgba(0, 0, 0, 0.95);
+            border: 2px solid #555;
+            border-radius: 8px;
+            padding: 15px;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.2s ease;
+            pointer-events: none;
+            box-shadow: 0 0 20px rgba(0,0,0,0.8);
+            text-align: center;
+        }
+        .card-header:hover .tooltip-container {
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(-50%) translateY(-5px);
+        }
+        .tooltip-name { font-family: 'MedievalSharp'; font-size: 1.3em; margin-bottom: 5px; display: block; }
+        .tooltip-name.legendary { color: var(--gold); text-shadow: 0 0 5px rgba(255,215,0,0.5); }
+        .tooltip-name.heroic { color: var(--heroic); text-shadow: 0 0 5px rgba(52,152,219,0.5); }
+        .tooltip-name.unique { color: var(--unique); }
+        .tooltip-stats { font-size: 0.8em; color: #ccc; line-height: 1.4; text-align: center; white-space: pre-line; border-top: 1px solid #333; padding-top: 8px; margin-top: 8px; }
+        .tooltip-img { width: 64px; height: 64px; object-fit: contain; margin: 0 auto; display: block; filter: drop-shadow(0 0 10px rgba(255,255,255,0.1)); }
+
         .item-source { font-size: 0.85em; color: #cca3ff; margin: 12px 0; display: flex; align-items: center; gap: 10px; background: rgba(155, 89, 182, 0.1); padding: 8px; border-radius: 6px; border: 1px solid rgba(155,89,182,0.2); }
         .item-source img { height: 35px; width: auto; }
         .price-tag { font-size: 1.3em; color: #fff; font-weight: bold; margin: 10px 0; }
@@ -201,6 +236,7 @@
         .edit-added { border: 1px solid var(--gold); color: var(--gold); background: none; }
         .delete-btn { background: #333; color: #888; }
         .msg-btn { background: var(--purple); color: #fff; box-shadow: 0 0 10px rgba(155, 89, 182, 0.3); }
+        .copy-btn { background: #e67e22; color: #fff; }
         
         .preview-box {
             grid-column: 1 / -1; display: none; align-items: center; justify-content: space-between; 
@@ -406,7 +442,7 @@
     const db = getFirestore(app);
     const provider = new GoogleAuthProvider();
 
-    // Definiujemy funkcję globalnie (na obiekcie window), aby była widoczna wszędzie
+    // Funkcja globalna
     window.escapeHtml = function(text) { 
         return text ? text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;") : ""; 
     };
@@ -448,8 +484,8 @@
         if(e.target.tagName === 'BUTTON' || e.target.closest('button')) window.playSound('click');
     });
 
-    // --- TWOJE LISTY (HEROSI, E2, LOOT) ---
-    // Pamiętaj, aby wkleić tu swoje pełne listy, jeśli ich brakuje
+    // --- LISTY DANYCH ---
+    // (Skrócone dla czytelności - Twój pełny kod tutaj będzie działał)
     const monstersList = {
         herosi: [
             { name: "Mroczny Patryk (35 lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/her/bardzozlypatryk.gif" },
@@ -1432,33 +1468,68 @@
         });
     }
 
-    // --- FILTRY I RENDEROWANIE ---
-    
-    // Funkcja pomocnicza: Wyciąganie levelu z nazwy
+    // --- NOWE FUNKCJE ---
     function extractLevel(sourceName) {
         if (!sourceName) return 0;
         const match = sourceName.match(/\((\d+)\s*lvl\)/i);
         return match ? parseInt(match[1]) : 0;
     }
 
-    // Funkcja pomocnicza: Aktualizacja listy sprzedawców
     function updateUserFilterOptions() {
         const select = document.getElementById('userFilterSelect');
         const currentVal = select.value;
         const uniqueUsers = [...new Set(allOffers.map(o => o.nick))].sort();
-        
         select.innerHTML = '<option value="">👤 Wszyscy sprzedawcy</option>';
-        
         uniqueUsers.forEach(nick => {
             const option = document.createElement('option');
             option.value = nick;
             option.innerText = nick;
             select.appendChild(option);
         });
+        if (uniqueUsers.includes(currentVal)) select.value = currentVal;
+    }
 
-        if (uniqueUsers.includes(currentVal)) {
-            select.value = currentVal;
+    window.copyPriv = (nick, itemName, price, type) => {
+        let actionText = type === 'sprzedam' ? 'Kupię' : 'Sprzedam';
+        if (type === 'zamienie') actionText = 'Wymienię';
+        const cmd = `/t ${nick} ${actionText} ${itemName} za ${price}`; // Komenda do Margonem
+        navigator.clipboard.writeText(cmd).then(() => {
+            window.alert(`Skopiowano: ${cmd}`);
+        }).catch(() => {
+            window.alert("Błąd kopiowania!");
+        });
+    };
+
+    // Parsowanie statystyk z lootTable do formatu HTML tooltipa
+    function getTooltipHtml(dataName, dataImg) {
+        // Musimy znaleźć przedmiot w lootTable, aby pobrać pełne statystyki
+        let foundStats = "";
+        let rarityClass = "legendary"; // Domyślnie
+
+        // Przeszukujemy całą lootTable (mało wydajne przy tysiącach, ale tu ok)
+        for (const mob in lootTable) {
+            const item = lootTable[mob].find(i => i.img === dataImg || i.stats.split('||')[0] === dataName);
+            if (item) {
+                const parts = item.stats.split('||');
+                if(parts[1]) {
+                    // Parsowanie rarity
+                    if(parts[1].includes('rarity=heroic')) rarityClass = 'heroic';
+                    if(parts[1].includes('rarity=unique')) rarityClass = 'unique';
+                    
+                    // Zamiana || na nowe linie i formatowanie
+                    foundStats = parts[1].replace(/;/g, '<br>').replace(/rarity=[^<]+/, '');
+                }
+                break;
+            }
         }
+
+        return `
+            <div class="tooltip-container">
+                <div class="tooltip-name ${rarityClass}">${window.escapeHtml(dataName)}</div>
+                <img src="${dataImg}" class="tooltip-img">
+                <div class="tooltip-stats">${foundStats || "Brak szczegółowych statystyk"}</div>
+            </div>
+        `;
     }
 
     window.setFilter = (type, val) => {
@@ -1478,7 +1549,6 @@
         const selectedUser = document.getElementById('userFilterSelect').value;
         const minLvl = parseInt(document.getElementById('minLvlInput').value) || 0;
         const maxLvl = parseInt(document.getElementById('maxLvlInput').value) || 9999;
-        
         const favs = JSON.parse(localStorage.getItem('targ_favs') || '[]');
         list.innerHTML = "";
         let count = 0;
@@ -1490,14 +1560,12 @@
             const isOwner = currentUser && data.userId === currentUser.uid;
             const monsterLvl = extractLevel(data.source);
 
-            // Filtry
             if(currentFilters.type === 'fav' && !isFav) return;
             if(currentFilters.type === 'mine' && !isOwner) return;
             if(currentFilters.type !== 'fav' && currentFilters.type !== 'mine' && currentFilters.type !== 'all' && data.type !== currentFilters.type) return;
             if(currentFilters.cat === 'herosi' && !isHeros) return;
             if(currentFilters.cat === 'e2' && !isE2) return;
             
-            // Nowe filtry zaawansowane
             if(!data.name.toLowerCase().includes(search)) return;
             if(selectedUser && data.nick !== selectedUser) return;
             if(monsterLvl < minLvl || monsterLvl > maxLvl) return;
@@ -1507,13 +1575,19 @@
             const isOnline = isUserOnline(data.userId);
             const onlineHtml = isOnline ? '<span class="online-dot" title="Sprzedawca jest Online!"></span>' : '';
             
+            // Generowanie Tooltipa
+            const tooltipHtml = getTooltipHtml(data.name, data.img);
+
             let btnRes = !data.reservedBy ? `<button class="small-btn reserve-btn" onclick="reserveOffer('${data.id}')">ZAREZERWUJ</button>` : (isOwner || isAdmin ? `<button class="small-btn unreserve-btn" onclick="cancelReservation('${data.id}')">COFNIJ REZ.</button>` : "");
-            let mailBtn = (!isOwner && currentUser) ? `<button class="small-btn msg-btn" onclick="openCompose('${data.userId}', '${window.escapeHtml(data.nick)}', '${window.escapeHtml(data.name)}')" title="Wyślij wiadomość">✉️</button>` : "";
+            let mailBtn = (!isOwner && currentUser) ? `
+                <button class="small-btn msg-btn" onclick="openCompose('${data.userId}', '${window.escapeHtml(data.nick)}', '${window.escapeHtml(data.name)}')" title="Wyślij wiadomość">✉️</button>
+                <button class="small-btn copy-btn" onclick="copyPriv('${window.escapeHtml(data.nick)}', '${window.escapeHtml(data.name)}', '${window.escapeHtml(data.price)}', '${data.type}')" title="Kopiuj komendę PW">📋</button>
+            ` : "";
             
             list.innerHTML += `
                 <div class="offer-card legendary-item">
                     <div class="card-header">
-                        <div class="tag ${data.type}">${data.type.toUpperCase()}</div>
+                        ${tooltipHtml} <div class="tag ${data.type}">${data.type.toUpperCase()}</div>
                         <div class="item-title">${window.escapeHtml(data.name)}</div>
                         <button class="fav-btn ${isFav?'active':''}" onclick="toggleFav('${data.id}')">❤</button>
                         ${window.isValidImageUrl(data.img) ? `<img src="${data.img}" class="item-img">` : ""}
@@ -1605,7 +1679,7 @@
         const sel = document.getElementById('itemSource');
         const search = document.getElementById('sourceSearch');
         
-        document.getElementById('livePreview').style.display = 'none'; // FIX
+        document.getElementById('livePreview').style.display = 'none'; 
         
         if(!cat) { search.style.display = 'none'; return; }
         search.style.display = 'block';
@@ -1620,7 +1694,7 @@
         const sel = document.getElementById('itemSelect');
         const search = document.getElementById('itemSearch');
         
-        document.getElementById('livePreview').style.display = 'none'; // FIX
+        document.getElementById('livePreview').style.display = 'none'; 
 
         if(!src || !lootTable[src]) { search.style.display = 'none'; sel.style.display = 'none'; return; }
         search.style.display = 'block'; sel.style.display = 'block';
@@ -1632,7 +1706,7 @@
 
     window.fillItemDetails = () => {
         const val = document.getElementById('itemSelect').value;
-        const previewBox = document.getElementById('livePreview'); // FIX
+        const previewBox = document.getElementById('livePreview'); 
 
         if(!val) {
             previewBox.style.display = 'none';
@@ -1644,7 +1718,7 @@
         document.getElementById('itemName').value = name;
         document.getElementById('itemImg').value = data.img;
         
-        previewBox.style.display = 'flex'; // FIX
+        previewBox.style.display = 'flex'; 
         document.getElementById('previewIcon').src = data.img;
         document.getElementById('previewName').innerText = name;
         
@@ -1656,7 +1730,7 @@
 
     onSnapshot(query(collection(db, "oferty"), orderBy("date", "desc")), (snap) => {
         allOffers = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-        updateUserFilterOptions(); // AKTUALIZACJA LISTY USERÓW
+        updateUserFilterOptions();
         window.renderOffers();
     });
 
@@ -1684,6 +1758,7 @@
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
