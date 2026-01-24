@@ -82,47 +82,12 @@
         .price-tag { font-size: 1.4em; color: #fff; font-weight: bold; margin: 5px 0; border-top: 1px solid #333; padding-top: 10px; width: 100%; text-align: center; }
         .price-tag span { color: #4fffa8; text-shadow: 0 0 10px rgba(79, 255, 168, 0.3); }
 
-        /* --- STOPKA I PRZYCISKI (NAPRAWIONE) --- */
-        .seller-info { 
-            margin-top: auto; 
-            width: 100%; 
-            padding-top: 15px; 
-            border-top: 1px dotted #444; 
-            display: flex; 
-            flex-direction: column; /* UKŁAD PIONOWY */
-            gap: 12px; 
-        }
-        
-        .seller-left { 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; /* Wyśrodkowanie nicku */
-            gap: 10px; 
-            font-size: 0.9em;
-        }
-        
+        /* STOPKA */
+        .seller-info { margin-top: auto; width: 100%; padding-top: 15px; border-top: 1px dotted #444; display: flex; flex-direction: column; gap: 12px; }
+        .seller-left { display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 0.9em; }
         .tiny-avatar { width: 30px; height: 30px; border-radius: 50%; border: 1px solid var(--gold); }
-        
-        .btn-group { 
-            display: flex; 
-            gap: 5px; 
-            width: 100%; 
-            justify-content: space-between;
-        }
-
-        .small-btn { 
-            flex: 1; /* Równe rozciągnięcie */
-            padding: 8px 0;
-            border-radius: 6px; 
-            cursor: pointer; 
-            font-weight: bold; 
-            font-size: 1.2em; /* Ikony */
-            border: 1px solid #333; 
-            background: rgba(255,255,255,0.05);
-            color: #aaa;
-            transition: 0.2s;
-            display: flex; align-items: center; justify-content: center;
-        }
+        .btn-group { display: flex; gap: 5px; width: 100%; justify-content: space-between; }
+        .small-btn { flex: 1; padding: 8px 0; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 1.2em; border: 1px solid #333; background: rgba(255,255,255,0.05); color: #aaa; transition: 0.2s; display: flex; align-items: center; justify-content: center; }
         .small-btn:hover { background: var(--gold); color: #000; border-color: var(--gold); transform: translateY(-2px); }
         .msg-btn:hover { background: var(--purple); color: #fff; border-color: var(--purple); }
         .reserve-btn:hover { background: var(--green); color: #000; border-color: var(--green); }
@@ -145,12 +110,19 @@
         .icon-btn:hover { transform: scale(1.1); filter: drop-shadow(0 0 5px var(--gold)); }
         .badge { position: absolute; top: -5px; right: -5px; background: var(--red); color: white; border-radius: 50%; width: 18px; height: 18px; font-size: 0.7em; font-weight: bold; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 10px var(--red); animation: pulseBadge 2s infinite; }
 
-        /* KARCZMA */
+        /* KARCZMA (NAPRAWIONA) */
         #karczmaPanel { position: fixed; top: 0; right: -350px; width: 320px; height: 100vh; background: rgba(10, 10, 10, 0.95); border-left: 2px solid var(--gold); backdrop-filter: blur(10px); z-index: 20000; transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1); display: flex; flex-direction: column; }
         #karczmaPanel.open { right: 0; box-shadow: -10px 0 50px rgba(0,0,0,0.8); }
         .chat-header { padding: 20px; background: linear-gradient(90deg, #332b00, transparent); border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center; }
-        .chat-messages { flex-grow: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 10px; }
-        .chat-msg { font-size: 0.85em; padding: 8px 12px; border-radius: 8px; background: rgba(255,255,255,0.05); border: 1px solid #333; }
+        .chat-messages { flex-grow: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 12px; }
+        
+        /* NOWE STYLE WIADOMOŚCI */
+        .chat-msg { font-size: 0.85em; padding: 10px; border-radius: 8px; background: rgba(255,255,255,0.05); border: 1px solid #333; display: flex; flex-direction: column; gap: 5px; }
+        .chat-top-row { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 4px; margin-bottom: 2px; }
+        .chat-nick { color: var(--gold); font-weight: bold; }
+        .chat-time { font-size: 0.85em; color: #666; }
+        .chat-text { color: #eee; word-wrap: break-word; line-height: 1.4; }
+        
         .chat-input-area { padding: 15px; border-top: 1px solid #333; display: flex; gap: 5px; }
 
         /* SKRZYNKA & SCROLL */
@@ -326,7 +298,7 @@
     </div>
     <div id="chatMessages" class="chat-messages"></div>
     <div class="chat-input-area">
-        <input type="text" id="chatInput" placeholder="Napisz coś..." style="flex-grow:1;">
+        <input type="text" id="chatInput" placeholder="Napisz coś... (Enter wysyła)" style="flex-grow:1;">
         <button onclick="sendChatMessage()" class="small-btn" style="background:var(--gold); color:black;">➤</button>
     </div>
 </div>
@@ -1385,13 +1357,29 @@ const lootTable = {
         });
         inp.value = "";
     };
+    
+    // NASŁUCH ENTER W CZACIE
+    document.getElementById('chatInput').addEventListener('keypress', function (e) {
+        if (e.key === 'Enter') {
+            sendChatMessage();
+        }
+    });
+
     onSnapshot(query(collection(db, "chat"), orderBy("date", "asc"), limit(50)), (snap) => {
         const div = document.getElementById('chatMessages');
         div.innerHTML = "";
         snap.docs.forEach(d => {
             const m = d.data();
             const time = new Date(m.date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-            div.innerHTML += `<div class="chat-msg"><b>${window.escapeHtml(m.nick)}</b>${m.text}<span class="time">${time}</span></div>`;
+            // NOWA STRUKTURA WIADOMOŚCI
+            div.innerHTML += `
+                <div class="chat-msg">
+                    <div class="chat-top-row">
+                        <span class="chat-nick">${window.escapeHtml(m.nick)}</span>
+                        <span class="chat-time">${time}</span>
+                    </div>
+                    <div class="chat-text">${m.text}</div>
+                </div>`;
         });
         div.scrollTop = div.scrollHeight;
     });
@@ -1477,13 +1465,7 @@ const lootTable = {
         const preview = document.getElementById('livePreview');
         const previewIcon = document.getElementById('previewIcon');
         const previewName = document.getElementById('previewName');
-        if (srcImg) {
-            preview.style.display = 'flex';
-            previewIcon.src = srcImg;
-            previewName.innerText = srcName;
-        } else {
-            preview.style.display = 'none';
-        }
+        if (srcImg) { preview.style.display = 'flex'; previewIcon.src = srcImg; previewName.innerText = srcName; } else { preview.style.display = 'none'; }
         if(!srcName || !lootTable[srcName]) { searchItem.style.display = 'none'; selItem.style.display = 'none'; return; }
         searchItem.style.display = 'block'; selItem.style.display = 'block';
         selItem.innerHTML = '<option value="">-- Przedmiot --</option>';
@@ -1496,10 +1478,7 @@ const lootTable = {
         const preview = document.getElementById('livePreview');
         const previewIcon = document.getElementById('previewIcon');
         const previewName = document.getElementById('previewName');
-        if(!val) {
-            window.updateLootList();
-            return;
-        }
+        if(!val) { window.updateLootList(); return; }
         const data = JSON.parse(val);
         const name = data.stats.split('||')[0];
         document.getElementById('itemName').value = name;
@@ -1895,7 +1874,3 @@ const lootTable = {
 <div id="toast-container"></div>
 </body>
 </html>
-
-
-
-
