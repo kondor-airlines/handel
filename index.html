@@ -413,72 +413,47 @@
     
     <div id="offerStats" style="text-align:center; font-size:0.8em; color:#666; margin-bottom:20px;"></div>
 
-    <button id="addOfferBtn" onclick="document.getElementById('addOfferModal').style.display='flex'" 
-            style="display:block; margin: 0 auto 30px auto; background: linear-gradient(to bottom, #ffd700, #b8860b); color: #000; font-family: 'MedievalSharp'; font-size: 1.3em; padding: 12px 40px; border: 1px solid #fff; border-radius: 8px; cursor: pointer; box-shadow: 0 0 15px rgba(255, 215, 0, 0.4); transition: 0.3s; font-weight:bold;"
-            onmouseover="this.style.transform='scale(1.05)'" 
-            onmouseout="this.style.transform='scale(1)'">
-        + WYSTAW ARTEFAKT
-    </button>
-
-    <div id="addOfferModal" style="display: none; position: fixed; z-index: 99999; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.9); align-items: center; justify-content: center; backdrop-filter: blur(5px);">
-        
-        <div class="panel" style="position: relative; width: 95%; max-width: 500px; background: linear-gradient(135deg, #151515 0%, #0a0a0a 100%); padding: 30px; border-radius: 12px; border: 2px solid #ffd700; box-shadow: 0 0 40px rgba(255, 215, 0, 0.3);">
+    <div id="addOfferPanel" class="panel">
+        <h3 style="margin-top:0; color:var(--gold); font-family:'MedievalSharp';">Wystaw Artefakt</h3>
+        <div class="form-grid">
+            <select id="offerType">
+                <option value="sprzedam">Sprzedam</option>
+                <option value="kupie">Kupię</option>
+                <option value="zamienie">Zamienię</option>
+            </select>
+            <input type="text" id="itemPrice" placeholder="Cena (wymagane m, g lub k, np. 150m)" maxlength="10" 
+       oninput="this.style.borderColor = /^\d+(\.\d+)?[kmg]$/i.test(this.value.trim().replace(',', '.')) ? 'var(--green)' : 'var(--red)'">
+            <select id="sourceCategory" class="full-width" onchange="updateSourceList()">
+                <option value="">-- Wybierz Kategorię --</option>
+                <option value="herosi">Herosi</option>
+                <option value="e2">Elity II</option>
+            </select>
+            <input type="text" id="sourceSearch" class="full-width search-box" placeholder="🔍 Szukaj przeciwnika..." oninput="updateSourceList()" style="display:none;">
             
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; border-bottom: 1px solid #333; padding-bottom: 10px;">
-                <h3 style="margin:0; color:#ffd700; font-family:'MedievalSharp'; font-size: 1.5em;">Wystaw Artefakt</h3>
-                <button onclick="document.getElementById('addOfferModal').style.display='none'" style="background:none; border:none; color:#888; font-size:1.8em; cursor:pointer; line-height: 1;">✕</button>
+            <select id="itemSource" class="full-width" onchange="updateLootList()"><option value="">-- Przeciwnik --</option></select>
+            
+            <input type="text" id="itemSearch" class="full-width search-box" placeholder="🔍 Szukaj przedmiotu..." oninput="updateLootList()" style="display:none;">
+            <select id="itemSelect" class="full-width" onchange="fillItemDetails()"><option value="">-- Przedmiot --</option></select>
+            
+            <div id="livePreview" class="preview-box">
+                <div class="preview-content">
+                    <span class="preview-label">Podgląd</span>
+                    <span id="previewName" class="preview-text">Wybierz coś...</span>
+                </div>
+                <div class="preview-icon-wrapper">
+                    <img id="previewIcon" src="https://micc.garmory-cdn.cloud/obrazki/itemy/bag/bag.gif" alt="">
+                </div>
             </div>
 
-            <div class="form-grid">
-                <select id="offerType" style="width: 100%; padding: 10px; background: #000; color: #fff; border: 1px solid #444; border-radius: 5px;">
-                    <option value="sprzedam">Sprzedam</option>
-                    <option value="kupie">Kupię</option>
-                    <option value="zamienie">Zamienię</option>
-                </select>
-
-                <input type="text" id="itemPrice" placeholder="Cena (wymagane m, g lub k, np. 150m)" maxlength="10" 
-                       style="width: 100%; padding: 10px; background: #000; color: #fff; border: 1px solid #444; border-radius: 5px;"
-                       oninput="this.style.borderColor = /^\d+(\.\d+)?[kmg]$/i.test(this.value.trim().replace(',', '.')) ? '#2ecc71' : '#e74c3c'">
-                
-                <select id="sourceCategory" class="full-width" onchange="updateSourceList()" style="width: 100%; padding: 10px; background: #000; color: #fff; border: 1px solid #444; border-radius: 5px;">
-                    <option value="">-- Wybierz Kategorię --</option>
-                    <option value="herosi">Herosi</option>
-                    <option value="e2">Elity II</option>
-                </select>
-
-                <input type="text" id="sourceSearch" class="full-width search-box" placeholder="🔍 Szukaj przeciwnika..." oninput="updateSourceList()" style="display:none; width: 100%; padding: 10px; background: #1a1a00; border: 1px solid #ffd700; color: #ffd700; border-radius: 5px;">
-                
-                <select id="itemSource" class="full-width" onchange="updateLootList()" style="width: 100%; padding: 10px; background: #000; color: #fff; border: 1px solid #444; border-radius: 5px;">
-                    <option value="">-- Przeciwnik --</option>
-                </select>
-                
-                <input type="text" id="itemSearch" class="full-width search-box" placeholder="🔍 Szukaj przedmiotu..." oninput="updateLootList()" style="display:none; width: 100%; padding: 10px; background: #1a1a00; border: 1px solid #ffd700; color: #ffd700; border-radius: 5px;">
-                
-                <select id="itemSelect" class="full-width" onchange="fillItemDetails()" style="width: 100%; padding: 10px; background: #000; color: #fff; border: 1px solid #444; border-radius: 5px;">
-                    <option value="">-- Przedmiot --</option>
-                </select>
-                
-                <div id="livePreview" class="preview-box" style="grid-column: 1 / -1; display: none; align-items: center; justify-content: flex-end; background: #111; border: 1px solid #ffd700; padding: 10px; border-radius: 8px; margin-bottom: 10px; gap: 15px;">
-                    <div class="preview-content" style="text-align: right;">
-                        <span class="preview-label" style="font-size: 0.7em; color: #888; text-transform: uppercase;">Podgląd</span><br>
-                        <span id="previewName" class="preview-text" style="font-size: 1.2em; color: #ffd700; font-family: 'MedievalSharp';">...</span>
-                    </div>
-                    <div class="preview-icon-wrapper" style="width: 60px; height: 60px; border: 1px solid #ffd700; border-radius: 5px; display: flex; align-items: center; justify-content: center; background: radial-gradient(circle, #333 0%, #000 100%);">
-                        <img id="previewIcon" src="" alt="" style="max-width: 90%; max-height: 90%;">
-                    </div>
-                </div>
-
-                <div style="display:flex; gap:10px; align-items:center;" class="full-width">
-                    <input type="text" id="itemName" placeholder="Nazwa przedmiotu" maxlength="50" style="flex: 1; padding: 10px; background: #000; color: #fff; border: 1px solid #444; border-radius: 5px;">
-                    <button class="helper-btn" onclick="searchMargo()" title="Sprawdź statystyki na MargoWorld" style="padding: 10px; cursor: pointer; background: #222; color: #ffd700; border: 1px solid #ffd700; border-radius: 5px;">🔍</button>
-                </div>
-
-                <input type="text" id="itemImg" placeholder="Link do obrazka (opcjonalne)" class="full-width" oninput="manualImgPreview()" style="width: 100%; padding: 10px; background: #000; color: #fff; border: 1px solid #444; border-radius: 5px;">
-                
-                <textarea id="itemDesc" placeholder="Dodatkowy opis (widoczny w dymku)..." class="full-width" maxlength="150" rows="2" style="width: 100%; padding: 10px; background: #000; color: #fff; border: 1px solid #444; border-radius: 5px; resize: vertical;"></textarea>
-                
-                <button class="action-btn full-width" onclick="addOffer();" style="width: 100%; padding: 15px; background: #2ecc71; color: #000; font-weight: bold; border: none; border-radius: 5px; cursor: pointer; margin-top: 10px; font-size: 1.1em;">OPUBLIKUJ NA TARGU</button>
+            <div style="display:flex; gap:10px; align-items:center;" class="full-width">
+                <input type="text" id="itemName" placeholder="Nazwa przedmiotu" maxlength="50">
+                <button class="helper-btn" onclick="searchMargo()" title="Sprawdź statystyki">
+                    <span style="margin-right: 5px; font-size: 0.8em;">STATY</span> 🔍
+                </button>
             </div>
+            <input type="text" id="itemImg" placeholder="Link do obrazka" class="full-width" oninput="manualImgPreview()">
+            <textarea id="itemDesc" placeholder="Dodatkowy opis..." class="full-width" maxlength="150" rows="2"></textarea>
+            <button class="action-btn full-width" onclick="addOffer()">Opublikuj na Targu</button>
         </div>
     </div>
 
@@ -2121,4 +2096,3 @@
 <div id="toast-container"></div>
 </body>
 </html>
-
