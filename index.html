@@ -15,6 +15,7 @@
             --border: #332b00;
             --green: #2ecc71; --blue: #3498db; --red: #e74c3c;
             --purple: #9b59b6;
+            --orange: #e67e22; /* Kolor dla Zamienię */
         }
 
         body {
@@ -93,7 +94,8 @@
         .tag { padding: 4px 10px; border-radius: 4px; font-size: 0.7em; font-weight: 800; text-transform: uppercase; }
         .tag.sprzedam { background: var(--green); color: #000; }
         .tag.kupie { background: var(--blue); color: #fff; }
-        .tag.zamienie { background: var(--red); color: #fff; }
+        /* Używam pomarańczowego dla "zamienie" dla lepszego kontrastu */
+        .tag.zamienie { background: var(--orange); color: #fff; }
 
         .item-title { font-size: 1.1em; font-weight: bold; color: var(--gold); line-height: 1.2; flex-grow: 1; }
         .item-img { width: 60px; height: 60px; object-fit: contain; filter: drop-shadow(0 0 5px rgba(255,215,0,0.3)); }
@@ -107,7 +109,6 @@
         .seller-left { display: flex; align-items: center; gap: 10px; }
         .tiny-avatar { width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--gold); }
         
-        /* --- POPRAWIONE POZYCJONOWANIE KROPKI ONLINE --- */
         .avatar-wrapper { position: relative; width: 28px; height: 28px; display: block; }
         .avatar-wrapper img { width: 100%; height: 100%; object-fit: cover; }
         .online-dot { 
@@ -224,6 +225,8 @@
         <button class="filter-btn active" id="f-all" onclick="setFilter('type', 'all')">Wszystkie</button>
         <button class="filter-btn" id="f-sprzedam" onclick="setFilter('type', 'sprzedam')">Sprzedam</button>
         <button class="filter-btn" id="f-kupie" onclick="setFilter('type', 'kupie')">Kupię</button>
+        <button class="filter-btn" id="f-zamienie" onclick="setFilter('type', 'zamienie')">Zamienię</button>
+        
         <button class="filter-btn" id="f-mine" onclick="setFilter('type', 'mine')">👤 Moje</button>
         <button class="filter-btn" id="f-fav" onclick="setFilter('type', 'fav')">❤️ Ulubione</button>
         <span style="color:#444; margin: 0 10px;">|</span>
@@ -381,8 +384,8 @@
         if(e.target.tagName === 'BUTTON' || e.target.closest('button')) window.playSound('click');
     });
 
-    // --- MIEJSCE NA TWOJE BAZY DANYCH (WKLEJ TU SWOJE PEŁNE LISTY) ---
-    // Poniżej wstawiłem skrócone wersje jako placeholdery, zamień je na swoje!
+    // --- TWOJE LISTY (HEROSI, E2, LOOT) ---
+    // Skopiuj tutaj pełne listy z poprzedniego kodu
     const monstersList = {
         herosi: [
             { name: "Mroczny Patryk (35 lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/her/bardzozlypatryk.gif" },
@@ -1252,7 +1255,7 @@
     ]
     };
 
-function escapeHtml(text) { return text ? text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;") : ""; }
+unction escapeHtml(text) { return text ? text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;") : ""; }
 
     // --- SYSTEM ULUBIONYCH ---
     window.toggleFav = (id) => {
@@ -1373,8 +1376,8 @@ function escapeHtml(text) { return text ? text.replace(/&/g, "&amp;").replace(/<
         else currentFilters[type] = val;
         document.querySelectorAll('.filter-btn').forEach(b => {
             const id = b.id.replace('f-', '');
-            // Dodano 'mine' do listy typów
-            if(type==='type' && ['all','sprzedam','kupie','fav','mine'].includes(id)) b.classList.toggle('active', id===currentFilters.type);
+            // --- ZMIANA: DODANO 'zamienie' DO TABLICY DOZWOLONYCH ID ---
+            if(type==='type' && ['all','sprzedam','kupie','zamienie','fav','mine'].includes(id)) b.classList.toggle('active', id===currentFilters.type);
             if(type==='cat' && ['herosi','e2'].includes(id)) b.classList.toggle('active', id===currentFilters.cat);
         });
         window.renderOffers();
@@ -1583,6 +1586,7 @@ function escapeHtml(text) { return text ? text.replace(/&/g, "&amp;").replace(/<
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
