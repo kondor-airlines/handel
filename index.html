@@ -215,10 +215,91 @@
         .price-tag { font-size: 1.4em; color: #fff; font-weight: bold; margin: 5px 0; border-top: 1px solid #333; padding-top: 10px; width: 100%; text-align: center; }
         .price-tag span { color: #4fffa8; text-shadow: 0 0 10px rgba(79, 255, 168, 0.3); }
 
-        /* Info o sprzedawcy (Dół) */
-        .seller-info { margin-top: auto; width: 100%; padding-top: 10px; border-top: 1px dotted #444; display: flex; justify-content: space-between; align-items: center; }
-        .seller-left { display: flex; align-items: center; gap: 8px; font-size: 0.8em; overflow: hidden; }
-        .seller-left b { max-width: 90px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
+       /* --- DOLNA BELKA KARTY (POPRAWIONA) --- */
+        .seller-info { 
+            margin-top: auto; 
+            padding-top: 12px; 
+            border-top: 1px solid #333; 
+            display: flex; 
+            align-items: center; 
+            justify-content: space-between; 
+            width: 100%; 
+            gap: 10px; /* Odstęp między nickiem a guzikami */
+        }
+        
+        /* Lewa strona (Avatar + Nick) */
+        .seller-left { 
+            display: flex; 
+            align-items: center; 
+            gap: 8px; 
+            flex: 1; /* Zajmuje dostępną przestrzeń */
+            min-width: 0; /* Kluczowe dla działania 'text-overflow' w flexboxie */
+        }
+        
+        .seller-left b { 
+            font-size: 0.85em; 
+            color: #ddd; 
+            white-space: nowrap; 
+            overflow: hidden; 
+            text-overflow: ellipsis; /* Dodaje ... jak tekst jest za długi */
+            display: block;
+        }
+
+        .avatar-wrapper { 
+            position: relative; 
+            width: 32px; 
+            height: 32px; 
+            flex-shrink: 0; /* Avatar się nie zgniata */
+        }
+        
+        .tiny-avatar { 
+            width: 100%; height: 100%; 
+            border-radius: 50%; 
+            border: 1px solid var(--gold); 
+            object-fit: cover; 
+            box-shadow: 0 0 5px rgba(0,0,0,0.5);
+        }
+        
+        .online-dot { 
+            position: absolute; bottom: 0; right: 0; 
+            width: 8px; height: 8px; 
+            background: #2ecc71; border: 2px solid #1a1a1a; 
+            border-radius: 50%; 
+        }
+        
+        /* Prawa strona (Przyciski) */
+        .btn-group { 
+            display: flex; 
+            gap: 6px; 
+            flex-shrink: 0; /* Przyciski nigdy się nie zmniejszą */
+            align-items: center;
+        }
+
+        .small-btn { 
+            padding: 6px; 
+            border-radius: 4px; 
+            cursor: pointer; 
+            font-weight: bold; 
+            font-size: 0.85em; 
+            border: 1px solid #333;
+            background: #222;
+            color: #ccc;
+            transition: 0.2s;
+            display: flex; align-items: center; justify-content: center;
+            min-width: 28px; /* Stała szerokość dla małych guzików */
+        }
+
+        .small-btn:hover { border-color: var(--gold); transform: translateY(-2px); color: #fff; }
+        
+        /* Kolory konkretnych przycisków */
+        .reserve-btn { background: rgba(46, 204, 113, 0.1); color: var(--green); border-color: rgba(46, 204, 113, 0.3); padding: 6px 10px; }
+        .reserve-btn:hover { background: var(--green); color: #000; border-color: var(--green); }
+        
+        .edit-added { color: var(--gold); border-color: rgba(255, 215, 0, 0.3); background: rgba(255, 215, 0, 0.05); }
+        .delete-btn { color: var(--red); border-color: rgba(231, 76, 60, 0.3); background: rgba(231, 76, 60, 0.05); }
+        
+        .msg-btn { background: var(--purple); color: #fff; border: none; }
+        .msg-btn:hover { box-shadow: 0 0 10px var(--purple); border: none; }
         
         /* Tooltip - WAŻNE: pointer-events auto pozwala klikać w link */
         .tooltip-container {
@@ -267,14 +348,6 @@
         .price-tag span { color: #4fffa8; text-shadow: 0 0 10px rgba(79, 255, 168, 0.3); }
         .reservation-box { background: rgba(46, 204, 113, 0.15); border: 1px dashed var(--green); padding: 8px; border-radius: 6px; margin: 10px 0; font-size: 0.8em; color: var(--green); display: flex; align-items: center; gap: 8px; }
         
-        .seller-info { margin-top: auto; padding-top: 15px; border-top: 1px dotted #444; display: flex; align-items: center; justify-content: space-between; font-size: 0.85em; }
-        .seller-left { display: flex; align-items: center; gap: 10px; }
-        .tiny-avatar { width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--gold); }
-        
-        .avatar-wrapper { position: relative; width: 28px; height: 28px; display: block; }
-        .avatar-wrapper img { width: 100%; height: 100%; object-fit: cover; }
-        .online-dot { position: absolute; bottom: -2px; right: -2px; width: 9px; height: 9px; background: #2ecc71; border-radius: 50%; border: 2px solid #1a1a1a; box-shadow: 0 0 5px #2ecc71; z-index: 5; }
-        
         .fav-btn { background: none; border: none; font-size: 1.2em; cursor: pointer; color: #555; transition: 0.3s; padding: 0 5px; }
         .fav-btn:hover, .fav-btn.active { color: var(--red); transform: scale(1.2); text-shadow: 0 0 10px var(--red); }
         .icon-btn { background: transparent; border: none; cursor: pointer; position: relative; font-size: 1.5em; margin-right: 15px; transition: 0.3s; }
@@ -291,14 +364,8 @@
         .chat-msg .time { font-size: 0.7em; color: #666; float: right; margin-top: 5px; }
         .chat-input-area { padding: 15px; border-top: 1px solid #333; display: flex; gap: 5px; }
 
-        /* INNE */
-        .btn-group { display: flex; gap: 5px; }
-        .small-btn { padding: 4px 8px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 0.7em; border: 1px solid transparent; }
-        .reserve-btn { background: var(--green); color: #000; }
+       
         .unreserve-btn { background: #444; color: #fff; }
-        .edit-added { border: 1px solid var(--gold); color: var(--gold); background: none; }
-        .delete-btn { background: #333; color: #888; }
-        .msg-btn { background: var(--purple); color: #fff; box-shadow: 0 0 10px rgba(155, 89, 182, 0.3); }
         
         .helper-btn { background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%); color: var(--gold); border: 1px solid var(--border); padding: 0 15px; height: 42px; cursor: pointer; border-radius: 6px; font-size: 1.2em; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.5); }
         .helper-btn:hover { border-color: var(--gold); background: linear-gradient(135deg, #332b00 0%, #1a1500 100%); box-shadow: 0 0 10px rgba(255, 215, 0, 0.3); transform: translateY(-1px); }
@@ -2006,15 +2073,15 @@ const lootTable = {
                                 <img src="${data.avatar}" class="tiny-avatar">
                                 ${onlineHtml}
                             </div>
-                            <b>${window.escapeHtml(data.nick)}</b>
+                            <b title="${window.escapeHtml(data.nick)}">${window.escapeHtml(data.nick)}</b>
                         </div>
                         <div class="btn-group">
-                            ${mailBtn} ${btnRes}
-                            ${isOwner ? `<button class="small-btn edit-added" onclick="openFullEdit('${data.id}','${window.escapeHtml(data.name)}','${window.escapeHtml(data.price)}','${window.escapeHtml(data.desc)}','${window.escapeHtml(data.img)}')">EDYTUJ</button>` : ""}
-                            ${isOwner || isAdmin ? `<button class="small-btn delete-btn" onclick="deleteOffer('${data.id}')">✕</button>` : ""}
+                            ${mailBtn} 
+                            ${btnRes}
+                            ${isOwner ? `<button class="small-btn edit-added" onclick="openFullEdit('${data.id}','${window.escapeHtml(data.name)}','${window.escapeHtml(data.price)}','${window.escapeHtml(data.desc)}','${window.escapeHtml(data.img)}') " title="Edytuj">✏️</button>` : ""}
+                            ${isOwner || isAdmin ? `<button class="small-btn delete-btn" onclick="deleteOffer('${data.id}')" title="Usuń">✕</button>` : ""}
                         </div>
                     </div>
-                </div>`;
         });
         document.getElementById('offerStats').innerText = `Widocznych ofert: ${count}`;
     };
@@ -2253,3 +2320,4 @@ const lootTable = {
 <div id="toast-container"></div>
 </body>
 </html>
+
