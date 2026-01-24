@@ -49,6 +49,24 @@
             background: rgba(255,255,255,0.05); border: 1px solid #444; padding: 15px;
             border-radius: 8px; transition: 0.3s; position: relative;
         }
+
+        .delete-mail-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1.2em;
+            opacity: 0.5;
+            transition: 0.3s;
+            color: #ff6666;
+        }
+        .delete-mail-btn:hover {
+            opacity: 1;
+            transform: scale(1.2);
+        }
+        
         .mail-item.unread { border-left: 4px solid var(--gold); background: rgba(255, 215, 0, 0.05); }
         .mail-item:hover { background: rgba(255,255,255,0.1); }
         
@@ -1530,6 +1548,7 @@
 </script>
 </body>
 </html>
+
 
 
 
