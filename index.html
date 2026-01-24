@@ -918,8 +918,8 @@ const lootTable = {
         "Kotołak Tropiciel (27 lvl)": [
             { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm721.gif", stats: "Maska dziewięciu żywotów (m)||rarity=legendary" },
             { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm720.gif", stats: "Kamuflaż przyczajonego kocura (b/h/t)||rarity=legendary" },
-            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm719.gif", stats: "Kask wiedźmiego chowańca (p/w)||rarity=legendary" }
-	    { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_04.gif.gif", stats: "Lekka skrytka stalowej mocy (s)||rarity=legendary" }
+            { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/hel/helm719.gif", stats: "Kask wiedźmiego chowańca (p/w)||rarity=legendary" },
+	    	{ img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_04.gif.gif", stats: "Lekka skrytka stalowej mocy (s)||rarity=legendary" }
         ],
         "Shae Phu (30 lvl)": [
             { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/naszyjnik1243.gif", stats: "Czaszka Przeznaczenia (a)||rarity=legendary" },
@@ -1095,7 +1095,7 @@ const lootTable = {
             { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_02.gif.gif", stats: "Skrytka ognistej mocy (s)||rarity=legendary" }
         ],
         "Miłośnik łowców (108 lvl)": [
-	    { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/sur/miloscnicy_sur_02.gif", stats: "Czaszka poległego lewiatana (i)||rarity=legendary" }
+	    { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/sur/miloscnicy_sur_02.gif", stats: "Czaszka poległego lewiatana (i)||rarity=legendary" },
             { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/rek/rekawice1006.gif", stats: "Łapka w górę (a)||rarity=legendary" },
             { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/pie/pierscien1332.gif", stats: "Symbol uwielbienia łowców (b/h/t)||rarity=legendary" },
             { img: "https://micc.garmory-cdn.cloud/obrazki/itemy/bag/kuf_compontent_05.gif.gif", stats: "Skrytka jadowej mocy (s)||rarity=legendary" }
@@ -1937,15 +1937,15 @@ const lootTable = {
             // UKRYWAMY PRZYCISK LOGOWANIA
             document.getElementById('googleLoginBtn').style.display = 'none';
             // POKAZUJEMY PROFIL
-            document.getElementById('userProfile').style.display = 'flex';
-            
-            // --- TU BYŁ BŁĄD: ZAMIAST OTWIERAĆ PANEL, POKAZUJEMY TYLKO PRZYCISK ---
-            document.getElementById('toggleAddBtn').style.display = 'block'; // Pokaż przycisk "+"
-            document.getElementById('addOfferPanel').style.display = 'none'; // Upewnij się, że panel jest SCHOWANY
-            // -----------------------------------------------------------------------
+            // ...
+			document.getElementById('userProfile').style.display = 'flex';
 
-            document.getElementById('userNickDisplay').innerText = currentNick;
-            document.getElementById('userAvatar').src = user.photoURL;
+// POPRAWKA: Pokazujemy przycisk, ale panel zostawiamy ukryty
+			document.getElementById('toggleAddBtn').style.display = 'block'; 
+			document.getElementById('addOfferPanel').style.display = 'none'; 
+
+			document.getElementById('userNickDisplay').innerText = currentNick;
+// ...
             
             startMailListener();
             startHeartbeat();
@@ -2150,6 +2150,7 @@ const lootTable = {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
