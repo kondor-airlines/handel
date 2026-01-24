@@ -104,11 +104,24 @@
         .reservation-box { background: rgba(46, 204, 113, 0.15); border: 1px dashed var(--green); padding: 8px; border-radius: 6px; margin: 10px 0; font-size: 0.8em; color: var(--green); display: flex; align-items: center; gap: 8px; }
         
         .seller-info { margin-top: auto; padding-top: 15px; border-top: 1px dotted #444; display: flex; align-items: center; justify-content: space-between; font-size: 0.85em; }
-        .seller-left { display: flex; align-items: center; gap: 10px; position: relative; }
+        .seller-left { display: flex; align-items: center; gap: 10px; }
         .tiny-avatar { width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--gold); }
         
-        /* --- NOWOŚCI: ONLINE, FAV, CZAT, IKONY --- */
-        .online-dot { position: absolute; bottom: 0; right: -2px; width: 8px; height: 8px; background: #2ecc71; border-radius: 50%; border: 1px solid #000; box-shadow: 0 0 5px #2ecc71; }
+        /* --- POPRAWIONE POZYCJONOWANIE KROPKI ONLINE --- */
+        .avatar-wrapper { position: relative; width: 28px; height: 28px; display: block; }
+        .avatar-wrapper img { width: 100%; height: 100%; object-fit: cover; }
+        .online-dot { 
+            position: absolute; 
+            bottom: -2px; 
+            right: -2px; 
+            width: 9px; 
+            height: 9px; 
+            background: #2ecc71; 
+            border-radius: 50%; 
+            border: 2px solid #1a1a1a; 
+            box-shadow: 0 0 5px #2ecc71; 
+            z-index: 5;
+        }
         
         .fav-btn { background: none; border: none; font-size: 1.2em; cursor: pointer; color: #555; transition: 0.3s; padding: 0 5px; }
         .fav-btn:hover, .fav-btn.active { color: var(--red); transform: scale(1.2); text-shadow: 0 0 10px var(--red); }
@@ -197,7 +210,9 @@
             <button class="icon-btn" onclick="openMailbox()" title="Skrzynka odbiorcza">
                 📩 <span id="mailBadge" class="badge" style="display:none;">0</span>
             </button>
-            <img id="userAvatar" class="user-avatar" src="" alt="">
+            <div class="avatar-wrapper">
+                <img id="userAvatar" class="user-avatar" src="" alt="">
+            </div>
             <div>
                 <div id="userNickDisplay" style="font-weight:bold; color:var(--gold); font-size:0.9em;">...</div>
                 <div class="logout-link" onclick="logout()">Wyloguj</div>
@@ -262,8 +277,7 @@
         <h3 style="color:var(--gold); margin:0;">🍻 Karczma</h3>
         <button onclick="toggleKarczma()" style="background:none; border:none; color:white; font-size:1.5em; cursor:pointer;">✕</button>
     </div>
-    <div id="chatMessages" class="chat-messages">
-        </div>
+    <div id="chatMessages" class="chat-messages"></div>
     <div class="chat-input-area">
         <input type="text" id="chatInput" placeholder="Napisz coś..." style="flex-grow:1;">
         <button onclick="sendChatMessage()" class="small-btn" style="background:var(--gold); color:black;">➤</button>
@@ -1465,8 +1479,10 @@ function escapeHtml(text) { return text ? text.replace(/&/g, "&amp;").replace(/<
                     <div style="color:#aaa; font-size:0.85em; margin:10px 0; font-style:italic;" class="item-description">${escapeHtml(data.desc)}</div>
                     <div class="seller-info">
                         <div class="seller-left">
-                            <img src="${data.avatar}" class="tiny-avatar">
-                            ${onlineHtml}
+                            <div class="avatar-wrapper">
+                                <img src="${data.avatar}" class="tiny-avatar">
+                                ${onlineHtml}
+                            </div>
                             <b>${escapeHtml(data.nick)}</b>
                         </div>
                         <div class="btn-group">
@@ -1622,6 +1638,7 @@ function escapeHtml(text) { return text ? text.replace(/&/g, "&amp;").replace(/<
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
