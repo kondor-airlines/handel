@@ -1366,8 +1366,126 @@
         window.renderOffers();
     });
 </script>
+
+<style>
+    /* 1. ELITARNY SCROLLBAR */
+    ::-webkit-scrollbar { width: 12px; }
+    ::-webkit-scrollbar-track { background: #050505; }
+    ::-webkit-scrollbar-thumb { 
+        background: linear-gradient(180deg, #332b00 0%, #ffd700 50%, #332b00 100%); 
+        border-radius: 6px; 
+        border: 2px solid #000;
+    }
+    ::-webkit-scrollbar-thumb:hover { background: #fff2a6; }
+
+    /* 2. PRZYCISK WRÓĆ NA GÓRĘ */
+    #scrollTopBtn {
+        display: none; 
+        position: fixed; 
+        bottom: 30px; 
+        right: 30px; 
+        z-index: 9999; 
+        width: 50px;
+        height: 50px;
+        border: 2px solid var(--gold); 
+        background-color: rgba(0,0,0,0.8); 
+        color: var(--gold); 
+        cursor: pointer; 
+        border-radius: 50%; 
+        font-size: 24px;
+        box-shadow: 0 0 20px rgba(255, 215, 0, 0.2);
+        transition: 0.3s;
+        backdrop-filter: blur(2px);
+    }
+    #scrollTopBtn:hover { 
+        background-color: var(--gold); 
+        color: #000; 
+        transform: translateY(-5px);
+        box-shadow: 0 0 30px rgba(255, 215, 0, 0.6);
+    }
+
+    /* 3. NOWOCZESNE POWIADOMIENIA (TOASTS) */
+    #toast-container {
+        position: fixed;
+        bottom: 30px;
+        left: 30px;
+        z-index: 10000;
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }
+    .toast {
+        background: rgba(15, 15, 15, 0.95);
+        color: #eee;
+        border-left: 5px solid var(--gold);
+        padding: 15px 25px;
+        border-radius: 4px;
+        font-family: 'Montserrat', sans-serif;
+        font-size: 0.95em;
+        font-weight: 600;
+        box-shadow: 10px 10px 30px rgba(0,0,0,0.5);
+        min-width: 280px;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        animation: slideIn 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55), fadeOut 0.5s ease-in 3.5s forwards;
+        border-top: 1px solid #333;
+        border-right: 1px solid #333;
+        border-bottom: 1px solid #333;
+    }
+    .toast.error { border-left-color: var(--red); }
+    .toast.success { border-left-color: var(--green); }
+    
+    @keyframes slideIn { from { transform: translateX(-120%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+    @keyframes fadeOut { to { opacity: 0; visibility: hidden; } }
+</style>
+
+<button onclick="topFunction()" id="scrollTopBtn" title="Wróć na górę">▲</button>
+<div id="toast-container"></div>
+
+<script>
+    // --- OBSŁUGA PRZYCISKU SCROLL ---
+    const scrollBtn = document.getElementById("scrollTopBtn");
+    window.onscroll = function() { 
+        if (document.body.scrollTop > 300 || document.documentElement.scrollTop > 300) {
+            scrollBtn.style.display = "flex";
+            scrollBtn.style.alignItems = "center";
+            scrollBtn.style.justifyContent = "center";
+        } else {
+            scrollBtn.style.display = "none";
+        }
+    };
+
+    window.topFunction = function() {
+        window.scrollTo({top: 0, behavior: 'smooth'});
+    }
+
+    // --- NADPISANIE SYSTEMOWEGO ALERTU (PIĘKNE POWIADOMIENIA) ---
+    window.alert = function(message) {
+        const container = document.getElementById('toast-container');
+        const toast = document.createElement('div');
+        toast.className = 'toast';
+        
+        let icon = '⚔️';
+        if (message.toLowerCase().includes('błąd') || message.toLowerCase().includes('wybierz')) {
+            toast.classList.add('error');
+            icon = '⚠️';
+        } else if (message.toLowerCase().includes('skopiowano') || message.toLowerCase().includes('zaloguj')) {
+            toast.classList.add('success');
+            icon = '✅';
+        }
+
+        toast.innerHTML = `<span style="font-size:1.2em;">${icon}</span> <span>${message}</span>`;
+        container.appendChild(toast);
+
+        // Usuń element z pamięci po 4 sekundach
+        setTimeout(() => { toast.remove(); }, 4000);
+    };
+</script>
+    
 </body>
 </html>
+
 
 
 
