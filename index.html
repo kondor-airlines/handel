@@ -160,6 +160,9 @@
         .unreserve-btn { background: #444; color: #fff; }
         .edit-added { border: 1px solid var(--gold); color: var(--gold); background: none; }
         .delete-btn { background: #333; color: #888; }
+        /* NOWY STYL DLA PRZYCISKU WIADOMOŚCI */
+        .msg-btn { background: var(--purple); color: #fff; box-shadow: 0 0 10px rgba(155, 89, 182, 0.3); }
+        .msg-btn:hover { background: #8e44ad; }
 
         .preview-box {
             grid-column: 1 / -1; display: none; align-items: center; justify-content: space-between; 
@@ -278,7 +281,6 @@
     let allOffers = [];
     let currentFilters = { type: 'all', cat: 'all' };
     let currentEditId = null;
-
     const monstersList = {
         herosi: [
             { name: "Mroczny Patryk (35 lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/her/bardzozlypatryk.gif" },
@@ -1208,7 +1210,7 @@
         ]
     };
 
-  function escapeHtml(text) { return text ? text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;") : ""; }
+ function escapeHtml(text) { return text ? text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;") : ""; }
 
     // --- LOGIKA FILTRÓW ---
     window.setFilter = (type, val) => {
@@ -1292,6 +1294,18 @@
         window.renderOffers();
     });
 
+    // --- NOWA FUNKCJA WIADOMOŚCI ---
+    window.copyMessage = (nick, itemName, price, type) => {
+        let msg = "";
+        if(type === 'sprzedam') msg = `/m ${nick} Cześć, chcę kupić od Ciebie: ${itemName} za ${price}. Aktualne?`;
+        else if(type === 'kupie') msg = `/m ${nick} Cześć, mam na sprzedaż: ${itemName}. Jesteś zainteresowany?`;
+        else msg = `/m ${nick} Cześć, piszę w sprawie oferty: ${itemName} (wymiana).`;
+        
+        navigator.clipboard.writeText(msg).then(() => {
+            alert(`Skopiowano wiadomość do gracza ${nick}! Wklej ją w grze.`);
+        });
+    };
+
     window.renderOffers = () => {
         const list = document.getElementById('offersList');
         const searchInput = document.getElementById('globalSearch');
@@ -1309,7 +1323,20 @@
             const isOwner = currentUser && data.userId === currentUser.uid;
             const isAdmin = currentNick === ADMIN_NICK;
             let resHtml = data.reservedBy ? `<div class="reservation-box">🔒 Zarezerwowane przez: <b>${data.reservedBy}</b></div>` : "";
-            let btnRes = !data.reservedBy ? `<button class="small-btn reserve-btn" onclick="reserveOffer('${data.id}')">ZAREZERWUJ</button>` : (isOwner || isAdmin ? `<button class="small-btn unreserve-btn" onclick="cancelReservation('${data.id}')">COFNIJ REZ.</button>` : "");
+            
+            // Logika przycisków
+            let btnRes = "";
+            if (!data.reservedBy) {
+                btnRes = `<button class="small-btn reserve-btn" onclick="reserveOffer('${data.id}')">ZAREZERWUJ</button>`;
+            } else if (isOwner || isAdmin) {
+                btnRes = `<button class="small-btn unreserve-btn" onclick="cancelReservation('${data.id}')">COFNIJ REZ.</button>`;
+            }
+
+            // Przycisk Wiadomości (Tylko jeśli to nie moja oferta)
+            let msgBtn = "";
+            if (!isOwner) {
+                msgBtn = `<button class="small-btn msg-btn" onclick="copyMessage('${data.nick}', '${escapeHtml(data.name)}', '${escapeHtml(data.price)}', '${data.type}')" title="Kopiuj wiadomość do gry">✉️</button>`;
+            }
             
             list.innerHTML += `
                 <div class="offer-card legendary-item">
@@ -1327,6 +1354,7 @@
                     <div class="seller-info">
                         <div class="seller-left"><img src="${data.avatar}" class="tiny-avatar"><b>${escapeHtml(data.nick)}</b></div>
                         <div class="btn-group">
+                            ${msgBtn}
                             ${btnRes}
                             ${isOwner ? `<button class="small-btn edit-added" onclick="openFullEdit('${data.id}','${escapeHtml(data.name)}','${escapeHtml(data.price)}','${escapeHtml(data.desc)}','${escapeHtml(data.img)}')">EDYTUJ</button>` : ""}
                             ${isOwner || isAdmin ? `<button class="small-btn delete-btn" onclick="deleteOffer('${data.id}')">✕</button>` : ""}
@@ -1368,7 +1396,6 @@
 </script>
 
 <style>
-    /* 1. ELITARNY SCROLLBAR */
     ::-webkit-scrollbar { width: 12px; }
     ::-webkit-scrollbar-track { background: #050505; }
     ::-webkit-scrollbar-thumb { 
@@ -1378,7 +1405,6 @@
     }
     ::-webkit-scrollbar-thumb:hover { background: #fff2a6; }
 
-    /* 2. PRZYCISK WRÓĆ NA GÓRĘ */
     #scrollTopBtn {
         display: none; 
         position: fixed; 
@@ -1404,7 +1430,6 @@
         box-shadow: 0 0 30px rgba(255, 215, 0, 0.6);
     }
 
-    /* 3. NOWOCZESNE POWIADOMIENIA (TOASTS) */
     #toast-container {
         position: fixed;
         bottom: 30px;
@@ -1438,181 +1463,99 @@
     
     @keyframes slideIn { from { transform: translateX(-120%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
     @keyframes fadeOut { to { opacity: 0; visibility: hidden; } }
-</style>
-
-<button onclick="topFunction()" id="scrollTopBtn" title="Wróć na górę">▲</button>
-<div id="toast-container"></div>
-
-<script>
-    // --- OBSŁUGA PRZYCISKU SCROLL ---
-    const scrollBtn = document.getElementById("scrollTopBtn");
-    window.onscroll = function() { 
-        if (document.body.scrollTop > 300 || document.documentElement.scrollTop > 300) {
-            scrollBtn.style.display = "flex";
-            scrollBtn.style.alignItems = "center";
-            scrollBtn.style.justifyContent = "center";
-        } else {
-            scrollBtn.style.display = "none";
-        }
-    };
-
-    window.topFunction = function() {
-        window.scrollTo({top: 0, behavior: 'smooth'});
-    }
-
-    // --- NADPISANIE SYSTEMOWEGO ALERTU (PIĘKNE POWIADOMIENIA) ---
-    window.alert = function(message) {
-        const container = document.getElementById('toast-container');
-        const toast = document.createElement('div');
-        toast.className = 'toast';
-        
-        let icon = '⚔️';
-        if (message.toLowerCase().includes('błąd') || message.toLowerCase().includes('wybierz')) {
-            toast.classList.add('error');
-            icon = '⚠️';
-        } else if (message.toLowerCase().includes('skopiowano') || message.toLowerCase().includes('zaloguj')) {
-            toast.classList.add('success');
-            icon = '✅';
-        }
-
-        toast.innerHTML = `<span style="font-size:1.2em;">${icon}</span> <span>${message}</span>`;
-        container.appendChild(toast);
-
-        // Usuń element z pamięci po 4 sekundach
-        setTimeout(() => { toast.remove(); }, 4000);
-    };
-</script>
-
-<style>
-    /* 1. ŻYWE TŁO (Zostawiamy, bo się podobało) */
+    
+    /* OŻYWIONE TŁO */
     body {
-        background-size: 300% 300%;
-        animation: gradientBG 20s ease infinite;
-        background-image: radial-gradient(circle at center, #1a1200 0%, #0f0f0f 50%, #000000 100%);
+        background: linear-gradient(-45deg, #050505, #1a1200, #2e2000, #000000);
+        background-size: 400% 400%;
+        animation: livingBackground 20s ease infinite;
+        min-height: 100vh;
+        background-attachment: fixed; 
+    }
+    @keyframes livingBackground {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
     }
     
-    @keyframes gradientBG {
-        0% { background-position: 50% 0%; }
-        50% { background-position: 50% 100%; }
-        100% { background-position: 50% 0%; }
-    }
-
-    /* 2. TYTUŁ */
+    /* PAKIET GRAFICZNY V2.1 */
     h1 {
         background: linear-gradient(to bottom, #ffd700 20%, #b8860b 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         filter: drop-shadow(0 0 15px rgba(255, 215, 0, 0.3));
     }
-
-    /* 3. KARTY - POPRAWKA (OVERFLOW HIDDEN!) */
     .offer-card {
         background: rgba(18, 18, 18, 0.85) !important;
         backdrop-filter: blur(4px);
         border: 1px solid rgba(255, 215, 0, 0.15) !important;
-        /* KLUCZOWA POPRAWKA: To ucina wszystko co wystaje poza kartę */
         overflow: hidden !important; 
         position: relative !important;
         z-index: 1;
     }
-
-    /* EFEKT BŁYSKU (SHEEN) - TERAZ ZAMKNIĘTY W KARCIE */
     .offer-card::after {
         content: '';
         position: absolute;
-        top: 0;
-        left: -150%; /* Startuje daleko z lewej */
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(
-            to right, 
-            transparent 0%, 
-            rgba(255, 215, 0, 0.1) 50%, 
-            transparent 100%
-        );
-        transform: skewX(-20deg); /* Pochylenie paska */
-        transition: none;
-        pointer-events: none;
-        z-index: 2;
+        top: 0; left: -150%; width: 100%; height: 100%;
+        background: linear-gradient(to right, transparent 0%, rgba(255, 215, 0, 0.1) 50%, transparent 100%);
+        transform: skewX(-20deg); transition: none; pointer-events: none; z-index: 2;
     }
-
-    .offer-card:hover::after {
-        /* Animacja przejazdu paska */
-        animation: shine 0.7s cubic-bezier(0.4, 0, 0.2, 1); 
-    }
-
-    @keyframes shine {
-        0% { left: -150%; }
-        100% { left: 150%; }
-    }
-
+    .offer-card:hover::after { animation: shine 0.7s cubic-bezier(0.4, 0, 0.2, 1); }
+    @keyframes shine { 0% { left: -150%; } 100% { left: 150%; } }
     .offer-card:hover {
         border-color: var(--gold) !important;
-        transform: translateY(-5px); /* Lekkie uniesienie, bez 3D */
+        transform: translateY(-5px);
         box-shadow: 0 10px 40px rgba(0,0,0,0.8), 0 0 20px rgba(255, 215, 0, 0.15) !important;
     }
-
-    /* 4. POLA INPUT I SELECT */
     input, select, textarea {
-        background: #0a0a0a !important;
-        border: 1px solid #333 !important;
-        color: #eee !important;
-        transition: 0.3s;
+        background: #0a0a0a !important; border: 1px solid #333 !important; color: #eee !important; transition: 0.3s;
     }
     input:focus, select:focus, textarea:focus {
-        border-color: var(--gold) !important;
-        background: #111 !important;
-        box-shadow: 0 0 10px rgba(255, 215, 0, 0.2) !important;
+        border-color: var(--gold) !important; background: #111 !important; box-shadow: 0 0 10px rgba(255, 215, 0, 0.2) !important;
     }
-
-    /* 5. PRZYCISKI FILTRÓW */
     .filter-btn.active {
         background: linear-gradient(135deg, #ffd700 0%, #d4af37 100%) !important;
-        color: #000 !important;
-        border: none !important;
-        box-shadow: 0 0 15px rgba(255, 215, 0, 0.4) !important;
+        color: #000 !important; border: none !important; box-shadow: 0 0 15px rgba(255, 215, 0, 0.4) !important;
     }
-
-    /* 6. KOLORY CEN */
-    .price-tag span {
-        color: #4fffa8 !important;
-        text-shadow: 0 0 10px rgba(79, 255, 168, 0.3);
-    }
-    
-    /* 7. ANIMACJA WEJŚCIA */
-    .offer-card {
-        animation: cardAppear 0.5s ease-out backwards;
-    }
+    .price-tag span { color: #4fffa8 !important; text-shadow: 0 0 10px rgba(79, 255, 168, 0.3); }
+    .offer-card { animation: cardAppear 0.5s ease-out backwards; }
     .offer-card:nth-child(1) { animation-delay: 0.05s; }
     .offer-card:nth-child(2) { animation-delay: 0.1s; }
     .offer-card:nth-child(3) { animation-delay: 0.15s; }
     .offer-card:nth-child(4) { animation-delay: 0.2s; }
     .offer-card:nth-child(5) { animation-delay: 0.25s; }
-
-    @keyframes cardAppear {
-        from { opacity: 0; transform: translateY(20px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
+    @keyframes cardAppear { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 </style>
 
-<style>
-    body {
-        /* Tworzymy gradient z 4 kolorów: czerń, ciemne złoto, brąz i znowu czerń */
-        background: linear-gradient(-45deg, #050505, #1a1200, #2e2000, #000000);
-        background-size: 400% 400%;
-        animation: livingBackground 20s ease infinite;
-        /* Zapewniamy, że tło pokrywa całą stronę nawet przy przewijaniu */
-        min-height: 100vh;
-        background-attachment: fixed; 
-    }
+<button onclick="topFunction()" id="scrollTopBtn" title="Wróć na górę">▲</button>
+<div id="toast-container"></div>
 
-    @keyframes livingBackground {
-        0% { background-position: 0% 50%; }
-        50% { background-position: 100% 50%; }
-        100% { background-position: 0% 50%; }
-    }
-</style>
-    
+<script>
+    const scrollBtn = document.getElementById("scrollTopBtn");
+    window.onscroll = function() { 
+        if (document.body.scrollTop > 300 || document.documentElement.scrollTop > 300) {
+            scrollBtn.style.display = "flex";
+            scrollBtn.style.alignItems = "center";
+            scrollBtn.style.justifyContent = "center";
+        } else { scrollBtn.style.display = "none"; }
+    };
+    window.topFunction = function() { window.scrollTo({top: 0, behavior: 'smooth'}); }
+
+    window.alert = function(message) {
+        const container = document.getElementById('toast-container');
+        const toast = document.createElement('div');
+        toast.className = 'toast';
+        let icon = '⚔️';
+        if (message.toLowerCase().includes('błąd') || message.toLowerCase().includes('wybierz')) {
+            toast.classList.add('error'); icon = '⚠️';
+        } else if (message.toLowerCase().includes('skopiowano') || message.toLowerCase().includes('zaloguj')) {
+            toast.classList.add('success'); icon = '✅';
+        }
+        toast.innerHTML = `<span style="font-size:1.2em;">${icon}</span> <span>${message}</span>`;
+        container.appendChild(toast);
+        setTimeout(() => { toast.remove(); }, 4000);
+    };
+</script>
 </body>
 </html>
 
