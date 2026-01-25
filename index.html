@@ -2603,10 +2603,10 @@ window.renderOffers = () => {
             
             let ownerBtns = "";
             if (isOwner && !isSold) {
-                // 1. Przycisk Edycji (Zawsze dostępny)
-                ownerBtns += `<button class="small-btn edit-added" onclick="openFullEdit('${data.id}','${window.escapeHtml(data.name)}','${window.escapeHtml(data.price)}','${window.escapeHtml(data.desc)}','${window.escapeHtml(data.img)}')">✏️</button>`;
+                // 1. Przycisk Edycji (przekazujemy ID, Nazwę, Cenę, Opis, Obrazek i WIĄZANIE)
+                ownerBtns += `<button class="small-btn edit-added" onclick="openFullEdit('${data.id}','${window.escapeHtml(data.name)}','${window.escapeHtml(data.price)}','${window.escapeHtml(data.desc)}','${window.escapeHtml(data.img)}', '${data.bonding}')">✏️</button>`;
 
-                // 2. Przycisk "Sprzedane" (Tylko dla ofert sprzedaży/usług, ukryty dla "Kupię" i "Zamienię")
+                // 2. Przycisk "Sprzedane" (ten, który już masz)
                 if (['sprzedam', 'gold', 'chest', 'exp', 'other'].includes(data.type)) {
                     ownerBtns += `<button class="small-btn" onclick="markAsSold('${data.id}')" title="Oznacz jako sprzedane" style="border-color:var(--gold); color:var(--gold);">💰</button>`;
                 }
@@ -3475,6 +3475,7 @@ function startSplitHistory() {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
