@@ -851,6 +851,7 @@
                 <span class="split-label">2. Wybierz Przedmiot:</span>
                 <div id="splitLootGrid" class="loot-grid-select"></div>
                 <input type="hidden" id="splitSelectedName">
+				<input type="hidden" id="splitSelectedImg">
             </div>
 
 			<div class="split-section">
@@ -3184,14 +3185,15 @@ window.renderOffers = () => {
 
         if(confirm(msg)) {
             await addDoc(collection(db, "podzialy"), {
-                item, 
-                total, 
-                boss: s_Boss, 
-                bossShare, 
-                teamShare: teamPerPerson, 
-                team: s_Team, 
+                item: item,
+                itemImg: document.getElementById('splitSelectedImg').value, // Zapisuje ikonę
+                total: total,
+                boss: s_Boss,
+                bossShare: half,
+                teamShare: perPerson,
+                team: s_Team, // Zapisuje tablicę nicków
                 mode: description,
-                date: new Date().toISOString(), 
+                date: new Date().toISOString(),
                 author: currentNick,
                 authorId: currentUser.uid
             });
@@ -3208,23 +3210,41 @@ window.renderOffers = () => {
         const q = query(collection(db, "podzialy"), orderBy("date", "desc"), limit(15));
         splitUnsub = onSnapshot(q, (snap) => {
             const cont = document.getElementById('splitHistoryContent');
-            cont.innerHTML = "<h4 style='color:#555; margin-bottom:10px;'>Ostatnie wypłaty:</h4>";
+            cont.innerHTML = "<h4 style='color:#555; margin-bottom:10px; border-bottom:1px solid #222; padding-bottom:5px;'>Ostatnie wypłaty:</h4>";
+            
             snap.forEach(docSnap => {
                 const d = docSnap.data();
+                const id = docSnap.id;
                 const canDelete = (currentUser && (currentUser.uid === ADMIN_UID || currentUser.uid === d.authorId));
-                const delBtn = canDelete ? `<span class="del-split-icon" onclick="deleteSplit('${docSnap.id}')">🗑️</span>` : '';
+                const delBtn = canDelete ? `<span class="del-split-icon" onclick="deleteSplit('${id}')" style="margin-left:10px;">🗑️</span>` : '';
+
+                // Łączymy nicki z ekipy w jeden tekst
+                const teamList = d.team ? d.team.join(", ") : "Brak danych";
 
                 cont.innerHTML += `
-                    <div style="background:rgba(255,255,255,0.03); padding:12px; margin-bottom:8px; border-left:3px solid #00ffff; border-radius: 4px; font-size:0.85em;">
-                        <div style="display:flex; justify-content:space-between; align-items:center;">
-                            <b style="color:#fff;">${d.item}</b>
-                            ${delBtn}
+                    <div style="background:rgba(255,255,255,0.03); padding:10px; margin-bottom:10px; border-left:3px solid #00ffff; border-radius: 4px; display:flex; gap:12px; align-items:center;">
+                        <div style="width:40px; height:40px; background:#000; border:1px solid #444; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                            <img src="${d.itemImg || 'https://cdn.margonem.pl/obrazki/itemy/nas/pyt.gif'}" style="max-width:32px; max-height:32px;">
                         </div>
-                        <div style="font-size:0.75em; color:#666; margin-bottom:5px;">Tryb: ${d.mode || 'Zwykły'} | ${new Date(d.date).toLocaleDateString()}</div>
-                        <div style="color:#ffd700;">👑 ${d.boss}: ${s_formatGold(d.bossShare)}</div>
-                        <div style="color:#aaa;">⚔️ Ekipa: po <b>${s_formatGold(d.teamShare)}</b></div>
+
+                        <div style="flex-grow:1; font-size:0.85em;">
+                            <div style="display:flex; justify-content:space-between;">
+                                <b style="color:#fff;">${d.item}</b>
+                                <div><small style="color:#444;">${new Date(d.date).toLocaleDateString()}</small>${delBtn}</div>
+                            </div>
+                            
+                            <div style="margin-top:3px;">
+                                <span style="color:gold;">👑 ${d.boss}</span> (<small>${s_formatGold(d.bossShare)}</small>)
+                            </div>
+                            
+                            <div style="color:#888; font-size:0.9em; margin-top:2px;">
+                                <span style="color:#00ffff;">⚔️</span> ${teamList} 
+                                <b style="color:#2ecc71; margin-left:5px;">+${s_formatGold(d.teamShare)}</b>
+                            </div>
+                        </div>
                     </div>`;
             });
+            if(snap.empty) cont.innerHTML += "<div style='color:#444; text-align:center;'>Historia jest pusta</div>";
         });
     }
 
@@ -3244,6 +3264,7 @@ window.renderOffers = () => {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
