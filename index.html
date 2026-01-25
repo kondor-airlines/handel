@@ -278,11 +278,11 @@
     <div id="addOfferPanel" class="panel" style="display: none;">
         <h3 style="margin-top:0; color:var(--gold); font-family:'MedievalSharp';">Wystaw Artefakt</h3>
         <div class="form-grid">
-            <select id="offerType">
+<select id="offerType" onchange="toggleSpecialFields()">
                 <option value="sprzedam">Sprzedam</option>
                 <option value="kupie">Kupię</option>
                 <option value="zamienie">Zamienię</option>
-				<option value="gold">Sprzedaż Złota</option>
+                <option value="gold">Sprzedaż Złota</option>
                 <option value="exp">Pomoc / Expienie</option>
                 <option value="other">Inne</option>
             </select>
@@ -1487,6 +1487,25 @@ const lootTable = {
     };
 
     window.renderBestiary = (category) => {
+
+		// --- UKRYWANIE PÓL DLA ZŁOTA/EXP ---
+    window.toggleSpecialFields = () => {
+        const type = document.getElementById('offerType').value;
+        const isSpecial = ['gold', 'exp', 'other'].includes(type);
+        const displayStyle = isSpecial ? 'none' : 'block';
+        
+        // Ukrywamy/pokazujemy zbędne selecty
+        document.getElementById('sourceCategory').style.display = displayStyle;
+        document.getElementById('itemSource').style.display = displayStyle;
+        document.getElementById('itemSelect').style.display = displayStyle;
+        
+        // Ukrywamy wyszukiwarki jeśli były aktywne
+        if(isSpecial) {
+            document.getElementById('sourceSearch').style.display = 'none';
+            document.getElementById('itemSearch').style.display = 'none';
+        }
+    };
+		
         const container = document.getElementById('bestiaryContent');
         container.innerHTML = "";
         
@@ -1835,22 +1854,33 @@ const lootTable = {
         window.renderOffers();
     });
     window.addOffer = async () => {
+        const type = document.getElementById('offerType').value;
+        const isSpecial = ['gold', 'exp', 'other'].includes(type);
+        
         const sel = document.getElementById('itemSource');
         const priceInput = document.getElementById('itemPrice');
         const priceVal = priceInput.value.trim().replace(',', '.'); 
-        if(!sel.value) return window.alert("Błąd: Wybierz przeciwnika z listy!");
+        
+        // Walidacja przeciwnika TYLKO dla zwykłych ofert
+        if(!isSpecial && !sel.value) return window.alert("Błąd: Wybierz przeciwnika z listy!");
+        
         const pricePattern = /^\d+(\.\d+)?[kmg]$/i;
         if (!priceVal) { return window.alert("Błąd: Podaj cenę!"); }
         if (!pricePattern.test(priceVal)) { return window.alert("Błąd formatu! Cena MUSI kończyć się literą k, m lub g (np. 500k, 150m, 1.2g)."); }
+
+        // Ustawiamy "fake" dane dla ofert specjalnych, żeby baza się nie sypała
+        const finalSource = isSpecial ? (type === 'gold' ? 'Kantor' : 'Ogłoszenie') : sel.value;
+        const finalImg = isSpecial ? '' : (sel.options[sel.selectedIndex]?.dataset.img || '');
+
         await addDoc(collection(db, "oferty"), {
             userId: currentUser.uid, 
             nick: currentNick, 
             avatar: currentUser.photoURL,
-            type: document.getElementById('offerType').value,
-            name: document.getElementById('itemName').value || "Nieznany przedmiot",
+            type: type,
+            name: document.getElementById('itemName').value || (type === 'gold' ? 'Złoto' : 'Usługa'),
             price: priceVal.toLowerCase(), 
-            source: sel.value, 
-            sourceImg: sel.options[sel.selectedIndex].dataset.img,
+            source: finalSource, 
+            sourceImg: finalImg,
             desc: document.getElementById('itemDesc').value,
             img: document.getElementById('itemImg').value,
             date: new Date().toISOString(), 
@@ -1858,12 +1888,18 @@ const lootTable = {
         });
         window.playSound('coin');
         window.alert("Dodano ofertę!");
+        
+        // Reset formularza
         document.getElementById('itemPrice').value = "";
         document.getElementById('itemPrice').style.borderColor = "#333"; 
         document.getElementById('itemName').value = "";
         document.getElementById('itemImg').value = "";
         document.getElementById('itemDesc').value = "";
         document.getElementById('livePreview').style.display = 'none';
+        
+        // Reset widoczności pól
+        document.getElementById('offerType').value = 'sprzedam';
+        window.toggleSpecialFields();
     };
     
     window.reserveOffer = async (id) => { if(!currentNick) return alert("Zaloguj się!"); await updateDoc(doc(db, "oferty", id), { reservedBy: currentNick }); window.playSound('click'); };
@@ -1965,4 +2001,5 @@ const lootTable = {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
