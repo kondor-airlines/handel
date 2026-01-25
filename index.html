@@ -54,16 +54,17 @@
         .action-btn { background: linear-gradient(to bottom, #ffd700, #b89b00); color: #000; border: none; padding: 15px; font-weight: 800; width: 100%; cursor: pointer; border-radius: 6px; text-transform: uppercase; transition: 0.3s; }
 
         /* PODGLĄD */
-        .preview-box { grid-column: 1 / -1; display: none; align-items: center; justify-content: flex-end; background: linear-gradient(270deg, #251f00 0%, #1a1a1a 100%); border: 2px solid var(--gold); padding: 15px 25px; border-radius: 12px; margin-bottom: 15px; gap: 20px; }
+        .preview-box { grid-column: 1 / -1; display: none; align-items: center; justify-content: flex-end; background: linear-gradient(270deg, #251f00 0%, #1a1a1a 100%); border: 2px solid var(--gold); padding: 15px 25px; border-radius: 12px; margin-bottom: 15px; gap: 20px; animation: fadeIn 0.5s ease; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         .preview-content { display: flex; flex-direction: column; align-items: flex-end; text-align: right; }
         .preview-label { font-size: 0.7em; text-transform: uppercase; color: #888; }
         .preview-text { font-size: 1.4em; color: var(--gold); font-family: 'MedievalSharp'; }
         .preview-icon-wrapper { width: 70px; height: 70px; background: radial-gradient(circle, #333 0%, #000 100%); border-radius: 10px; border: 2px solid var(--gold); display: flex; align-items: center; justify-content: center; }
-        .preview-icon-wrapper img { max-width: 90%; max-height: 90%; object-fit: contain; }
+        .preview-icon-wrapper img { max-width: 90%; max-height: 90%; object-fit: contain; filter: drop-shadow(0 0 5px rgba(255,255,255,0.2)); }
 
         /* KARTY OFERT */
         .offers-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 25px; }
-        .offer-card { background: rgba(18, 18, 18, 0.9); backdrop-filter: blur(5px); border: 2px solid #333; border-radius: 12px; padding: 15px; position: relative; transition: 0.3s; display: flex; flex-direction: column; align-items: center; box-shadow: 0 5px 15px rgba(0,0,0,0.5); animation: cardAppear 0.5s ease-out backwards; overflow: visible; }
+        .offer-card { background: rgba(18, 18, 18, 0.9); backdrop-filter: blur(5px); border: 2px solid #333; border-radius: 12px; padding: 20px; position: relative; transition: 0.3s; display: flex; flex-direction: column; align-items: center; box-shadow: 0 5px 15px rgba(0,0,0,0.5); animation: cardAppear 0.5s ease-out backwards; overflow: visible; }
         .offer-card:hover { transform: translateY(-5px); box-shadow: 0 10px 25px rgba(0,0,0,0.7); }
         .offer-card.type-sprzedam { border-color: var(--green); box-shadow: inset 0 0 20px rgba(46, 204, 113, 0.1); }
         .offer-card.type-kupie { border-color: var(--blue); box-shadow: inset 0 0 20px rgba(52, 152, 219, 0.1); }
@@ -83,18 +84,19 @@
         .price-tag { font-size: 1.4em; color: #fff; font-weight: bold; margin: 5px 0; border-top: 1px solid #333; padding-top: 10px; width: 100%; text-align: center; }
         .price-tag span { color: #4fffa8; text-shadow: 0 0 10px rgba(79, 255, 168, 0.3); }
 
-        /* STOPKA - NAPRAWIONA */
+        /* STOPKA */
         .seller-info { margin-top: auto; width: 100%; padding-top: 15px; border-top: 1px dotted #444; display: flex; flex-direction: column; gap: 12px; }
         .seller-left { display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 0.9em; }
         .tiny-avatar { width: 30px; height: 30px; border-radius: 50%; border: 1px solid var(--gold); }
-        .btn-group { display: flex; gap: 5px; width: 100%; justify-content: space-between; }
-        .small-btn { flex: 1; padding: 8px 0; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 1.2em; border: 1px solid #333; background: rgba(255,255,255,0.05); color: #aaa; transition: 0.2s; display: flex; align-items: center; justify-content: center; }
+        .btn-group { display: flex; gap: 8px; width: 100%; justify-content: center; }
+
+        .small-btn { flex: 1; padding: 8px 0; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 1.1em; border: 1px solid #333; background: rgba(255,255,255,0.05); color: #ccc; transition: 0.2s; display: flex; align-items: center; justify-content: center; }
         .small-btn:hover { background: var(--gold); color: #000; border-color: var(--gold); transform: translateY(-2px); }
         .msg-btn:hover { background: var(--purple); color: #fff; border-color: var(--purple); }
         .reserve-btn:hover { background: var(--green); color: #000; border-color: var(--green); }
         .unreserve-btn:hover { background: #555; color: #fff; }
         .delete-btn:hover { background: var(--red); color: #fff; border-color: var(--red); }
-
+        
         /* TOOLTIP */
         .tooltip-container { position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%) translateY(-10px); width: 280px; background: rgba(0, 0, 0, 0.95); border: 2px solid #555; border-radius: 8px; padding: 15px; z-index: 1000; opacity: 0; visibility: hidden; transition: all 0.2s ease; pointer-events: none; box-shadow: 0 0 20px rgba(0,0,0,0.8); text-align: center; }
         .offer-card:hover .tooltip-container { opacity: 1; visibility: visible; transform: translateX(-50%) translateY(-5px); }
@@ -115,8 +117,8 @@
         #karczmaPanel { position: fixed; top: 0; right: -350px; width: 320px; height: 100vh; background: rgba(10, 10, 10, 0.95); border-left: 2px solid var(--gold); backdrop-filter: blur(10px); z-index: 20000; transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1); display: flex; flex-direction: column; }
         #karczmaPanel.open { right: 0; box-shadow: -10px 0 50px rgba(0,0,0,0.8); }
         .chat-header { padding: 20px; background: linear-gradient(90deg, #332b00, transparent); border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center; }
-        .chat-messages { flex-grow: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 10px; }
-        .chat-msg { font-size: 0.85em; padding: 10px; border-radius: 8px; background: rgba(255,255,255,0.05); border: 1px solid #333; }
+        .chat-messages { flex-grow: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 12px; }
+        .chat-msg { font-size: 0.85em; padding: 10px; border-radius: 8px; background: rgba(255,255,255,0.05); border: 1px solid #333; display: flex; flex-direction: column; gap: 5px; }
         .chat-top-row { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 4px; margin-bottom: 2px; }
         .chat-nick { color: var(--gold); font-weight: bold; }
         .chat-time { font-size: 0.85em; color: #666; }
@@ -267,6 +269,7 @@
                     <option value="herosi">Herosi</option>
                     <option value="e2">Elity II</option>
                 </select>
+                
                 <input type="text" id="sourceSearch" class="full-width search-box" placeholder="🔍 Szukaj przeciwnika..." oninput="updateSourceList()" style="display:none;">
                 <select id="itemSource" class="full-width" onchange="updateLootList()"><option value="">-- Przeciwnik --</option></select>
                 <input type="text" id="itemSearch" class="full-width search-box" placeholder="🔍 Szukaj przedmiotu..." oninput="updateLootList()" style="display:none;">
@@ -284,12 +287,12 @@
             </div>
 
             <div style="display:flex; gap:10px; align-items:center;" class="full-width">
-                <input type="text" id="itemName" placeholder="Nazwa przedmiotu" maxlength="50">
+                <input type="text" id="itemName" placeholder="Nazwa przedmiotu / Tytuł" maxlength="50">
                 <button id="statsBtn" class="helper-btn" onclick="searchMargo()" title="Sprawdź statystyki">
                     <span style="margin-right: 5px; font-size: 0.8em;">STATY</span> 🔍
                 </button>
             </div>
-            <input type="text" id="itemImg" placeholder="Link do obrazka (opcjonalnie)" class="full-width" oninput="manualImgPreview()">
+            <input type="text" id="itemImg" placeholder="Link do obrazka (opcjonalne)" class="full-width" oninput="manualImgPreview()">
             <textarea id="itemDesc" placeholder="Dodatkowy opis..." class="full-width" maxlength="150" rows="2"></textarea>
             <button class="action-btn full-width" onclick="addOffer()">Opublikuj na Targu</button>
         </div>
@@ -444,9 +447,8 @@
     // --- ZEGAR GRY ---
     function updateClock() {
         const now = new Date();
-        const timeString = now.toLocaleTimeString('pl-PL');
         const clockEl = document.getElementById('gameClock');
-        if(clockEl) clockEl.innerText = timeString;
+        if(clockEl) clockEl.innerText = now.toLocaleTimeString('pl-PL');
     }
     setInterval(updateClock, 1000);
     updateClock();
@@ -1377,14 +1379,12 @@ window.escapeHtml = function(text) { return text ? text.replace(/&/g, "&amp;").r
             }
         }, 120000); 
     }
-
     onSnapshot(collection(db, "users"), (snap) => {
         snap.docs.forEach(d => {
             activeUsers[d.id] = d.data().lastActive;
         });
         window.renderOffers();
     });
-
     function isUserOnline(uid) {
         if (!activeUsers[uid]) return false;
         const last = new Date(activeUsers[uid]).getTime();
@@ -1397,7 +1397,6 @@ window.escapeHtml = function(text) { return text ? text.replace(/&/g, "&amp;").r
         const p = document.getElementById('karczmaPanel');
         p.classList.toggle('open');
     };
-
     window.sendChatMessage = async () => {
         const inp = document.getElementById('chatInput');
         const txt = inp.value.trim();
@@ -1410,14 +1409,23 @@ window.escapeHtml = function(text) { return text ? text.replace(/&/g, "&amp;").r
         });
         inp.value = "";
     };
-
+    document.getElementById('chatInput').addEventListener('keypress', function (e) {
+        if (e.key === 'Enter') sendChatMessage();
+    });
     onSnapshot(query(collection(db, "chat"), orderBy("date", "asc"), limit(50)), (snap) => {
         const div = document.getElementById('chatMessages');
         div.innerHTML = "";
         snap.docs.forEach(d => {
             const m = d.data();
             const time = new Date(m.date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-            div.innerHTML += `<div class="chat-msg"><b>${window.escapeHtml(m.nick)}</b>${m.text}<span class="time">${time}</span></div>`;
+            div.innerHTML += `
+                <div class="chat-msg">
+                    <div class="chat-top-row">
+                        <span class="chat-nick">${window.escapeHtml(m.nick)}</span>
+                        <span class="chat-time">${time}</span>
+                    </div>
+                    <div class="chat-text">${m.text}</div>
+                </div>`;
         });
         div.scrollTop = div.scrollHeight;
     });
@@ -1431,7 +1439,6 @@ window.escapeHtml = function(text) { return text ? text.replace(/&/g, "&amp;").r
         document.getElementById('composeText').value = "";
         document.getElementById('composeModal').style.display = 'flex';
     };
-
     window.sendInternalMessage = async () => {
         const txt = document.getElementById('composeText').value;
         if (!txt) return alert("Pusto!");
@@ -1440,9 +1447,7 @@ window.escapeHtml = function(text) { return text ? text.replace(/&/g, "&amp;").r
         window.playSound('coin');
         alert("Wysłano gołębia!");
     };
-
     window.deleteMessage = async (msgId) => { if(confirm("Usunąć?")) await deleteDoc(doc(db, "wiadomosci", msgId)); };
-
     let unsubscribeMail = null;
     function startMailListener() {
         if (unsubscribeMail) unsubscribeMail();
@@ -1455,7 +1460,6 @@ window.escapeHtml = function(text) { return text ? text.replace(/&/g, "&amp;").r
             if(document.getElementById('mailboxModal').style.display === 'flex') renderMailList(inboxMessages);
         });
     }
-
     window.openMailbox = () => { document.getElementById('mailboxModal').style.display = 'flex'; renderMailList(inboxMessages); };
     function renderMailList(msgs) {
         const c = document.getElementById('mailboxContent');
@@ -1738,7 +1742,7 @@ window.escapeHtml = function(text) { return text ? text.replace(/&/g, "&amp;").r
             count++;
             const isAdmin = currentNick === ADMIN_NICK;
             const isOnline = isUserOnline(data.userId);
-            const onlineHtml = isOnline ? '<span class="online-dot" title="Online"></span>' : '';
+            const onlineHtml = isOnline ? '<span class="online-dot" title="Sprzedawca jest Online!"></span>' : '';
             let typeClass = "";
             if (data.type === 'sprzedam') typeClass = "type-sprzedam";
             if (data.type === 'kupie') typeClass = "type-kupie";
@@ -2023,3 +2027,4 @@ window.escapeHtml = function(text) { return text ? text.replace(/&/g, "&amp;").r
 <div id="toast-container"></div>
 </body>
 </html>
+
