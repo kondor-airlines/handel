@@ -524,12 +524,14 @@
         <input type="text" id="calcAmount" placeholder="np. 1.2g lub 1200m" style="margin-bottom:10px;">
         
         <label style="color:#aaa; font-size:0.8em;">Liczba osób (razem)</label>
-        <input type="number" id="calcPlayers" value="2" min="1" style="margin-bottom:15px;">
+        <input type="number" id="calcPlayers" value="2" min="1" style="margin-bottom:10px;">
 
-        <label class="toggle-wrapper" style="border: 1px solid var(--purple);">
-            <input type="checkbox" id="calcWykrywajka"> 
-            <span>👁️ Wykrywajka (2x 25% + Reszta)</span>
-        </label>
+        <label style="color:#aaa; font-size:0.8em;">Tryb podziału:</label>
+        <select id="calcMode" style="margin-bottom:15px; width: 100%; background: #000; color: #eee; border: 1px solid #444; padding: 10px; border-radius: 5px;">
+            <option value="equal">⚖️ Równy podział</option>
+            <option value="finder">👑 Zasada Znalazcy (1 os. 50%)</option>
+            <option value="detector">👁️ Wykrywajka (2 os. po 25%)</option>
+        </select>
 
         <button onclick="calculateLoot()" class="action-btn" style="background:var(--green);">OBLICZ PODZIAŁ</button>
         <div id="calcOutput" class="calc-result" style="display:none;">Wynik...</div>
@@ -1792,7 +1794,7 @@ const lootTable = {
         const rawAmount = document.getElementById('calcAmount').value;
         const amount = parseGold(rawAmount);
         const totalPlayers = parseInt(document.getElementById('calcPlayers').value) || 1;
-        const useWykrywajka = document.getElementById('calcWykrywajka').checked;
+        const mode = document.getElementById('calcMode').value; // 'equal', 'finder', 'detector'
         const resultBox = document.getElementById('calcOutput');
 
         if(amount <= 0 || totalPlayers < 1) {
@@ -1807,43 +1809,63 @@ const lootTable = {
             Sprzedaż: <b>${format(amount)}</b>
         </div>`;
 
-        if (useWykrywajka) {
+        // --- TRYB: ZASADA ZNALAZCY (1 os. bierze 50%) ---
+        if (mode === 'finder') {
+            if (totalPlayers < 2) {
+                // Jak jest 1 gracz, bierze wszystko
+                html += `<div>Dla Ciebie: <span class="highlight-text">${format(amount)} złota</span></div>`;
+            } else {
+                const finderShare = Math.floor(amount * 0.50);
+                const restPool = amount - finderShare;
+                const restCount = totalPlayers - 1;
+                const restShare = Math.floor(restPool / restCount);
+
+                html += `
+                    <div style="margin-bottom:10px; padding-bottom:10px; border-bottom:1px dashed #444;">
+                        👑 <b>Znalazca</b> (50%): <br>
+                        <span class="highlight-text" style="font-size:1.3em;">${format(finderShare)} złota</span>
+                    </div>
+                    <div>👥 <b>Reszta ekipy</b> (${restCount} os.): <br>
+                    <span style="color:#4fffa8; font-weight:bold; font-size:1.2em;">${format(restShare)} złota</span> <small>/os.</small>
+                    </div>
+                `;
+            }
+        } 
+        // --- TRYB: WYKRYWAJKA (2 os. dzielą się 50%, czyli po 25%) ---
+        else if (mode === 'detector') {
             if (totalPlayers < 2) {
                 resultBox.style.display = 'block';
                 resultBox.style.color = 'var(--red)';
-                resultBox.innerText = "Do trybu Wykrywajki potrzeba min. 2 graczy!";
+                resultBox.innerText = "Do Wykrywajki potrzeba min. 2 graczy!";
                 return;
             }
-
-            // LOGIKA WYKRYWAJKI:
-            // 50% puli idzie dla 2 osób (Wykrywacz + Znalazca), czyli po 25% na głowę.
-            const vipPool = Math.floor(amount * 0.50);
-            const vipShare = Math.floor(vipPool / 2); // To jest 25% całości
-
-            // Drugie 50% puli idzie dla reszty (Liczba osób - 2)
-            const regularPool = amount - vipPool;
-            const regularCount = totalPlayers - 2;
+            
+            const vipPool = Math.floor(amount * 0.50); // 50% dla VIP-ów
+            const vipShare = Math.floor(vipPool / 2);  // Każdy VIP dostaje 25% całości
+            
+            const restPool = amount - vipPool;         // Drugie 50% dla reszty
+            const restCount = totalPlayers - 2;        // Liczba "zwykłych" graczy
 
             html += `
                 <div style="margin-bottom:10px; padding-bottom:10px; border-bottom:1px dashed #444;">
-                    🕵️ <b>Wykrywacz i Znalazca</b> (2 os.): <br>
+                    🕵️ <b>Wykrywacz i Znalazca</b> (po 25%): <br>
                     <span class="highlight-text" style="font-size:1.3em; color:var(--purple);">${format(vipShare)} złota</span> <small>/os.</small>
                 </div>
             `;
 
-            if (regularCount > 0) {
-                const regularShare = Math.floor(regularPool / regularCount);
+            if (restCount > 0) {
+                const restShare = Math.floor(restPool / restCount);
                 html += `
-                    <div>👥 <b>Reszta ekipy</b> (${regularCount} os.): <br>
-                    <span style="color:#4fffa8; font-weight:bold; font-size:1.3em;">${format(regularShare)} złota</span> <small>/os.</small>
+                    <div>👥 <b>Reszta ekipy</b> (${restCount} os.): <br>
+                    <span style="color:#4fffa8; font-weight:bold; font-size:1.2em;">${format(restShare)} złota</span> <small>/os.</small>
                     </div>
                 `;
             } else {
-                html += `<div style="color:#666; font-size:0.8em;">(Brak innych graczy do podziału reszty)</div>`;
+                html += `<div style="color:#666; font-size:0.8em;">(Tylko 2 osoby w podziale, biorą po 50%)</div>`;
             }
-
-        } else {
-            // Zwykły podział (Sprawiedliwy)
+        } 
+        // --- TRYB: RÓWNY PODZIAŁ ---
+        else {
             const share = Math.floor(amount / totalPlayers);
             html += `
                 <div>Dla każdego (${totalPlayers} os.): <br><span class="highlight-text" style="font-size:1.4em;">${format(share)} złota</span></div>
@@ -2156,6 +2178,7 @@ const lootTable = {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
