@@ -862,8 +862,7 @@
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
     import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
-    import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, deleteDoc, doc, getDoc, setDoc, updateDoc, where, limit } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
-    const firebaseConfig = {
+	import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, limit, doc, updateDoc, deleteDoc, getDocs, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";    const firebaseConfig = {
       apiKey: "AIzaSyApFYFkAghXreeX_xptg-PTCSxtPdiXYdA",
       authDomain: "targowisko-klanu.firebaseapp.com",
       projectId: "targowisko-klanu",
@@ -875,6 +874,7 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
     const provider = new GoogleAuthProvider();
+	const ADMIN_UID = "9rFgcWVJwBWyykHf6nuIwyGFrPR2";
     
     window.escapeHtml = function(text) { return text ? text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;") : ""; };
     window.isValidImageUrl = (url) => url && /^https?:\/\/[^<>"]+\.(jpeg|jpg|gif|png|webp|bmp)$/i.test(url);
@@ -2979,6 +2979,53 @@ window.renderOffers = () => {
     // Twórz nową iskrę co 300ms (możesz zmienić na 100ms żeby było ich więcej)
     setInterval(createEmber, 350);
 
+	// --- ZESZYT DŁUŻNIKÓW (Przywrócony) ---
+    let debtUnsub = null;
+
+    window.openDebtsModal = () => {
+        document.getElementById('debtsModal').style.display = 'flex';
+        if (!debtUnsub) startDebtListener();
+    };
+
+    window.addDebt = async () => {
+        if (!currentUser) return alert("Musisz być zalogowany!");
+        const who = document.getElementById('debtWho').value;
+        const amount = document.getElementById('debtAmount').value;
+        const note = document.getElementById('debtNote').value;
+
+        if (who && amount) {
+            await addDoc(collection(db, "dlugi"), {
+                who: who, amount: amount, note: note,
+                date: new Date().toISOString(), author: currentNick
+            });
+            document.getElementById('debtWho').value = '';
+            document.getElementById('debtAmount').value = '';
+            document.getElementById('debtNote').value = '';
+        } else {
+            alert("Wpisz nick i kwotę!");
+        }
+    };
+
+    function startDebtListener() {
+        const q = query(collection(db, "dlugi"), orderBy("date", "desc"));
+        debtUnsub = onSnapshot(q, (snapshot) => {
+            const list = document.getElementById('debtsListContent');
+            list.innerHTML = "";
+            snapshot.forEach((doc) => {
+                const data = doc.data();
+                const date = new Date(data.date).toLocaleDateString();
+                list.innerHTML += `
+                    <div class="debt-item">
+                        <div style="font-weight:bold; color:var(--red);">${window.escapeHtml(data.who)}</div>
+                        <div style="color:var(--gold);">${window.escapeHtml(data.amount)}</div>
+                        <div style="font-size:0.8em; color:#888;">${window.escapeHtml(data.note)}</div>
+                        <div style="font-size:0.7em; color:#555; text-align:right;">${date}</div>
+                    </div>`;
+            });
+            if(snapshot.empty) list.innerHTML = "<div style='color:#666; text-align:center;'>Brak dłużników!</div>";
+        });
+    }
+	
 	// --- SYSTEM PODZIAŁÓW (WERSJA PRO) ---
     let splitsUnsub = null;
 
@@ -3142,6 +3189,7 @@ window.renderOffers = () => {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
