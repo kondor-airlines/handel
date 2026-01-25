@@ -869,16 +869,18 @@
             </div>
 
             <div class="split-section">
-                <span class="split-label">4. Ekipa (Kliknij nicki):</span>
-                <div style="margin-bottom:10px;">
-                    <span style="color:gold; font-size:0.7em;">👑 SZEF (50%):</span>
-                    <div id="splitBossGrid" class="user-grid-split"></div>
-                </div>
-                <div>
-                    <span style="color:cyan; font-size:0.7em;">⚔️ EKIPA (Dzielą resztę):</span>
-                    <div id="splitTeamGrid" class="user-grid-split"></div>
-                </div>
-            </div>
+    <span class="split-label">4. Wybierz uczestników:</span>
+    
+    <div id="bossSection">
+        <span id="bossLabel" style="color:gold; font-size:0.8em;">👑 SZEF (50%):</span>
+        <div id="splitBossGrid" class="user-grid-split"></div>
+    </div>
+
+    <div style="margin-top:15px;">
+        <span id="teamLabel" style="color:cyan; font-size:0.8em;">⚔️ EKIPA:</span>
+        <div id="splitTeamGrid" class="user-grid-split"></div>
+    </div>
+</div>
 
             <button onclick="saveFinalSplit()" class="action-btn" style="width:100%; background:#008b8b; color:white; border:1px solid #00ffff;">ZAPISZ I WYŚLIJ</button>
 
@@ -3075,33 +3077,76 @@ window.renderSplitLoot = (mobName) => {
         });
     };
 
+    // --- NOWE ZMIENNE STANU ---
+    let s_Bosses = []; // Teraz tablica dla wielu VIPów
+    let s_Team = [];
+
+    // Funkcja odświeżająca widok po zmianie trybu
+    window.updateSplitUI = () => {
+        const mode = document.getElementById('splitMode').value;
+        const bossSection = document.getElementById('bossSection');
+        const teamLabel = document.getElementById('teamLabel');
+        const bossLabel = document.getElementById('bossLabel');
+
+        // Reset wyborów przy zmianie trybu, żeby uniknąć błędów
+        s_Bosses = [];
+        s_Team = [];
+        document.querySelectorAll('.boss-active, .team-active').forEach(el => el.classList.remove('boss-active', 'team-active'));
+
+        if (mode === 'equal') {
+            bossSection.style.display = 'none'; // Ukrywamy szefa
+            teamLabel.innerText = "👥 WSZYSCY UCZESTNICY (Równy podział):";
+        } else if (mode === 'detector') {
+            bossSection.style.display = 'block';
+            bossLabel.innerText = "👁️ VIP-owie (Dzielą 50% między siebie):";
+            teamLabel.innerText = "⚔️ RESZTA EKIPY (Dzielą pozostałe 50%):";
+        } else {
+            bossSection.style.display = 'block';
+            bossLabel.innerText = "👑 SZEF / ZNALAZCA (Bierze 50%):";
+            teamLabel.innerText = "⚔️ EKIPA (Dzielą pozostałe 50%):";
+        }
+    };
+
+    // Podmień loadSplitUsers, aby obsługiwało nową logikę
     async function loadSplitUsers() {
         const bGrid = document.getElementById('splitBossGrid');
         const tGrid = document.getElementById('splitTeamGrid');
         bGrid.innerHTML = ""; tGrid.innerHTML = "";
-
+        
         const snap = await getDocs(collection(db, "users"));
-        const users = [];
-        snap.forEach(d => users.push(d.data().nick));
+        const users = []; snap.forEach(d => users.push(d.data().nick));
+        
         users.sort().forEach(nick => {
-            // Kafelek Szefa
+            // Przycisk w siatce Szefów
             const bChip = document.createElement('div');
             bChip.className = 'user-chip';
             bChip.innerText = nick;
             bChip.onclick = () => {
-                const alreadySelected = bChip.classList.contains('boss-active');
-                document.querySelectorAll('#splitBossGrid .user-chip').forEach(c => c.classList.remove('boss-active'));
-                s_Boss = alreadySelected ? null : nick;
-                if(!alreadySelected) bChip.classList.add('boss-active');
+                const mode = document.getElementById('splitMode').value;
+                if (mode === 'finder') {
+                    // Tylko jeden szef
+                    document.querySelectorAll('#splitBossGrid .user-chip').forEach(c => c.classList.remove('boss-active'));
+                    s_Bosses = [nick];
+                    bChip.classList.add('boss-active');
+                } else {
+                    // Wielu VIPów (Wykrywajka)
+                    if (s_Bosses.includes(nick)) {
+                        s_Bosses = s_Bosses.filter(n => n !== nick);
+                        bChip.classList.remove('boss-active');
+                    } else {
+                        s_Bosses.push(nick);
+                        bChip.classList.add('boss-active');
+                    }
+                }
             };
             bGrid.appendChild(bChip);
 
-            // Kafelek Ekipy
+            // Przycisk w siatce Ekipy
             const tChip = document.createElement('div');
             tChip.className = 'user-chip';
             tChip.innerText = nick;
             tChip.onclick = () => {
-                if(s_Team.includes(nick)) {
+                if (s_Team.includes(nick)) {
                     s_Team = s_Team.filter(n => n !== nick);
                     tChip.classList.remove('team-active');
                 } else {
@@ -3121,71 +3166,44 @@ window.renderSplitLoot = (mobName) => {
         return n.toLocaleString();
     }
 
-    window.saveFinalSplit = async () => {
-    if (!currentUser) return alert("Zaloguj się!");
+window.saveFinalSplit = async () => {
+        const item = document.getElementById('splitSelectedName').value;
+        const itemImg = document.getElementById('splitSelectedImg').value;
+        const amountStr = document.getElementById('splitFinalAmount').value;
+        const mode = document.getElementById('splitMode').value;
 
-    const item = document.getElementById('splitSelectedName').value;
-    const itemImg = document.getElementById('splitSelectedImg').value;
-    const amountStr = document.getElementById('splitFinalAmount').value;
-    const mode = document.getElementById('splitMode').value;
+        if (!item || !amountStr || (mode !== 'equal' && s_Bosses.length === 0) || s_Team.length === 0) {
+            return alert("Błąd: Uzupełnij przedmiot, kwotę i zaznacz ludzi!");
+        }
 
-    if (!item) return alert("Wybierz przedmiot z obrazka!");
-    if (!amountStr) return alert("Wpisz kwotę sprzedaży!");
-    if (!s_Boss) return alert("Wybierz Szefa/Znalazcę!");
-    if (s_Team.length === 0) return alert("Wybierz resztę ekipy!");
+        const total = parseGold(amountStr);
+        let bossShareEach = 0;
+        let teamShareEach = 0;
 
-    const total = parseGold(amountStr);
-    if (total <= 0) return alert("Błędna kwota!");
+        if (mode === 'equal') {
+            teamShareEach = Math.floor(total / s_Team.length);
+        } else {
+            const poolVIP = Math.floor(total * 0.5);
+            const poolRest = total - poolVIP;
+            bossShareEach = Math.floor(poolVIP / s_Bosses.length);
+            teamShareEach = Math.floor(poolRest / s_Team.length);
+        }
 
-    // --- KLUCZOWA NAPRAWA: Definiujemy 'half' na starcie ---
-    const half = Math.floor(total / 2); 
-    
-    let bossShare = 0;
-    let teamPerPerson = 0;
-    let description = "";
-
-    if (mode === 'equal') {
-        const totalPeople = s_Team.length + 1;
-        bossShare = Math.floor(total / totalPeople);
-        teamPerPerson = bossShare;
-        description = "Podział równy";
-    } 
-    else if (mode === 'finder') {
-        bossShare = half; // Tutaj przypisujemy zadeklarowane wyżej half
-        teamPerPerson = Math.floor((total - bossShare) / s_Team.length);
-        description = "Zasada Znalazcy (50/50)";
-    } 
-    else if (mode === 'detector') {
-        if (s_Team.length < 1) return alert("Potrzeba min. 1 osoby w ekipie!");
-        bossShare = Math.floor(half / 2); // 25% całości
-        teamPerPerson = Math.floor((total - bossShare) / s_Team.length);
-        description = "Wykrywajka";
-    }
-
-    const confirmMsg = `Przedmiot: ${item}\nTryb: ${description}\n\n👑 Szef: ${s_formatGold(bossShare)}\n👥 Ekipa: po ~${s_formatGold(teamPerPerson)}`;
-
-    if (confirm(confirmMsg)) {
-        await addDoc(collection(db, "podzialy"), {
-            item,
-            itemImg,
-            total,
-            boss: s_Boss,
-            bossShare: bossShare, // Używamy bossShare zamiast half dla jasności
-            teamShare: teamPerPerson,
-            team: s_Team,
-            mode: description,
-            date: new Date().toISOString(),
-            author: currentNick,
-            authorId: currentUser.uid
-        });
-
-        alert("Podział zapisany! ✅");
-        document.getElementById('splitFinalAmount').value = "";
-        document.querySelectorAll('.boss-active, .team-active, .selected').forEach(el => el.classList.remove('boss-active', 'team-active', 'selected'));
-        s_Boss = null; s_Team = [];
-        window.playSound('coin');
-    }
-};
+        if (confirm("Zapisać ten podział w historii?")) {
+            await addDoc(collection(db, "podzialy"), {
+                item, itemImg, total,
+                bosses: s_Bosses, // Tablica VIPów
+                bossShareEach,
+                team: s_Team,
+                teamShareEach,
+                mode,
+                date: new Date().toISOString(),
+                authorId: currentUser.uid
+            });
+            alert("Zapisano! ✅");
+            document.getElementById('splitModal').style.display = 'none';
+        }
+    };
 
     function startSplitHistory() {
         const q = query(collection(db, "podzialy"), orderBy("date", "desc"), limit(15));
@@ -3194,36 +3212,24 @@ window.renderSplitLoot = (mobName) => {
             cont.innerHTML = "<h4 style='color:#555; margin-bottom:10px; border-bottom:1px solid #222; padding-bottom:5px;'>Ostatnie wypłaty:</h4>";
             
             snap.forEach(docSnap => {
-                const d = docSnap.data();
-                const id = docSnap.id;
-                const canDelete = (currentUser && (currentUser.uid === ADMIN_UID || currentUser.uid === d.authorId));
-                const delBtn = canDelete ? `<span class="del-split-icon" onclick="deleteSplit('${id}')" style="margin-left:10px;">🗑️</span>` : '';
+// Wewnątrz pętli snap.forEach w startSplitHistory:
+    const d = docSnap.data();
+    const bossInfo = d.bosses && d.bosses.length > 0 
+        ? `<div style="color:gold;">👑 VIP: ${d.bosses.join(", ")} (po ${s_formatGold(d.bossShareEach)})</div>` 
+        : '';
 
-                // Łączymy nicki z ekipy w jeden tekst
-                const teamList = d.team ? d.team.join(", ") : "Brak danych";
-
-                cont.innerHTML += `
-                    <div style="background:rgba(255,255,255,0.03); padding:10px; margin-bottom:10px; border-left:3px solid #00ffff; border-radius: 4px; display:flex; gap:12px; align-items:center;">
-                        <div style="width:40px; height:40px; background:#000; border:1px solid #444; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
-                            <img src="${d.itemImg || 'https://cdn.margonem.pl/obrazki/itemy/nas/pyt.gif'}" style="max-width:32px; max-height:32px;">
-                        </div>
-
-                        <div style="flex-grow:1; font-size:0.85em;">
-                            <div style="display:flex; justify-content:space-between;">
-                                <b style="color:#fff;">${d.item}</b>
-                                <div><small style="color:#444;">${new Date(d.date).toLocaleDateString()}</small>${delBtn}</div>
-                            </div>
-                            
-                            <div style="margin-top:3px;">
-                                <span style="color:gold;">👑 ${d.boss}</span> (<small>${s_formatGold(d.bossShare)}</small>)
-                            </div>
-                            
-                            <div style="color:#888; font-size:0.9em; margin-top:2px;">
-                                <span style="color:#00ffff;">⚔️</span> ${teamList} 
-                                <b style="color:#2ecc71; margin-left:5px;">+${s_formatGold(d.teamShare)}</b>
-                            </div>
-                        </div>
-                    </div>`;
+    cont.innerHTML += `
+        <div style="background:rgba(255,255,255,0.03); padding:10px; margin-bottom:8px; border-left:3px solid #00ffff; display:flex; gap:10px; align-items:center;">
+            <img src="${d.itemImg || 'https://micc.garmory-cdn.cloud/obrazki/itemy/nas/pyt.gif'}" style="width:32px; height:32px;">
+            <div style="flex:1;">
+                <div style="display:flex; justify-content:space-between; font-weight:bold;">
+                    <span>${d.item}</span>
+                    <span onclick="deleteSplit('${docSnap.id}')" style="cursor:pointer;">🗑️</span>
+                </div>
+                ${bossInfo}
+                <div style="color:#aaa; font-size:0.85em;">⚔️ Ekipa: ${d.team.join(", ")} (po ${s_formatGold(d.teamShareEach)})</div>
+            </div>
+        </div>`;
             });
             if(snap.empty) cont.innerHTML += "<div style='color:#444; text-align:center;'>Historia jest pusta</div>";
         });
@@ -3245,6 +3251,7 @@ window.renderSplitLoot = (mobName) => {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
