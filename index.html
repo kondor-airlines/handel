@@ -3122,85 +3122,70 @@ window.renderSplitLoot = (mobName) => {
     }
 
     window.saveFinalSplit = async () => {
-        if(!currentUser) return alert("Zaloguj się!");
+    if (!currentUser) return alert("Zaloguj się!");
 
-        const item = document.getElementById('splitSelectedName').value;
-        const amountStr = document.getElementById('splitFinalAmount').value;
-        const mode = document.getElementById('splitMode').value;
-        
-        if(!item) return alert("Wybierz przedmiot z obrazka!");
-        if(!amountStr) return alert("Wpisz kwotę sprzedaży!");
-        if(!s_Boss) return alert("Wybierz Szefa/Znalazcę!");
-        if(s_Team.length === 0) return alert("Wybierz resztę ekipy!");
+    const item = document.getElementById('splitSelectedName').value;
+    const itemImg = document.getElementById('splitSelectedImg').value;
+    const amountStr = document.getElementById('splitFinalAmount').value;
+    const mode = document.getElementById('splitMode').value;
 
-        const total = parseGold(amountStr);
-        if(total <= 0) return alert("Błędna kwota!");
+    if (!item) return alert("Wybierz przedmiot z obrazka!");
+    if (!amountStr) return alert("Wpisz kwotę sprzedaży!");
+    if (!s_Boss) return alert("Wybierz Szefa/Znalazcę!");
+    if (s_Team.length === 0) return alert("Wybierz resztę ekipy!");
 
-        let bossShare = 0;
-        let teamPerPerson = 0;
-        let description = "";
+    const total = parseGold(amountStr);
+    if (total <= 0) return alert("Błędna kwota!");
 
-        // --- LOGIKA KALKULATORA ---
-        if (mode === 'equal') {
-            // Wszyscy po równo (Szef + Ekipa)
-            const totalPeople = s_Team.length + 1;
-            bossShare = Math.floor(total / totalPeople);
-            teamPerPerson = bossShare;
-            description = "Podział równy";
-        } 
-        else if (mode === 'finder') {
-            // Szef bierze 50%, reszta dzieli pozostałe 50%
-            bossShare = Math.floor(total * 0.50);
-            teamPerPerson = Math.floor((total - bossShare) / s_Team.length);
-            description = "Zasada Znalazcy (50/50)";
-        } 
-        else if (mode === 'detector') {
-            // Wykrywajka: Szef (Znalazca) i pierwsza osoba z ekipy (Wykrywacz) biorą po 25%
-            // Reszta dzieli pozostałe 50%
-            if (s_Team.length < 1) return alert("Do Wykrywajki potrzebujesz Szefa + min. 1 osoby w ekipie!");
-            
-            const vipsPool = Math.floor(total * 0.50); // Pula 50% dla Znalazcy i Wykrywacza
-            bossShare = Math.floor(vipsPool / 2); // 25% dla Szefa
-            
-            // Jeśli jest tylko jedna osoba w ekipie, bierze całe drugie 25% plus resztę
-            // Jeśli jest ich więcej, reszta (poza tym jednym wykrywaczem) dzieli resztę puli
-            const wykrywaczShare = Math.floor(vipsPool / 2); // 25% dla Wykrywacza
-            const restPool = total - vipsPool;
-            
-            if (s_Team.length === 1) {
-                teamPerPerson = restPool + wykrywaczShare; // Całość dla tej jednej osoby
-            } else {
-                // To jest uproszczenie: Wykrywacz (pierwszy na liście) dostaje bonus, 
-                // ale dla przejrzystości historii zapiszemy średnią lub po prostu poinformujemy ekipę
-                teamPerPerson = Math.floor((total - bossShare) / s_Team.length);
-            }
-            description = "Wykrywajka";
-        }
+    // --- KLUCZOWA NAPRAWA: Definiujemy 'half' na starcie ---
+    const half = Math.floor(total / 2); 
+    
+    let bossShare = 0;
+    let teamPerPerson = 0;
+    let description = "";
 
-        const msg = `Przedmiot: ${item}\nTryb: ${description}\n\n👑 ${s_Boss}: ${s_formatGold(bossShare)}\n👥 Ekipa (${s_Team.length} os.): po ~${s_formatGold(teamPerPerson)}\n\nZapisać podział?`;
+    if (mode === 'equal') {
+        const totalPeople = s_Team.length + 1;
+        bossShare = Math.floor(total / totalPeople);
+        teamPerPerson = bossShare;
+        description = "Podział równy";
+    } 
+    else if (mode === 'finder') {
+        bossShare = half; // Tutaj przypisujemy zadeklarowane wyżej half
+        teamPerPerson = Math.floor((total - bossShare) / s_Team.length);
+        description = "Zasada Znalazcy (50/50)";
+    } 
+    else if (mode === 'detector') {
+        if (s_Team.length < 1) return alert("Potrzeba min. 1 osoby w ekipie!");
+        bossShare = Math.floor(half / 2); // 25% całości
+        teamPerPerson = Math.floor((total - bossShare) / s_Team.length);
+        description = "Wykrywajka";
+    }
 
-        if(confirm(msg)) {
-            await addDoc(collection(db, "podzialy"), {
-                item: item,
-                itemImg: document.getElementById('splitSelectedImg').value, // Zapisuje ikonę
-                total: total,
-                boss: s_Boss,
-                bossShare: half,
-                teamShare: perPerson,
-                team: s_Team, // Zapisuje tablicę nicków
-                mode: description,
-                date: new Date().toISOString(),
-                author: currentNick,
-                authorId: currentUser.uid
-            });
-            
-            alert("Podział zapisany! ✅");
-            document.getElementById('splitFinalAmount').value = "";
-            document.querySelectorAll('.boss-active, .team-active, .selected').forEach(el => el.classList.remove('boss-active', 'team-active', 'selected'));
-            s_Boss = null; s_Team = [];
-            window.playSound('coin');
-        }
-    };
+    const confirmMsg = `Przedmiot: ${item}\nTryb: ${description}\n\n👑 Szef: ${s_formatGold(bossShare)}\n👥 Ekipa: po ~${s_formatGold(teamPerPerson)}`;
+
+    if (confirm(confirmMsg)) {
+        await addDoc(collection(db, "podzialy"), {
+            item,
+            itemImg,
+            total,
+            boss: s_Boss,
+            bossShare: bossShare, // Używamy bossShare zamiast half dla jasności
+            teamShare: teamPerPerson,
+            team: s_Team,
+            mode: description,
+            date: new Date().toISOString(),
+            author: currentNick,
+            authorId: currentUser.uid
+        });
+
+        alert("Podział zapisany! ✅");
+        document.getElementById('splitFinalAmount').value = "";
+        document.querySelectorAll('.boss-active, .team-active, .selected').forEach(el => el.classList.remove('boss-active', 'team-active', 'selected'));
+        s_Boss = null; s_Team = [];
+        window.playSound('coin');
+    }
+};
 
     function startSplitHistory() {
         const q = query(collection(db, "podzialy"), orderBy("date", "desc"), limit(15));
@@ -3260,6 +3245,7 @@ window.renderSplitLoot = (mobName) => {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
