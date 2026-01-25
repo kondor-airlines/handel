@@ -416,8 +416,6 @@
     .loot-card-select img { max-width: 45px; max-height: 45px; }
     .loot-card-select.selected { border-color: #00ffff; background: #002222; box-shadow: 0 0 15px #00ffff; }
     .user-grid-split { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 5px; }
-    .boss-active { background: #ffd700 !important; color: #000 !important; font-weight: bold; box-shadow: 0 0 8px gold; }
-    .team-active { background: #00ffff !important; color: #000 !important; font-weight: bold; box-shadow: 0 0 8px cyan; }
 	.loot-name-tooltip {
         position: absolute;
         bottom: -35px; /* Obniżone, żeby nie zasłaniało grafiki */
@@ -435,6 +433,58 @@
         display: none;
         width: 100px; /* Stała szerokość dla porządku */
     }
+
+	/* --- UPSTRZEŻONA EKIPA --- */
+    .user-chip {
+        background: #222; 
+        border: 1px solid #444; 
+        color: #aaa;
+        padding: 8px 14px; 
+        font-size: 0.8em; 
+        cursor: pointer; 
+        border-radius: 20px; /* Zaokrąglone pastylki */
+        user-select: none; 
+        transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        font-weight: 600;
+        text-align: center;
+        min-width: 70px;
+    }
+
+    .user-chip:hover {
+        border-color: #777;
+        color: #fff;
+        transform: scale(1.05);
+    }
+    
+    /* Aktywny Szef - Złoty neon */
+    .boss-active { 
+        background: linear-gradient(135deg, #ffd700 0%, #b8860b 100%) !important; 
+        color: #000 !important; 
+        border-color: #fff !important;
+        box-shadow: 0 0 12px rgba(255, 215, 0, 0.5);
+    }
+    
+    /* Aktywna Ekipa - Błękitny neon */
+    .team-active { 
+        background: linear-gradient(135deg, #00ffff 0%, #008b8b 100%) !important; 
+        color: #000 !important; 
+        border-color: #fff !important;
+        box-shadow: 0 0 12px rgba(0, 255, 255, 0.5);
+    }
+
+    /* Przycisk usuwania w historii */
+    .del-split-icon {
+        cursor: pointer;
+        color: #ff4444;
+        opacity: 0.4;
+        transition: 0.3s;
+        padding: 5px;
+    }
+    .del-split-icon:hover {
+        opacity: 1;
+        transform: scale(1.2);
+    }
+		
 		
         @keyframes rise {
             0% { opacity: 0; transform: translateY(0) scale(1); }
@@ -3019,24 +3069,38 @@ window.renderOffers = () => {
     };
 
     async function loadSplitUsers() {
-        const snap = await getDocs(collection(db, "users"));
         const bGrid = document.getElementById('splitBossGrid');
         const tGrid = document.getElementById('splitTeamGrid');
         bGrid.innerHTML = ""; tGrid.innerHTML = "";
-        const users = []; snap.forEach(d => users.push(d.data().nick));
+
+        const snap = await getDocs(collection(db, "users"));
+        const users = [];
+        snap.forEach(d => users.push(d.data().nick));
         users.sort().forEach(nick => {
-            const bChip = document.createElement('div'); bChip.className = 'user-chip'; bChip.innerText = nick;
+            // Kafelek Szefa
+            const bChip = document.createElement('div');
+            bChip.className = 'user-chip';
+            bChip.innerText = nick;
             bChip.onclick = () => {
+                const alreadySelected = bChip.classList.contains('boss-active');
                 document.querySelectorAll('#splitBossGrid .user-chip').forEach(c => c.classList.remove('boss-active'));
-                s_Boss = (s_Boss === nick) ? null : nick;
-                if(s_Boss) bChip.classList.add('boss-active');
+                s_Boss = alreadySelected ? null : nick;
+                if(!alreadySelected) bChip.classList.add('boss-active');
             };
             bGrid.appendChild(bChip);
 
-            const tChip = document.createElement('div'); tChip.className = 'user-chip'; tChip.innerText = nick;
+            // Kafelek Ekipy
+            const tChip = document.createElement('div');
+            tChip.className = 'user-chip';
+            tChip.innerText = nick;
             tChip.onclick = () => {
-                if(s_Team.includes(nick)) { s_Team = s_Team.filter(n => n !== nick); tChip.classList.remove('team-active'); }
-                else { s_Team.push(nick); tChip.classList.add('team-active'); }
+                if(s_Team.includes(nick)) {
+                    s_Team = s_Team.filter(n => n !== nick);
+                    tChip.classList.remove('team-active');
+                } else {
+                    s_Team.push(nick);
+                    tChip.classList.add('team-active');
+                }
             };
             tGrid.appendChild(tChip);
         });
@@ -3061,9 +3125,12 @@ window.renderOffers = () => {
 
         if(confirm(`Zapisać podział?\n${item} (${s_formatGold(total)})\n👑 ${s_Boss}: ${s_formatGold(half)}\n⚔️ Ekipa: po ${s_formatGold(perPerson)}`)) {
             await addDoc(collection(db, "podzialy"), {
-                item, total, boss: s_Boss, bossShare: half, teamShare: perPerson, team: s_Team, date: new Date().toISOString(), author: currentNick
+                item, total, boss: s_Boss, bossShare: half, teamShare: perPerson, 
+                team: s_Team, date: new Date().toISOString(), 
+                author: currentNick,
+                authorId: currentUser.uid // WAŻNE: do usuwania
             });
-            alert("Podział zapisany w bazie! ✅");
+            alert("Podział zapisany! ✅");
             document.getElementById('splitFinalAmount').value = "";
             document.querySelectorAll('.boss-active, .team-active, .selected').forEach(el => el.classList.remove('boss-active', 'team-active', 'selected'));
             s_Boss = null; s_Team = [];
@@ -3071,29 +3138,51 @@ window.renderOffers = () => {
     };
 
     function startSplitHistory() {
-        const q = query(collection(db, "podzialy"), orderBy("date", "desc"), limit(10));
+        const q = query(collection(db, "podzialy"), orderBy("date", "desc"), limit(15));
         splitUnsub = onSnapshot(q, (snap) => {
             const cont = document.getElementById('splitHistoryContent');
-            cont.innerHTML = "";
+            cont.innerHTML = "<h4 style='color:#555; margin-bottom:10px;'>Ostatnie wypłaty:</h4>";
             snap.forEach(docSnap => {
                 const d = docSnap.data();
+                const id = docSnap.id;
+                
+                // Sprawdź czy użytkownik to Admin lub autor wpisu
+                const canDelete = (currentUser && (currentUser.uid === ADMIN_UID || currentUser.uid === d.authorId));
+                const delBtn = canDelete ? `<span class="del-split-icon" onclick="deleteSplit('${id}')">🗑️</span>` : '';
+
                 cont.innerHTML += `
-                    <div style="background:rgba(255,255,255,0.05); padding:10px; margin-bottom:8px; border-left:3px solid #00ffff; font-size:0.85em;">
-                        <div style="display:flex; justify-content:space-between; font-weight:bold; color:#fff;">
-                            <span>${d.item}</span> <span>${new Date(d.date).toLocaleDateString()}</span>
+                    <div style="background:rgba(255,255,255,0.03); padding:12px; margin-bottom:8px; border-left:3px solid #00ffff; border-radius: 4px; font-size:0.85em;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
+                            <b style="color:#fff;">${d.item}</b>
+                            <div>
+                                <small style="color:#555; margin-right:10px;">${new Date(d.date).toLocaleDateString()}</small>
+                                ${delBtn}
+                            </div>
                         </div>
-                        <div style="margin-top:5px;">👑 <span style="color:gold;">${d.boss}</span>: ${s_formatGold(d.bossShare)}</div>
+                        <div style="color:#ffd700;">👑 ${d.boss}: ${s_formatGold(d.bossShare)}</div>
                         <div style="color:#aaa;">⚔️ Ekipa: po <b>${s_formatGold(d.teamShare)}</b></div>
                     </div>`;
             });
         });
     }
+
+    window.deleteSplit = async (id) => {
+        if(confirm("Czy na pewno chcesz usunąć ten podział z historii?")) {
+            try {
+                await deleteDoc(doc(db, "podzialy", id));
+                alert("Usunięto!");
+            } catch (e) {
+                alert("Błąd: Brak uprawnień lub problem z bazą.");
+            }
+        }
+    };
 	
 </script>
 
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
