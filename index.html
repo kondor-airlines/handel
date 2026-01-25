@@ -418,6 +418,23 @@
     .user-grid-split { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 5px; }
     .boss-active { background: #ffd700 !important; color: #000 !important; font-weight: bold; box-shadow: 0 0 8px gold; }
     .team-active { background: #00ffff !important; color: #000 !important; font-weight: bold; box-shadow: 0 0 8px cyan; }
+	.loot-name-tooltip {
+        position: absolute;
+        bottom: -35px; /* Obniżone, żeby nie zasłaniało grafiki */
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(0, 0, 0, 0.9);
+        color: #fff;
+        padding: 4px 8px;
+        font-size: 10px;
+        white-space: pre-wrap; /* Pozwala zawijać tekst */
+        text-align: center;
+        z-index: 100;
+        border: 1px solid #555;
+        border-radius: 4px;
+        display: none;
+        width: 100px; /* Stała szerokość dla porządku */
+    }
 		
         @keyframes rise {
             0% { opacity: 0; transform: translateY(0) scale(1); }
@@ -2956,19 +2973,47 @@ window.renderOffers = () => {
 
     window.renderSplitLoot = (mobName) => {
         const grid = document.getElementById('splitLootGrid');
+        const section = document.getElementById('splitLootSection');
+        const hiddenInput = document.getElementById('splitSelectedName');
+        
         grid.innerHTML = "";
-        if(!lootTable[mobName]) return;
-        document.getElementById('splitLootSection').style.display = 'block';
-        lootTable[mobName].forEach(item => {
-            const name = item.stats.split('||')[0].replace(/\s*\([^)]*\)$/, "");
+        hiddenInput.value = "";
+
+        // Sprawdzenie czy potwór istnieje w Twojej bazie lootTable
+        if(!mobName || !lootTable[mobName]) {
+            section.style.display = 'none';
+            return;
+        }
+
+        section.style.display = 'block';
+        const items = lootTable[mobName];
+
+        items.forEach(item => {
+            // 1. Wyciągamy czystą nazwę z Twojego formatu "Nazwa||rarity=..."
+            // Bierzemy to co przed kreskami ||
+            let displayName = item.stats.split('||')[0].trim();
+            
+            // 2. Tworzymy kafelek
             const div = document.createElement('div');
             div.className = 'loot-card-select';
-            div.innerHTML = `<img src="${item.img}"><div class="loot-name-tooltip">${name}</div>`;
+            
+            // Dodajemy grafikę i tooltip z pełną nazwą
+            div.innerHTML = `
+                <img src="${item.img}" title="${displayName}" onerror="this.src='https://cdn.margonem.pl/obrazki/itemy/nas/pyt.gif'">
+                <div class="loot-name-tooltip">${displayName}</div>
+            `;
+            
             div.onclick = () => {
+                // Usuwamy zaznaczenie z innych
                 document.querySelectorAll('.loot-card-select').forEach(c => c.classList.remove('selected'));
+                // Zaznaczamy ten kliknięty
                 div.classList.add('selected');
-                document.getElementById('splitSelectedName').value = name;
+                // Zapisujemy nazwę do ukrytego pola (potrzebne przy zapisie do bazy)
+                hiddenInput.value = displayName;
+                
+                if(window.playSound) window.playSound('click');
             };
+            
             grid.appendChild(div);
         });
     };
@@ -3049,5 +3094,6 @@ window.renderOffers = () => {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
