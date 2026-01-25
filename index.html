@@ -151,20 +151,17 @@
         .toggle-wrapper { display: flex; align-items: center; gap: 10px; margin-bottom: 15px; font-size: 0.9em; color: #ccc; background: rgba(255,255,255,0.05); padding: 8px; border-radius: 6px; cursor: pointer; }
         .highlight-text { color: var(--gold); font-weight: bold; }
         
-        /* --- NOWE STYLE DLA ENCYKLOPEDII (Bestiariusza) --- */
+        /* ENCYKLOPEDIA */
         .encyclo-btn-toggle { position: fixed; bottom: 150px; right: 30px; width: 50px; height: 50px; border-radius: 50%; background: linear-gradient(135deg, #1a1a1a, #2a2a2a); border: 2px solid #ccc; color: #ccc; font-size: 1.5em; cursor: pointer; z-index: 999; box-shadow: 0 5px 15px rgba(0,0,0,0.5); transition: 0.3s; }
         .encyclo-btn-toggle:hover { transform: scale(1.1); box-shadow: 0 0 20px white; color: white; border-color: white; }
-        
         .bestiary-tabs { display: flex; gap: 10px; margin-bottom: 20px; justify-content: center; }
         .tab-btn { background: #333; border: 1px solid #555; color: #888; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-family: 'MedievalSharp'; font-size: 1.1em; transition: 0.3s; }
         .tab-btn:hover { color: white; border-color: #777; }
         .tab-btn.active { background: var(--gold); color: black; border-color: var(--gold); }
-        
         .bestiary-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 15px; max-height: 60vh; overflow-y: auto; padding-right: 5px; }
         .bestiary-card { background: rgba(255,255,255,0.03); border: 1px solid #333; border-radius: 8px; padding: 15px; display: flex; flex-direction: column; align-items: center; }
         .bestiary-mob-name { font-weight: bold; color: var(--gold); margin: 10px 0; text-align: center; }
         .bestiary-mob-img { height: 60px; object-fit: contain; filter: drop-shadow(0 0 5px rgba(255,215,0,0.2)); }
-        
         .loot-grid { display: flex; flex-wrap: wrap; gap: 5px; justify-content: center; width: 100%; margin-top: 10px; border-top: 1px solid #333; padding-top: 10px; }
         .loot-item { width: 40px; height: 40px; border: 1px solid #444; border-radius: 4px; padding: 2px; background: rgba(0,0,0,0.3); transition: 0.2s; position: relative; }
         .loot-item img { width: 100%; height: 100%; object-fit: contain; }
@@ -225,6 +222,7 @@
         <span style="color:#444; margin: 0 10px;">|</span>
         <button class="filter-btn" id="f-herosi" onclick="setFilter('cat', 'herosi')">Herosi</button>
         <button class="filter-btn" id="f-e2" onclick="setFilter('cat', 'e2')">Elity II</button>
+        <button class="filter-btn" id="f-inne" onclick="setFilter('cat', 'inne')">📦 Inne/Usługi</button>
     </div>
 
     <div class="advanced-filters">
@@ -262,44 +260,52 @@
     </button>
 
     <div id="addOfferPanel" class="panel" style="display: none;">
-        <h3 style="margin-top:0; color:var(--gold); font-family:'MedievalSharp';">Wystaw Artefakt</h3>
+        <h3 style="margin-top:0; color:var(--gold); font-family:'MedievalSharp';">Wystaw Ogłoszenie</h3>
         <div class="form-grid">
+            <select id="offerCategory" class="full-width" onchange="toggleFormMode()" style="border-color:var(--purple);">
+                <option value="item">⚔️ Przedmiot z potwora (Drop)</option>
+                <option value="gold">💰 Sprzedaż Złota (Gold)</option>
+                <option value="service">💪 Pomoc / Expienie</option>
+                <option value="chest">📦 Skrzynki / Stroje</option>
+                <option value="other">szpargały / Inne</option>
+            </select>
+
             <select id="offerType">
                 <option value="sprzedam">Sprzedam</option>
                 <option value="kupie">Kupię</option>
                 <option value="zamienie">Zamienię</option>
             </select>
-            <input type="text" id="itemPrice" placeholder="Cena (wymagane m, g lub k, np. 150m)" maxlength="10" 
-                   oninput="this.style.borderColor = /^\d+(\.\d+)?[kmg]$/i.test(this.value.trim().replace(',', '.')) ? 'var(--green)' : 'var(--red)'">
+            <input type="text" id="itemPrice" placeholder="Cena (np. 150m, 50zł, 10g)" maxlength="15">
             
-            <select id="sourceCategory" class="full-width" onchange="updateSourceList()">
-                <option value="">-- Wybierz Kategorię --</option>
-                <option value="herosi">Herosi</option>
-                <option value="e2">Elity II</option>
-            </select>
-            
-            <input type="text" id="sourceSearch" class="full-width search-box" placeholder="🔍 Szukaj przeciwnika..." oninput="updateSourceList()" style="display:none;">
-            <select id="itemSource" class="full-width" onchange="updateLootList()"><option value="">-- Przeciwnik --</option></select>
-            <input type="text" id="itemSearch" class="full-width search-box" placeholder="🔍 Szukaj przedmiotu..." oninput="updateLootList()" style="display:none;">
-            <select id="itemSelect" class="full-width" onchange="fillItemDetails()"><option value="">-- Przedmiot --</option></select>
+            <div id="monsterSection" class="full-width" style="display:grid; gap:10px;">
+                <select id="sourceCategory" class="full-width" onchange="updateSourceList()">
+                    <option value="">-- Wybierz Kategorię Potwora --</option>
+                    <option value="herosi">Herosi</option>
+                    <option value="e2">Elity II</option>
+                </select>
+                <input type="text" id="sourceSearch" class="full-width search-box" placeholder="🔍 Szukaj przeciwnika..." oninput="updateSourceList()" style="display:none;">
+                <select id="itemSource" class="full-width" onchange="updateLootList()"><option value="">-- Przeciwnik --</option></select>
+                <input type="text" id="itemSearch" class="full-width search-box" placeholder="🔍 Szukaj przedmiotu..." oninput="updateLootList()" style="display:none;">
+                <select id="itemSelect" class="full-width" onchange="fillItemDetails()"><option value="">-- Przedmiot --</option></select>
+            </div>
             
             <div id="livePreview" class="preview-box" style="display: none;">
                 <div class="preview-content">
                     <span class="preview-label">Podgląd</span>
-                    <span id="previewName" class="preview-text">Wybierz coś...</span>
+                    <span id="previewName" class="preview-text">...</span>
                 </div>
                 <div class="preview-icon-wrapper">
-                    <img id="previewIcon" src="https://micc.garmory-cdn.cloud/obrazki/itemy/bag/bag.gif" alt="">
+                    <img id="previewIcon" src="" alt="" style="width:55px; height:55px; display:block; object-fit: contain;">
                 </div>
             </div>
 
             <div style="display:flex; gap:10px; align-items:center;" class="full-width">
                 <input type="text" id="itemName" placeholder="Nazwa przedmiotu" maxlength="50">
-                <button class="helper-btn" onclick="searchMargo()" title="Sprawdź statystyki">
+                <button id="statsBtn" class="helper-btn" onclick="searchMargo()" title="Sprawdź statystyki">
                     <span style="margin-right: 5px; font-size: 0.8em;">STATY</span> 🔍
                 </button>
             </div>
-            <input type="text" id="itemImg" placeholder="Link do obrazka" class="full-width" oninput="manualImgPreview()">
+            <input type="text" id="itemImg" placeholder="Link do obrazka (opcjonalnie)" class="full-width" oninput="manualImgPreview()">
             <textarea id="itemDesc" placeholder="Dodatkowy opis..." class="full-width" maxlength="150" rows="2"></textarea>
             <button class="action-btn full-width" onclick="addOffer()">Opublikuj na Targu</button>
         </div>
@@ -408,6 +414,7 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
     import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
     import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, deleteDoc, doc, getDoc, setDoc, updateDoc, where, limit } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+    
     const firebaseConfig = {
       apiKey: "AIzaSyApFYFkAghXreeX_xptg-PTCSxtPdiXYdA",
       authDomain: "targowisko-klanu.firebaseapp.com",
@@ -416,6 +423,7 @@
       messagingSenderId: "1002027435908",
       appId: "1:1002027435908:web:56419c7bc38e148cf0ffd1"
     };
+
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
@@ -433,6 +441,14 @@
     let currentEditId = null;
     let composeTarget = {};
     let isMuted = false;
+
+    // --- DOMYŚLNE IKONY KATEGORII ---
+    const categoryIcons = {
+        gold: "https://micc.garmory-cdn.cloud/obrazki/itemy/oto/zloto.gif",
+        service: "https://micc.garmory-cdn.cloud/obrazki/itemy/med/med_mistrzostwo.gif", 
+        chest: "https://micc.garmory-cdn.cloud/obrazki/itemy/tor/torba_nieb.gif",
+        other: "https://micc.garmory-cdn.cloud/obrazki/itemy/pap/zwoj.gif"
+    };
 
     // --- SOUND SYSTEM ---
     const sounds = {
@@ -465,6 +481,8 @@
     }
     setInterval(updateClock, 1000);
     updateClock();
+
+    // --- MIEJSCE NA TWOJE BAZY DANYCH (WKLEJ TU SWOJE PEŁNE LISTY) ---
     const monstersList = {
         herosi: [
             { name: "Mroczny Patryk (35 lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/her/bardzozlypatryk.gif" },
@@ -1335,7 +1353,37 @@ const lootTable = {
     ]
     };
 
-// --- SYSTEM ULUBIONYCH ---
+// --- NOWA FUNKCJA: ZMIANA TRYBU FORMULARZA ---
+    window.toggleFormMode = () => {
+        const cat = document.getElementById('offerCategory').value;
+        const monsterSec = document.getElementById('monsterSection');
+        const statsBtn = document.getElementById('statsBtn');
+        const nameInput = document.getElementById('itemName');
+        const preview = document.getElementById('livePreview');
+        const previewIcon = document.getElementById('previewIcon');
+        const previewName = document.getElementById('previewName');
+
+        // Reset
+        document.getElementById('itemImg').value = "";
+        
+        if (cat === 'item') {
+            monsterSec.style.display = 'grid';
+            statsBtn.style.display = 'flex';
+            nameInput.placeholder = "Nazwa przedmiotu (lub wybierz z listy)";
+            preview.style.display = 'none'; // Ukryj, dopóki nie wybierze potwora
+        } else {
+            monsterSec.style.display = 'none';
+            statsBtn.style.display = 'none';
+            nameInput.placeholder = "Tytuł ogłoszenia (np. Sprzedam 100m)";
+            
+            // Auto podgląd dla innych kategorii
+            preview.style.display = 'flex';
+            previewIcon.src = categoryIcons[cat] || categoryIcons.other;
+            previewName.innerText = document.getElementById('offerCategory').options[document.getElementById('offerCategory').selectedIndex].text;
+        }
+    };
+
+    // --- SYSTEM ULUBIONYCH ---
     window.toggleFav = (id) => {
         let favs = JSON.parse(localStorage.getItem('targ_favs') || '[]');
         if (favs.includes(id)) {
@@ -1388,21 +1436,17 @@ const lootTable = {
         });
         inp.value = "";
     };
-    
-    // NASŁUCH ENTER W CZACIE (NAPRAWIONE)
     document.getElementById('chatInput').addEventListener('keypress', function (e) {
         if (e.key === 'Enter') {
             sendChatMessage();
         }
     });
-
     onSnapshot(query(collection(db, "chat"), orderBy("date", "asc"), limit(50)), (snap) => {
         const div = document.getElementById('chatMessages');
         div.innerHTML = "";
         snap.docs.forEach(d => {
             const m = d.data();
             const time = new Date(m.date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-            // POPRAWIONE WYŚWIETLANIE WIADOMOŚCI
             div.innerHTML += `
                 <div class="chat-msg">
                     <div class="chat-top-row">
@@ -1456,47 +1500,38 @@ const lootTable = {
         });
     }
 
-    // --- ENCYKLOPEDIA (NOWOŚĆ) ---
+    // --- ENCYKLOPEDIA ---
     window.toggleEncyclopedia = () => {
         const modal = document.getElementById('encyclopediaModal');
         modal.style.display = (modal.style.display === 'flex') ? 'none' : 'flex';
         if(modal.style.display === 'flex') window.switchBestiaryTab('herosi');
     };
-
     window.switchBestiaryTab = (cat) => {
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
         document.querySelector(`.tab-btn[onclick*="${cat}"]`).classList.add('active');
         window.renderBestiary(cat);
     };
-
     window.renderBestiary = (category) => {
         const container = document.getElementById('bestiaryContent');
         container.innerHTML = "";
-        
         if (!monstersList[category]) return;
-
         monstersList[category].forEach(mob => {
             const loot = lootTable[mob.name] || [];
             let lootHtml = "";
-            
             loot.forEach(item => {
                 const pureName = item.stats.split('||')[0].replace(/\s*\([^)]*\)$/, "");
                 lootHtml += `<div class="loot-item" title="${pureName}"><img src="${item.img}"></div>`;
             });
-
             container.innerHTML += `
                 <div class="bestiary-card">
                     <img src="${mob.img}" class="bestiary-mob-img">
                     <div class="bestiary-mob-name">${mob.name}</div>
-                    <div class="loot-grid">
-                        ${lootHtml || '<div style="color:#666;font-size:0.8em;">Brak danych o dropie</div>'}
-                    </div>
-                </div>
-            `;
+                    <div class="loot-grid">${lootHtml || '<div style="color:#666;font-size:0.8em;">Brak danych o dropie</div>'}</div>
+                </div>`;
         });
     };
 
-    // --- RENDEROWANIE OFERT ---
+    // --- RENDEROWANIE OFERT (ZAKTUALIZOWANE) ---
     function extractLevel(sourceName) {
         if (!sourceName) return 0;
         const match = sourceName.match(/\((\d+)\s*lvl\)/i);
@@ -1670,7 +1705,7 @@ const lootTable = {
         document.querySelectorAll('.filter-btn').forEach(b => {
             const id = b.id.replace('f-', '');
             if(type==='type' && ['all','sprzedam','kupie','zamienie','fav','mine'].includes(id)) b.classList.toggle('active', id===currentFilters.type);
-            if(type==='cat' && ['herosi','e2'].includes(id)) b.classList.toggle('active', id===currentFilters.cat);
+            if(type==='cat' && ['herosi','e2','inne'].includes(id)) b.classList.toggle('active', id===currentFilters.cat);
         });
         window.renderOffers();
     };
@@ -1688,6 +1723,9 @@ const lootTable = {
         allOffers.forEach(data => {
             const isHeros = monstersList.herosi.some(m => m.name === data.source);
             const isE2 = monstersList.e2.some(m => m.name === data.source);
+            // Rozpoznawanie kategorii "Inne" (jeśli nie jest herosem ani E2 i kategoria to nie 'item')
+            const isOther = (data.category && data.category !== 'item') || (!isHeros && !isE2);
+
             const isFav = favs.includes(data.id);
             const isOwner = currentUser && data.userId === currentUser.uid;
             const monsterLvl = extractLevel(data.source);
@@ -1696,13 +1734,18 @@ const lootTable = {
             if(currentFilters.type === 'fav' && !isFav) return;
             if(currentFilters.type === 'mine' && !isOwner) return;
             if(currentFilters.type !== 'fav' && currentFilters.type !== 'mine' && currentFilters.type !== 'all' && data.type !== currentFilters.type) return;
+            
+            // Filtrowanie kategorii
             if(currentFilters.cat === 'herosi' && !isHeros) return;
             if(currentFilters.cat === 'e2' && !isE2) return;
+            if(currentFilters.cat === 'inne' && !isOther) return;
    
             // Wyszukiwanie
             if(!data.name.toLowerCase().includes(search)) return;
             if(selectedUser && data.nick !== selectedUser) return;
-            if(monsterLvl < minLvl || monsterLvl > maxLvl) return;
+            
+            // Level działa tylko dla potworów (nie dla Innych)
+            if(!isOther && (monsterLvl < minLvl || monsterLvl > maxLvl)) return;
 
             // Filtrowanie profesji
             if (selectedProf && selectedProf !== 'a') {
@@ -1710,8 +1753,8 @@ const lootTable = {
                 if (match) {
                     const itemProfs = match[1].toLowerCase();
                     if (!itemProfs.includes(selectedProf)) return;
-                } else {
-                    return;
+                } else if (!isOther) {
+                    return; // Ukryj, jeśli to przedmiot bez profesji, a szukamy konkretnej
                 }
             }
 
@@ -1724,8 +1767,17 @@ const lootTable = {
             if (data.type === 'kupie') typeClass = "type-kupie";
             if (data.type === 'zamienie') typeClass = "type-zamienie";
 
-            const tooltipHtml = getTooltipHtml(data.name, data.img);
+            // Tooltip tylko dla przedmiotów z lootTable
+            const tooltipHtml = (data.category === 'item' || (!data.category && (isHeros || isE2))) ? getTooltipHtml(data.name, data.img) : '';
             const displayName = data.name.replace(/\s*\([^)]*\)$/, "");
+
+            // Źródło (Drop z...)
+            let sourceHtml = "";
+            if(data.sourceImg) {
+                sourceHtml = `<div class="item-source"><img src="${data.sourceImg}"> <span>${data.source}</span></div>`;
+            } else {
+                sourceHtml = `<div class="item-source" style="justify-content:center;"><span>${data.source}</span></div>`;
+            }
 
             // --- NOWE PRZYCISKI ---
             let btnRes = "";
@@ -1753,9 +1805,7 @@ const lootTable = {
                     <button class="fav-btn ${isFav?'active':''}" onclick="toggleFav('${data.id}')">❤</button>
                     ${window.isValidImageUrl(data.img) ? `<img src="${data.img}" class="item-img">` : ""}
                     <div class="item-title">${window.escapeHtml(displayName)}</div>
-                    <div class="item-source">
-                        <img src="${data.sourceImg}"> <span>${data.source}</span>
-                    </div>
+                    ${sourceHtml}
                     <div class="price-tag">
                         ${window.escapeHtml(data.price)}
                     </div>
@@ -1814,36 +1864,65 @@ const lootTable = {
         }
         window.renderOffers();
     });
+    
+    // --- DODAWANIE OFERTY (ZAKTUALIZOWANE) ---
     window.addOffer = async () => {
+        const cat = document.getElementById('offerCategory').value;
         const sel = document.getElementById('itemSource');
         const priceInput = document.getElementById('itemPrice');
+        const itemName = document.getElementById('itemName').value;
         const priceVal = priceInput.value.trim().replace(',', '.'); 
-        if(!sel.value) return window.alert("Błąd: Wybierz przeciwnika z listy!");
-        const pricePattern = /^\d+(\.\d+)?[kmg]$/i;
-        if (!priceVal) { return window.alert("Błąd: Podaj cenę!"); }
-        if (!pricePattern.test(priceVal)) { return window.alert("Błąd formatu! Cena MUSI kończyć się literą k, m lub g (np. 500k, 150m, 1.2g)."); }
+        
+        // 1. Walidacja
+        if (cat === 'item' && !sel.value) return window.alert("Błąd: Wybierz przeciwnika lub zmień kategorię!");
+        if (!itemName) return window.alert("Błąd: Podaj nazwę/tytuł!");
+        if (!priceVal) return window.alert("Błąd: Podaj cenę!");
+
+        // Regex: liczby + k/m/g LUB zł/zl/pln
+        const pricePattern = /^\d+(\.\d+)?([kmg]|z[lł]|pln)$/i;
+        if (!pricePattern.test(priceVal)) {
+            return window.alert("Błąd ceny! Format: 100k, 50m, 1.2g lub 50zł");
+        }
+
+        // Ustalanie obrazka i źródła
+        let finalImg = document.getElementById('itemImg').value;
+        let finalSource = "Różne";
+        let finalSourceImg = "";
+
+        if (cat === 'item') {
+            finalSource = sel.value;
+            finalSourceImg = sel.options[sel.selectedIndex]?.dataset.img || "";
+            if (!finalImg) finalImg = document.getElementById('itemImg').value; 
+        } else {
+            finalSource = cat === 'gold' ? 'Kantor' : (cat === 'service' ? 'Usługi' : 'Inne');
+            // Domyślna ikona jeśli brak własnej
+            if (!finalImg) finalImg = categoryIcons[cat] || categoryIcons.other;
+        }
+
         await addDoc(collection(db, "oferty"), {
             userId: currentUser.uid, 
             nick: currentNick, 
             avatar: currentUser.photoURL,
             type: document.getElementById('offerType').value,
-            name: document.getElementById('itemName').value || "Nieznany przedmiot",
+            category: cat,
+            name: itemName,
             price: priceVal.toLowerCase(), 
-            source: sel.value, 
-            sourceImg: sel.options[sel.selectedIndex].dataset.img,
+            source: finalSource, 
+            sourceImg: finalSourceImg,
             desc: document.getElementById('itemDesc').value,
-            img: document.getElementById('itemImg').value,
+            img: finalImg,
             date: new Date().toISOString(), 
             reservedBy: null
         });
         window.playSound('coin');
         window.alert("Dodano ofertę!");
+        
+        // Reset formularza
         document.getElementById('itemPrice').value = "";
-        document.getElementById('itemPrice').style.borderColor = "#333"; 
         document.getElementById('itemName').value = "";
         document.getElementById('itemImg').value = "";
         document.getElementById('itemDesc').value = "";
-        document.getElementById('livePreview').style.display = 'none';
+        toggleAddOfferPanel();
     };
     
     window.reserveOffer = async (id) => { if(!currentNick) return alert("Zaloguj się!"); await updateDoc(doc(db, "oferty", id), { reservedBy: currentNick }); window.playSound('click'); };
@@ -1854,77 +1933,7 @@ const lootTable = {
     window.openFullEdit = (id, n, p, d, i) => { currentEditId = id; document.getElementById('fullEditName').value=n; document.getElementById('fullEditPrice').value=p; document.getElementById('fullEditDesc').value=d; document.getElementById('fullEditImg').value=i; document.getElementById('editModal').style.display='flex'; };
     window.closeFullEdit = () => document.getElementById('editModal').style.display='none';
     window.confirmFullEdit = async () => { await updateDoc(doc(db, "oferty", currentEditId), { name: document.getElementById('fullEditName').value, price: document.getElementById('fullEditPrice').value, desc: document.getElementById('fullEditDesc').value, img: document.getElementById('fullEditImg').value }); window.closeFullEdit(); };
-    window.updateSourceList = () => {
-        const cat = document.getElementById('sourceCategory').value;
-        const sel = document.getElementById('itemSource');
-        const search = document.getElementById('sourceSearch');
-        const preview = document.getElementById('livePreview'); 
-        preview.style.display = 'none'; 
-        if(!cat) { search.style.display = 'none'; return; }
-        search.style.display = 'block';
-        sel.innerHTML = '<option value="">-- Przeciwnik --</option>';
-        monstersList[cat].filter(m => m.name.toLowerCase().includes(search.value.toLowerCase())).forEach(m => {
-            let o = document.createElement('option'); o.value = m.name; o.dataset.img = m.img; o.innerText = m.name; sel.appendChild(o);
-        });
-    };
-    window.updateLootList = () => {
-        const selSource = document.getElementById('itemSource');
-        const srcName = selSource.value;
-        const srcImg = selSource.options[selSource.selectedIndex]?.dataset.img;
-        const selItem = document.getElementById('itemSelect');
-        const searchItem = document.getElementById('itemSearch');
-        const preview = document.getElementById('livePreview');
-        const previewIcon = document.getElementById('previewIcon');
-        const previewName = document.getElementById('previewName');
-        if (srcImg) { preview.style.display = 'flex'; previewIcon.src = srcImg; previewName.innerText = srcName; } else { preview.style.display = 'none'; }
-        if(!srcName || !lootTable[srcName]) { searchItem.style.display = 'none'; selItem.style.display = 'none'; return; }
-        searchItem.style.display = 'block'; selItem.style.display = 'block';
-        selItem.innerHTML = '<option value="">-- Przedmiot --</option>';
-        lootTable[srcName].filter(i => i.stats.split('||')[0].toLowerCase().includes(searchItem.value.toLowerCase())).forEach(i => {
-            let o = document.createElement('option'); o.value = JSON.stringify(i); o.innerText = i.stats.split('||')[0]; selItem.appendChild(o);
-        });
-    };
-    window.fillItemDetails = () => {
-        const val = document.getElementById('itemSelect').value;
-        const preview = document.getElementById('livePreview');
-        const previewIcon = document.getElementById('previewIcon');
-        const previewName = document.getElementById('previewName');
-        if(!val) { window.updateLootList(); return; }
-        const data = JSON.parse(val);
-        const name = data.stats.split('||')[0];
-        document.getElementById('itemName').value = name;
-        document.getElementById('itemImg').value = data.img;
-        preview.style.display = 'flex'; 
-        previewIcon.src = data.img;
-        previewName.innerText = name;
-        const statsPart = data.stats.split('||')[1];
-        if (statsPart && statsPart.includes('opis=')) {
-            document.getElementById('itemDesc').value = statsPart.split('opis=')[1].split(';')[0].replaceAll('[br]', '\n');
-        } else { document.getElementById('itemDesc').value = ""; }
-    };
-    onSnapshot(query(collection(db, "oferty"), orderBy("date", "desc")), (snap) => {
-        allOffers = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-        updateUserFilterOptions();
-        window.renderOffers();
-    });
-    window.alert = function(message) {
-        const container = document.getElementById('toast-container');
-        const toast = document.createElement('div');
-        toast.className = 'toast';
-        let icon = '⚔️';
-        if (message.toLowerCase().includes('błąd') || message.toLowerCase().includes('wybierz')) { toast.classList.add('error'); icon = '⚠️'; 
-        } else if (message.toLowerCase().includes('wysłana') || message.toLowerCase().includes('skopiowano') || message.toLowerCase().includes('dodano')) { toast.classList.add('success'); icon = '✅'; }
-        toast.innerHTML = `<span style="font-size:1.2em;">${icon}</span> <span>${message}</span>`;
-        container.appendChild(toast);
-        setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 300); }, 4000);
-    };
-    const scrollBtn = document.getElementById("scrollTopBtn");
-    window.onscroll = function() { 
-        if (document.body.scrollTop > 300 || document.documentElement.scrollTop > 300) {
-            scrollBtn.style.display = "flex"; scrollBtn.style.alignItems = "center"; scrollBtn.style.justifyContent = "center";
-        } else { scrollBtn.style.display = "none"; }
-    };
-    window.topFunction = function() { window.scrollTo({top: 0, behavior: 'smooth'}); }
+    
     window.toggleAddOfferPanel = () => {
         const panel = document.getElementById('addOfferPanel');
         const btn = document.getElementById('toggleAddBtn');
@@ -1945,5 +1954,3 @@ const lootTable = {
 <div id="toast-container"></div>
 </body>
 </html>
-
-
