@@ -860,9 +860,14 @@
 <div id="toast-container"></div>
 
 <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
-    import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
-	import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, limit, doc, updateDoc, deleteDoc, getDocs, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";    const firebaseConfig = {
+    // --- 1. IMPORTY (WSZYSTKIE W WERSJI 10.7.1) ---
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+    // Dodałem tu getDoc, bo jest potrzebne do statusów i skarbca
+    import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, limit, doc, updateDoc, deleteDoc, getDocs, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+    // --- 2. KONFIGURACJA ---
+    const firebaseConfig = {
       apiKey: "AIzaSyApFYFkAghXreeX_xptg-PTCSxtPdiXYdA",
       authDomain: "targowisko-klanu.firebaseapp.com",
       projectId: "targowisko-klanu",
@@ -870,17 +875,23 @@
       messagingSenderId: "1002027435908",
       appId: "1:1002027435908:web:56419c7bc38e148cf0ffd1"
     };
+
+    // --- 3. INICJALIZACJA ---
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
     const provider = new GoogleAuthProvider();
-	const ADMIN_UID = "9rFgcWVJwBWyykHf6nuIwyGFrPR2";
     
+    // --- 4. ZMIENNE GLOBALNE ---
+    const ADMIN_UID = "9rFgcWVJwBWyykHf6nuIwyGFrPR2"; // Twoje ID
+    
+    // Funkcje pomocnicze
     window.escapeHtml = function(text) { return text ? text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;") : ""; };
     window.isValidImageUrl = (url) => url && /^https?:\/\/[^<>"]+\.(jpeg|jpg|gif|png|webp|bmp)$/i.test(url);
-    const ADMIN_NICK = "Stachu Drzymała";
+    
+    // Zmienne stanu
     let currentUser = null;
-    let currentNick = null;
+    let currentNick = "Gość"; // Ustawiam domyślnie na Gość
     let allOffers = [];
     let inboxMessages = [];
     let activeUsers = {};
@@ -889,7 +900,7 @@
     let composeTarget = {};
     let isMuted = false;
 
-	// --- TABLICA OGŁOSZEŃ ---
+    // --- TABLICA OGŁOSZEŃ ---
     let annUnsub = null;
 
     // Funkcja nasłuchująca na zmiany w ogłoszeniu
@@ -3189,6 +3200,7 @@ window.renderOffers = () => {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
