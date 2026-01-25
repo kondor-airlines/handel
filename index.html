@@ -738,18 +738,18 @@
 <div id="editModal" style="display: none; position: fixed; z-index: 10002; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.95); align-items: center; justify-content: center; backdrop-filter: blur(5px);">
     <div class="modal-content-full" style="background: #1a1a1a; padding: 30px; border: 2px solid #ffd700; border-radius: 15px; width: 95%; max-width: 600px;">
         <h3 style="color:#ffd700; font-family:'MedievalSharp'; margin-top:0;">Modyfikuj Ogłoszenie</h3>
+        
         <input type="text" id="fullEditName" placeholder="Nazwa" style="margin-bottom:10px; width:100%; background:#000; color:white; border:1px solid #444; padding:10px;">
         <input type="text" id="fullEditPrice" placeholder="Cena" style="margin-bottom:10px; width:100%; background:#000; color:white; border:1px solid #444; padding:10px;">
-		<input type="text" id="fullEditPrice" placeholder="Cena" ...>
+        
+        <select id="fullEditBonding" style="margin-bottom:10px; width:100%; background:#000; color:white; border:1px solid #444; padding:10px;">
+            <option value="bound">🔒 Związany (Standard)</option>
+            <option value="unbound">🔓 Odwiązany (Unbound)</option>
+        </select>
 
-<select id="fullEditBonding" style="margin-bottom:10px; width:100%; background:#000; color:white; border:1px solid #444; padding:10px;">
-    <option value="bound">🔒 Związany (Standard)</option>
-    <option value="unbound">🔓 Odwiązany (Unbound)</option>
-</select>
-
-<textarea id="fullEditDesc" ...></textarea>
         <input type="text" id="fullEditImg" placeholder="Link do obrazka" style="margin-bottom:10px; width:100%; background:#000; color:white; border:1px solid #444; padding:10px;">
         <textarea id="fullEditDesc" rows="4" placeholder="Opis" style="width:100%; background:#000; color:white; border:1px solid #444; padding:10px;"></textarea>
+        
         <div style="display:flex; gap:15px; margin-top: 15px;">
             <button onclick="confirmFullEdit()" style="flex:2; background:#ffd700; padding:10px; cursor:pointer; font-weight:bold; border:none;">ZATWIERDŹ</button>
             <button onclick="closeFullEdit()" style="flex:1; background:#333; color:white; padding:10px; cursor:pointer; border:none;">ANULUJ</button>
@@ -2832,19 +2832,25 @@ window.renderOffers = () => {
     document.getElementById('editModal').style.display = 'flex';
 };
 	window.closeFullEdit = () => document.getElementById('editModal').style.display='none';
-    window.confirmFullEdit = async () => { await updateDoc(doc(db, "oferty", currentEditId), { name: document.getElementById('fullEditName').value, price: document.getElementById('fullEditPrice').value, desc: document.getElementById('fullEditDesc').value, img: document.getElementById('fullEditImg').value }); window.closeFullEdit(); };
-    window.updateSourceList = () => {
-        const cat = document.getElementById('sourceCategory').value;
-        const sel = document.getElementById('itemSource');
-        const search = document.getElementById('sourceSearch');
-        const preview = document.getElementById('livePreview'); 
-        preview.style.display = 'none'; 
-        if(!cat) { search.style.display = 'none'; return; }
-        search.style.display = 'block';
-        sel.innerHTML = '<option value="">-- Przeciwnik --</option>';
-        monstersList[cat].filter(m => m.name.toLowerCase().includes(search.value.toLowerCase())).forEach(m => {
-            let o = document.createElement('option'); o.value = m.name; o.dataset.img = m.img; o.innerText = m.name; sel.appendChild(o);
+    window.confirmFullEdit = async () => {
+        // Pobieramy wartości z pól w oknie edycji
+        const updatedName = document.getElementById('fullEditName').value;
+        const updatedPrice = document.getElementById('fullEditPrice').value;
+        const updatedDesc = document.getElementById('fullEditDesc').value;
+        const updatedImg = document.getElementById('fullEditImg').value;
+        const updatedBonding = document.getElementById('fullEditBonding').value; // <--- TEGO CI BRAKOWAŁO
+
+        // Wysyłamy komplet danych do bazy Firebase
+        await updateDoc(doc(db, "oferty", currentEditId), { 
+            name: updatedName, 
+            price: updatedPrice, 
+            desc: updatedDesc, 
+            img: updatedImg,
+            bonding: updatedBonding // <--- TO MUSI TU BYĆ, żeby kłódka się zmieniała
         });
+
+        window.closeFullEdit();
+        window.alert("Ogłoszenie zaktualizowane! ✅");
     };
     window.updateLootList = () => {
         const selSource = document.getElementById('itemSource');
@@ -3475,6 +3481,7 @@ function startSplitHistory() {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
