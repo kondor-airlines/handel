@@ -523,6 +523,28 @@
         .helper-btn-icon {
             font-size: 1.2em;
         }
+
+		/* --- STYL KALKULATORA ULEPSZANIA --- */
+        .upgrade-btn-toggle { 
+            position: fixed; 
+            bottom: 270px; 
+            right: 30px; 
+            width: 50px; height: 50px; 
+            border-radius: 50%; 
+            background: linear-gradient(135deg, #1a1a1a, #444); 
+            border: 2px solid var(--gold); 
+            cursor: pointer; z-index: 999; 
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5); 
+            transition: 0.3s; 
+            display: flex; align-items: center; justify-content: center;
+            overflow: hidden;
+        }
+        .upgrade-btn-toggle:hover { transform: scale(1.1); box-shadow: 0 0 20px var(--gold); }
+        .upgrade-btn-toggle img { width: 100%; height: 100%; object-fit: cover; }
+
+        .upgrade-res-row {
+            display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid #222;
+        }
 		
 		
         @keyframes rise {
@@ -809,30 +831,68 @@
     </div>
 </div>
 
-<button class="encyclo-btn-toggle" onclick="toggleEncyclopedia()" title="Encyklopedia Dropu">📖</button>
+<button class="upgrade-btn-toggle" onclick="toggleUpgrade()" title="Kalkulator Ulepszania">
+    <img src="https://micc.garmory-cdn.cloud/obrazki/npc/mez/npc249.gif" alt="Ulepszanie">
+</button>
 
 <button class="essence-btn-toggle" onclick="toggleEssence()" title="Kalkulator Esencji">
     <img src="https://micc.garmory-cdn.cloud/obrazki/itemy/neu/pyl-sakryfikacji.gif" alt="Esencja">
 </button>
 
+<button class="encyclo-btn-toggle" onclick="toggleEncyclopedia()" title="Encyklopedia Dropu">📖</button>
+
+
+<div id="upgradeModal" style="display: none; position: fixed; z-index: 10008; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.85); align-items: center; justify-content: center; backdrop-filter: blur(3px);">
+    <div style="background: #1a1a1a; padding: 25px; border: 2px solid var(--gold); border-radius: 12px; width: 90%; max-width: 400px; position:relative; text-align:center;">
+        <button onclick="document.getElementById('upgradeModal').style.display='none'" style="position:absolute; top:10px; right:15px; background:none; border:none; color:#888; cursor:pointer; font-size:1.2em;">✕</button>
+        
+        <h3 style="color:var(--gold); font-family:'MedievalSharp'; margin-top:0;">Kalkulator Ulepszania</h3>
+        <img src="https://micc.garmory-cdn.cloud/obrazki/npc/mez/npc249.gif" style="margin-bottom:15px; height: 60px;">
+
+        <div style="text-align:left; display:flex; flex-direction:column; gap:10px;">
+            <div>
+                <label style="color:#aaa; font-size:0.75em; text-transform:uppercase;">Poziom przedmiotu (lvl)</label>
+                <input type="number" id="upLvl" placeholder="np. 100" style="padding:10px;">
+            </div>
+            <div>
+                <label style="color:#aaa; font-size:0.75em; text-transform:uppercase;">Rzadkość przedmiotu</label>
+                <select id="upRarity">
+                    <option value="common">Zwykły</option>
+                    <option value="unique">Unikatowy</option>
+                    <option value="heroic">Heroiczny</option>
+                    <option value="improved">Ulepszony</option>
+                    <option value="legendary">Legendarny</option>
+                </select>
+            </div>
+            <div>
+                <label style="color:#aaa; font-size:0.75em; text-transform:uppercase;">Docelowy poziom (+)</label>
+                <select id="upTarget">
+                    <option value="1">+1</option>
+                    <option value="2">+2</option>
+                    <option value="3">+3</option>
+                    <option value="4">+4</option>
+                    <option value="5">+5</option>
+                </select>
+            </div>
+        </div>
+
+        <button onclick="calculateUpgrade()" class="action-btn" style="margin-top:20px;">Oblicz koszty</button>
+        
+        <div id="upResult" class="calc-result" style="display:none; text-align:left; font-size:0.85em;"></div>
+    </div>
+</div>
+
 <div id="essenceModal" style="display: none; position: fixed; z-index: 10007; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.85); align-items: center; justify-content: center; backdrop-filter: blur(3px);">
     <div style="background: #1a1a1a; padding: 25px; border: 2px solid #9b59b6; border-radius: 12px; width: 90%; max-width: 350px; position:relative; text-align:center;">
-        
         <button onclick="document.getElementById('essenceModal').style.display='none'" style="position:absolute; top:10px; right:15px; background:none; border:none; color:#888; cursor:pointer; font-size:1.2em;">✕</button>
-        
         <h3 style="color:#cca3ff; font-family:'MedievalSharp'; margin-top:0;">Kalkulator Esencji</h3>
         <img src="https://micc.garmory-cdn.cloud/obrazki/itemy/neu/pyl-sakryfikacji.gif" style="margin-bottom:15px;">
-
         <div style="margin-bottom:20px; text-align:left;">
             <label style="color:#aaa; font-size:0.8em; display:block; margin-bottom:5px;">Poziom przedmiotu (lvl)</label>
             <input type="number" id="essLvl" placeholder="np. 185" style="width:100%; padding:10px; background:#000; border:1px solid #444; color:white; border-radius:5px;">
         </div>
-
         <button onclick="calculateEssence()" class="action-btn" style="background:var(--purple); color:white;">OBLICZ WARTOŚĆ</button>
-        
-        <div id="essResult" class="calc-result" style="display:none; border-color:#9b59b6; color:#cca3ff; margin-top:15px;">
-            Wynik...
-        </div>
+        <div id="essResult" class="calc-result" style="display:none; border-color:#9b59b6; color:#cca3ff; margin-top:15px;"></div>
     </div>
 </div>
 
@@ -3502,52 +3562,60 @@ function startSplitHistory() {
             }
         }
     };
+
+	// Przełącznik okna ulepszania
+    window.toggleUpgrade = () => {
+        const modal = document.getElementById('upgradeModal');
+        modal.style.display = (modal.style.display === 'flex') ? 'none' : 'flex';
+    };
+
+    window.calculateUpgrade = () => {
+        const lvl = parseInt(document.getElementById('upLvl').value);
+        const rarity = document.getElementById('upRarity').value;
+        const target = parseInt(document.getElementById('upTarget').value);
+        const resBox = document.getElementById('upResult');
+
+        if (isNaN(lvl) || lvl < 1) return alert("Wpisz poprawny poziom!");
+
+        // Współczynniki
+        const e_vals = { common: 1, unique: 10, heroic: 100, legendary: 1000, improved: 0 };
+        const n_vals = { common: 1, unique: 10, heroic: 30, improved: 40, legendary: 60 };
+        const pu_multipliers = { 1: 1.0, 2: 1.1, 3: 1.3, 4: 1.6, 5: 2.0 };
+
+        let e = e_vals[rarity];
+        let n = n_vals[rarity];
+        let pu_mult = pu_multipliers[target];
+
+        // 1. Punkty ulepszenia (PU)
+        let base_pu_formula = (rarity === 'improved') ? (150 * lvl + 27000) : ((180 + lvl) * e);
+        let total_pu = Math.floor(base_pu_formula * pu_mult);
+
+        // 2. Koszt w złocie
+        let total_gold = (10 * lvl + 1300) * lvl * n;
+
+        // 3. Koszt w esencji
+        let total_essence = Math.floor((lvl / 10 + 10) * 3);
+
+        resBox.style.display = 'block';
+        resBox.innerHTML = `
+            <div style="margin-bottom:8px; border-bottom:1px solid #333; padding-bottom:5px;">
+                <span style="color:var(--gold);">Cel:</span> <b>Przedmiot ${lvl}lvl (${rarity}) na +${target}</b>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:4px;">
+                <span>✨ Punkty ulepszenia: <b style="color:#fff;">${total_pu.toLocaleString()}</b></span>
+                <span>💰 Koszt złota: <b style="color:var(--green);">${s_formatGold(total_gold)}</b></span>
+                <span>🔮 Koszt esencji: <b style="color:#cca3ff;">${total_essence} szt.</b></span>
+            </div>
+            <div style="margin-top:8px; font-size:0.75em; color:#666; font-style:italic;">
+                *Koszt esencji to 300% bazowej wartości przedmiotu.
+            </div>
+        `;
+        window.playSound('click');
+    };
 	
 </script>
 
 <div id="toast-container"></div>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
