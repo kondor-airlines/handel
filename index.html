@@ -2533,49 +2533,48 @@ window.renderOffers = () => {
         let count = 0;
         
 allOffers.forEach(data => {
-    // 1. NAJPIERW DEFINIUJEMY WSZYSTKIE ZMIENNE POMOCNICZE
-    const isSkrytka = data.name.toLowerCase().includes('(s)'); // <--- To musi być tutaj!
-    const isFav = favs.includes(data.id);
-    const isOwner = currentUser && data.userId === currentUser.uid;
-    const isSold = data.status === 'sold';
-    const monsterLvl = extractLevel(data.source);
-    const isHeros = monstersList.herosi.some(m => m.name === data.source);
-    const isE2 = monstersList.e2.some(m => m.name === data.source);
+            // --- 1. INICJALIZACJA DANYCH (Musi być na samej górze!) ---
+            const isSold = data.status === 'sold';
+            const isSkrytka = data.name.toLowerCase().includes('(s)');
+            const isFav = favs.includes(data.id);
+            const isOwner = currentUser && data.userId === currentUser.uid;
+            const isHeros = monstersList.herosi.some(m => m.name === data.source);
+            const isE2 = monstersList.e2.some(m => m.name === data.source);
+            const monsterLvl = extractLevel(data.source);
 
-    // 2. TERAZ MOŻEMY ICH UŻYWAĆ W LOGICE FILTRÓW I WYGLĄDU
-    
-    // Logika wyświetlania kłódek (używa isSkrytka)
-    let bondingIcon = "";
-    const hideBondingFor = ['gold', 'chest', 'exp', 'other'];
+            // --- 2. LOGIKA ARCHIWUM (Ścisła separacja) ---
+            if (currentFilters.type === 'archive') {
+                // Jeśli jesteśmy w archiwum, odrzucamy wszystko, co NIE jest sprzedane
+                if (!isSold) return;
+            } else {
+                // W każdym innym widoku (Wszystkie, Sprzedam, Moje itd.) ukrywamy sprzedane
+                if (isSold) return;
+            }
 
-    if (!hideBondingFor.includes(data.type) && !isSkrytka) {
-        if (data.bonding === 'unbound') {
-            bondingIcon = '<span title="Przedmiot Odwiązany" style="margin-right:5px; text-shadow:0 0 10px var(--gold); cursor:help;">🔓</span>';
-        } else {
-            bondingIcon = '<span title="Przedmiot Związany" style="margin-right:5px; opacity: 0.5; cursor:help;">🔒</span>';
-        }
-    }
+            // --- 3. FILTRY SPECJALNE (Moje / Ulubione) ---
+            if (currentFilters.type === 'fav' && !isFav) return;
+            if (currentFilters.type === 'mine' && !isOwner) return;
 
-    // Filtry (używają isSkrytka, isFav, isOwner)
-    if(currentFilters.type === 'fav' && !isFav) return;
-    if(currentFilters.type === 'mine' && !isOwner) return;
+            // --- 4. LOGIKA TYPÓW I SKRZYNEK ---
+            if (currentFilters.type === 'chest') {
+                // Widok skrzynek: bierzemy typ 'chest' LUB przedmioty z (s)
+                if (data.type !== 'chest' && !isSkrytka) return;
+            } 
+            else if (currentFilters.type !== 'all' && 
+                     currentFilters.type !== 'archive' && 
+                     currentFilters.type !== 'mine' && 
+                     currentFilters.type !== 'fav') {
+                
+                // Sprawdzanie konkretnego typu (np. Złoto, Exp)
+                if (data.type !== currentFilters.type) return;
+                
+                // Ukrywamy skrytki (s) w zwykłym filtrze "Sprzedam", żeby nie robiły tłoku
+                if (currentFilters.type === 'sprzedam' && isSkrytka) return;
+            }
 
-    if (currentFilters.type === 'chest') {
-        if (data.type !== 'chest' && !isSkrytka) return;
-    } 
-    else if (currentFilters.type !== 'all' && 
-             currentFilters.type !== 'archive' && 
-             currentFilters.type !== 'mine' && 
-             currentFilters.type !== 'fav') {
-        
-        if (data.type !== currentFilters.type) return;
-        if (currentFilters.type === 'sprzedam' && isSkrytka) return;
-    }
-
-    // ... reszta kodu (klasy CSS, stempel SPRZEDANE itd.) ...
-
-            if(currentFilters.cat === 'herosi' && !isHeros) return;
-            if(currentFilters.cat === 'e2' && !isE2) return;
+            // --- 5. FILTRY KATEGORII (Herosi / E2) ---
+            if (currentFilters.cat === 'herosi' && !isHeros) return;
+            if (currentFilters.cat === 'e2' && !isE2) return;
    
             // Wyszukiwanie
             if(!data.name.toLowerCase().includes(search)) return;
@@ -3507,6 +3506,7 @@ function startSplitHistory() {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
