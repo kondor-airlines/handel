@@ -415,6 +415,9 @@
     .loot-card-select { width: 55px; height: 55px; background: #1a1a1a; border: 2px solid #333; display: flex; align-items: center; justify-content: center; cursor: pointer; position: relative; transition: 0.2s; }
     .loot-card-select img { max-width: 45px; max-height: 45px; }
     .loot-card-select.selected { border-color: #00ffff; background: #002222; box-shadow: 0 0 15px #00ffff; }
+	.loot-card-select:hover .loot-name-tooltip { 
+    display: block; 
+	}
     .user-grid-split { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 5px; }
 	.loot-name-tooltip {
         position: absolute;
@@ -3359,6 +3362,7 @@ function startSplitHistory() {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
