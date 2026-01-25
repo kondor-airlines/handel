@@ -477,9 +477,10 @@
             </div>
             <div class="full-width" style="display:flex; gap:10px; align-items:center;">
                 <input type="text" id="itemImg" placeholder="Link do obrazka (lub wybierz plik obok ➡)" oninput="manualImgPreview()" style="flex-grow:1;">
+                
                 <label class="small-btn" style="width:auto; padding:0 15px; cursor:pointer; height:42px; display:flex; align-items:center; justify-content:center; background:#222; border:1px solid #444;" title="Wgraj z komputera">
                     📂
-                    <input type="file" id="fileUpload" accept="image/*" style="display:none" onchange="handleFileUpload(this)">
+                    <input type="file" id="fileUpload" accept="image/*" style="display:none" onchange="window.handleFileUpload(this)">
                 </label>
             </div>
             <textarea id="itemDesc" placeholder="Dodatkowy opis..." class="full-width" maxlength="150" rows="2"></textarea>
@@ -2372,9 +2373,58 @@ const lootTable = {
             btn.style.color = '#000';
         }
     };
+
+	// --- NAPRAWIONA OBSŁUGA UPLOADU ---
+    window.handleFileUpload = (input) => {
+        // Sprawdzamy czy coś wybrano
+        if (input.files && input.files[0]) {
+            const file = input.files[0];
+            
+            console.log("Wybrano plik:", file.name, "Rozmiar:", file.size); // To zobaczysz w konsoli F12
+
+            // Zabezpieczenie: Max 800KB (Firebase ma limit 1MB na dokument)
+            if (file.size > 800 * 1024) {
+                return window.alert("Obrazek jest za duży! (Max 800KB). Zmniejsz go w Paintcie lub użyj linku.");
+            }
+
+            const reader = new FileReader();
+            
+            // Co ma się stać po wczytaniu pliku
+            reader.onload = (e) => {
+                const base64String = e.target.result;
+                
+                // Wpisujemy kod do pola tekstowego
+                const imgInput = document.getElementById('itemImg');
+                imgInput.value = base64String;
+                
+                // Wymuszamy odświeżenie podglądu
+                if(window.manualImgPreview) {
+                    window.manualImgPreview();
+                } else {
+                    // Awaryjny podgląd, gdyby funkcja manualImgPreview nie działała
+                    document.getElementById('livePreview').style.display = 'flex';
+                    document.getElementById('previewIcon').src = base64String;
+                }
+                
+                window.alert("Wczytano plik z dysku! ✅");
+            };
+
+            // Jeśli wystąpi błąd
+            reader.onerror = (error) => {
+                console.error('Błąd:', error);
+                window.alert("Błąd podczas wczytywania pliku.");
+            };
+
+            // Rozkaz wczytania pliku jako tekst (Base64)
+            reader.readAsDataURL(file);
+        } else {
+            console.log("Anulowano wybór pliku");
+        }
+    };
 </script>
 
 <div id="toast-container"></div>
 </body>
 </html>
+
 
