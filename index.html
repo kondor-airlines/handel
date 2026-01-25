@@ -33,12 +33,59 @@
         .user-avatar { width: 35px; height: 35px; border-radius: 50%; border: 2px solid var(--gold); position: relative; }
         .logout-link { color: #ff6666; font-size: 0.75em; text-decoration: none; cursor: pointer; text-transform: uppercase; font-weight: bold; }
 
-        /* FILTRY */
-        .filters { display: flex; gap: 10px; margin-bottom: 15px; justify-content: center; flex-wrap: wrap; align-items: center; }
-        .filter-btn { background: #222; color: #888; border: 1px solid #444; padding: 8px 16px; border-radius: 5px; cursor: pointer; transition: 0.3s; font-family: 'MedievalSharp'; font-size: 1em; }
-        .filter-btn:hover { border-color: var(--gold); color: #fff; }
-        .filter-btn.active { background: linear-gradient(135deg, #ffd700 0%, #d4af37 100%) !important; color: #000 !important; border: none !important; box-shadow: 0 0 15px rgba(255, 215, 0, 0.4) !important; }
-        .filter-btn.fav-active { background: linear-gradient(135deg, #ff4d4d 0%, #a00000 100%) !important; color: white !important; }
+        /* --- NOWY UKŁAD FILTRÓW --- */
+        .filters-container {
+            display: flex;
+            flex-direction: column; /* Układa grupy jedna pod drugą */
+            gap: 15px;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .filter-group {
+            background: rgba(255, 255, 255, 0.03); /* Delikatne tło dla grupy */
+            border: 1px solid #333;
+            border-radius: 50px; /* Zaokrąglone paski */
+            padding: 8px 20px;
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: wrap;
+            justify-content: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            position: relative;
+        }
+
+        .group-label {
+            color: #666;
+            font-size: 0.75em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-right: 5px;
+            font-weight: bold;
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        .separator {
+            color: #444;
+            font-size: 1.2em;
+            margin: 0 5px;
+            opacity: 0.5;
+        }
+
+        /* Lekka modyfikacja przycisków, żeby pasowały do grup */
+        .filter-btn {
+            font-size: 0.9em;
+            padding: 6px 14px;
+        }
+        
+        /* Na telefonach grupy mogą być węższe */
+        @media (max-width: 768px) {
+            .filter-group {
+                border-radius: 12px; /* Mniej zaokrąglone na telefonie */
+                width: 100%;
+            }
+        }
 
         .advanced-filters { display: flex; justify-content: center; gap: 15px; margin-bottom: 30px; flex-wrap: wrap; background: rgba(255, 255, 255, 0.02); padding: 10px; border-radius: 8px; border: 1px solid #333; align-items: center; }
         .filter-select { background: #0a0a0a; border: 1px solid #444; color: var(--gold); padding: 8px; border-radius: 5px; cursor: pointer; font-family: 'Montserrat', sans-serif; }
@@ -226,19 +273,30 @@
         </div>
     </header>
 
-    <div class="filters">
-        <button class="filter-btn active" id="f-all" onclick="setFilter('type', 'all')">Wszystkie</button>
-        <button class="filter-btn" id="f-sprzedam" onclick="setFilter('type', 'sprzedam')">Sprzedam</button>
-        <button class="filter-btn" id="f-kupie" onclick="setFilter('type', 'kupie')">Kupię</button>
-        <button class="filter-btn" id="f-zamienie" onclick="setFilter('type', 'zamienie')">Zamienię</button>
-		<button class="filter-btn" id="f-gold" onclick="setFilter('type', 'gold')">💰 Złoto</button>
-        <button class="filter-btn" id="f-exp" onclick="setFilter('type', 'exp')">🛡️ Exp/Pomoc</button>
-        <button class="filter-btn" id="f-other" onclick="setFilter('type', 'other')">🎲 Inne</button>
-        <button class="filter-btn" id="f-mine" onclick="setFilter('type', 'mine')">👤 Moje</button>
-        <button class="filter-btn" id="f-fav" onclick="setFilter('type', 'fav')">❤️ Ulubione</button>
-        <span style="color:#444; margin: 0 10px;">|</span>
-        <button class="filter-btn" id="f-herosi" onclick="setFilter('cat', 'herosi')">Herosi</button>
-        <button class="filter-btn" id="f-e2" onclick="setFilter('cat', 'e2')">Elity II</button>
+    <div class="filters-container">
+        <div class="filter-group">
+            <span class="group-label">Handel:</span>
+            <button class="filter-btn active" id="f-all" onclick="setFilter('type', 'all')">Wszystkie</button>
+            <button class="filter-btn" id="f-sprzedam" onclick="setFilter('type', 'sprzedam')">Sprzedam</button>
+            <button class="filter-btn" id="f-kupie" onclick="setFilter('type', 'kupie')">Kupię</button>
+            <button class="filter-btn" id="f-zamienie" onclick="setFilter('type', 'zamienie')">Zamienię</button>
+        </div>
+
+        <div class="filter-group">
+            <span class="group-label">Usługi:</span>
+            <button class="filter-btn" id="f-gold" onclick="setFilter('type', 'gold')">💰 Złoto</button>
+            <button class="filter-btn" id="f-exp" onclick="setFilter('type', 'exp')">🛡️ Exp/Pomoc</button>
+            <button class="filter-btn" id="f-other" onclick="setFilter('type', 'other')">🎲 Inne</button>
+        </div>
+
+        <div class="filter-group">
+            <span class="group-label">Filtry:</span>
+            <button class="filter-btn" id="f-mine" onclick="setFilter('type', 'mine')">👤 Moje</button>
+            <button class="filter-btn" id="f-fav" onclick="setFilter('type', 'fav')">❤️ Ulubione</button>
+            <span class="separator">|</span>
+            <button class="filter-btn" id="f-herosi" onclick="setFilter('cat', 'herosi')">Herosi</button>
+            <button class="filter-btn" id="f-e2" onclick="setFilter('cat', 'e2')">Elity II</button>
+        </div>
     </div>
 
     <div class="advanced-filters">
@@ -2012,6 +2070,7 @@ const lootTable = {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
