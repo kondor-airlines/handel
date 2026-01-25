@@ -487,6 +487,42 @@
         opacity: 1;
         transform: scale(1.2);
     }
+
+	.helper-btn {
+            background: linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%);
+            border: 1px solid var(--gold);
+            color: var(--gold);
+            padding: 10px 18px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 800;
+            font-size: 0.7em;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            height: 42px; /* Dopasowanie do wysokości inputów */
+            white-space: nowrap;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+
+        .helper-btn:hover {
+            background: var(--gold);
+            color: #000;
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
+            transform: translateY(-2px);
+        }
+
+        .helper-btn:active {
+            transform: translateY(1px);
+        }
+
+        .helper-btn-icon {
+            font-size: 1.2em;
+        }
 		
 		
         @keyframes rise {
@@ -666,9 +702,10 @@
 
             <div style="display:flex; gap:10px; align-items:center;" class="full-width">
                 <input type="text" id="itemName" placeholder="Nazwa przedmiotu" maxlength="50">
-                <button class="helper-btn" onclick="searchMargo()" title="Sprawdź statystyki">
-                    <span style="margin-right: 5px; font-size: 0.8em;">STATY</span> 🔍
-                </button>
+                <button class="helper-btn" onclick="searchMargo()" title="Sprawdź statystyki przedmiotu">
+    			<span>STATYSTYKI</span> 
+    			<span class="helper-btn-icon">🔍</span>
+				</button>
             </div>
             <div class="full-width" style="display:flex; gap:10px; align-items:center;">
                 <input type="text" id="itemImg" placeholder="Link do obrazka (lub wybierz plik obok ➡)" oninput="manualImgPreview()" style="flex-grow:1;">
@@ -2716,7 +2753,18 @@ window.renderOffers = () => {
     window.cancelReservation = async (id) => { await updateDoc(doc(db, "oferty", id), { reservedBy: null }); window.playSound('click'); };
     window.deleteOffer = async (id) => { if(confirm("Usunąć?")) await deleteDoc(doc(db, "oferty", id)); };
     window.logout = () => signOut(auth);
-    window.searchMargo = () => window.open(`https://margoworld.pl/item?name=${encodeURIComponent(document.getElementById('itemName').value)}`);
+	window.searchMargo = () => {
+        const rawName = document.getElementById('itemName').value;
+        if (!rawName) return window.alert("Wpierw wpisz lub wybierz przedmiot!");
+
+        // Czyścimy nazwę: usuwamy wszystko od nawiasu w prawo, np. "Maska (m/p)" -> "Maska"
+        const cleanName = rawName.split('(')[0].trim();
+
+        // Budujemy bezpieczny link
+        const url = `https://margoworld.pl/item?name=${encodeURIComponent(cleanName)}`;
+        
+        window.open(url, '_blank');
+    };
     window.openFullEdit = (id, n, p, d, i) => { currentEditId = id; document.getElementById('fullEditName').value=n; document.getElementById('fullEditPrice').value=p; document.getElementById('fullEditDesc').value=d; document.getElementById('fullEditImg').value=i; document.getElementById('editModal').style.display='flex'; };
     window.closeFullEdit = () => document.getElementById('editModal').style.display='none';
     window.confirmFullEdit = async () => { await updateDoc(doc(db, "oferty", currentEditId), { name: document.getElementById('fullEditName').value, price: document.getElementById('fullEditPrice').value, desc: document.getElementById('fullEditDesc').value, img: document.getElementById('fullEditImg').value }); window.closeFullEdit(); };
@@ -3362,6 +3410,7 @@ function startSplitHistory() {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
