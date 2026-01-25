@@ -448,6 +448,23 @@
     .split-header { display:flex; justify-content:space-between; color: #fff; font-weight:bold; margin-bottom:5px; }
     .split-item { color: #00ffff; }
     .split-list { color: #888; margin-top:5px; font-style:italic; }
+
+	/* Wygląd "chipa" z nickiem gracza */
+    .user-chip {
+        background: #333; color: #ccc; 
+        padding: 2px 8px; border-radius: 10px; 
+        font-size: 0.8em; cursor: pointer; border: 1px solid #444;
+        transition: 0.2s;
+    }
+    .user-chip:hover {
+        background: #00ffff; color: #000; border-color: #00ffff;
+    }
+    
+    /* Przycisk usuwania */
+    .delete-split-btn {
+        background: none; border: none; cursor: pointer; opacity: 0.5; font-size: 1.2em;
+    }
+    .delete-split-btn:hover { opacity: 1; transform: scale(1.1); }
 		
         @keyframes rise {
             0% { opacity: 0; transform: translateY(0) scale(1); }
@@ -714,21 +731,28 @@
         </div>
 
         <div style="background:rgba(0,255,255,0.05); padding:15px; border-radius:8px; margin-bottom:20px; border:1px solid #333;">
-            <h4 style="margin-top:0; color:#ddd;">Dodaj podział (System 50/50):</h4>
+            <h4 style="margin-top:0; color:#ddd;">Dodaj podział (50/50):</h4>
             
             <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:10px;">
-                <input type="text" id="splitItem" placeholder="Nazwa przedmiotu" style="padding:8px;">
+                <input type="text" id="splitItem" list="availableItems" placeholder="Nazwa przedmiotu (zacznij pisać...)" style="padding:8px;">
+                <datalist id="availableItems"></datalist>
+
                 <input type="text" id="splitAmount" placeholder="Kwota (np. 1.2g)" style="padding:8px;">
             </div>
 
             <div style="margin-bottom:10px;">
                 <label style="color:#00ffff; font-size:0.8em; margin-left:5px;">👑 Kto bierze 50% (Szef/Tank):</label>
-                <input type="text" id="splitBoss" placeholder="Jeden Nick (np. Rex)" style="padding:8px; width:100%; border-color:#008b8b;">
+                <input type="text" id="splitBoss" list="availableUsers" placeholder="Wybierz nick..." style="padding:8px; width:100%; border-color:#008b8b;">
+                <datalist id="availableUsers"></datalist>
             </div>
 
             <div style="margin-bottom:10px;">
-                <label style="color:#aaa; font-size:0.8em; margin-left:5px;">⚔️ Reszta ekipy (dzielą się drugą połówką):</label>
-                <input type="text" id="splitPeople" placeholder="Nicki: Max, Kot, Zoltan" style="padding:8px; width:100%;">
+                <label style="color:#aaa; font-size:0.8em; margin-left:5px;">⚔️ Reszta ekipy (Kliknij nicki poniżej):</label>
+                <input type="text" id="splitPeople" placeholder="Max, Rex, Kot..." style="padding:8px; width:100%;">
+                
+                <div id="quickUserSelect" style="display:flex; flex-wrap:wrap; gap:5px; margin-top:5px; max-height:60px; overflow-y:auto;">
+                    <span style="color:#666; font-size:0.8em;">Ładowanie listy graczy...</span>
+                </div>
             </div>
 
             <button onclick="calculateAndSaveSplit()" class="action-btn" style="width:100%; background:#008b8b; border:1px solid #00ffff;">PRZELICZ I ZAPISZ</button>
@@ -2955,21 +2979,78 @@ window.renderOffers = () => {
     // Twórz nową iskrę co 300ms (możesz zmienić na 100ms żeby było ich więcej)
     setInterval(createEmber, 350);
 
-	// --- SYSTEM PODZIAŁÓW (50% + RESZTA) ---
+	// --- SYSTEM PODZIAŁÓW (WERSJA PRO) ---
     let splitsUnsub = null;
 
     window.openSplitModal = () => {
         document.getElementById('splitModal').style.display = 'flex';
+        loadSplitData(); // Załaduj podpowiedzi (przedmioty i gracze)
         if(!splitsUnsub) startSplitsListener();
     };
 
-    function formatGold(num) {
-        if(num >= 1000000000) return (num/1000000000).toFixed(2) + 'G';
-        if(num >= 1000000) return (num/1000000).toFixed(2) + 'm';
-        if(num >= 1000) return (num/1000).toFixed(1) + 'k';
-        return num.toLocaleString();
+    // 1. ŁADOWANIE DANYCH DO PODPOWIEDZI
+    async function loadSplitData() {
+        // A. Wyciąganie przedmiotów z Twojego lootTable (z kodu)
+        const itemsList = document.getElementById('availableItems');
+        if(itemsList) {
+            itemsList.innerHTML = "";
+            let allItems = new Set();
+            if(typeof lootTable !== 'undefined') {
+                for (const mob in lootTable) {
+                    lootTable[mob].forEach(loot => {
+                        let cleanName = loot.stats.split('||')[0].replace(/\(.*\)/, '').trim();
+                        if(cleanName) allItems.add(cleanName);
+                    });
+                }
+            }
+            allItems.forEach(item => {
+                const opt = document.createElement('option');
+                opt.value = item;
+                itemsList.appendChild(opt);
+            });
+        }
+
+        // B. Wyciąganie graczy z bazy danych
+        const usersList = document.getElementById('availableUsers'); // Do pola Szefa
+        const quickSelect = document.getElementById('quickUserSelect'); // Do pola Ekipy
+        
+        if(usersList) usersList.innerHTML = "";
+        if(quickSelect) quickSelect.innerHTML = "";
+
+        const querySnapshot = await getDocs(collection(db, "users"));
+        querySnapshot.forEach((docSnap) => {
+            const userData = docSnap.data();
+            const nick = userData.nick || "Nieznany";
+
+            if(usersList) {
+                const opt = document.createElement('option');
+                opt.value = nick;
+                usersList.appendChild(opt);
+            }
+
+            if(quickSelect) {
+                const chip = document.createElement('button');
+                chip.innerText = nick;
+                chip.className = 'user-chip';
+                chip.onclick = () => addToTeam(nick);
+                quickSelect.appendChild(chip);
+            }
+        });
     }
 
+    // Funkcja pomocnicza: Kliknięcie w nick dodaje go do pola "Reszta ekipy"
+    window.addToTeam = (nick) => {
+        const input = document.getElementById('splitPeople');
+        if(input.value.includes(nick)) return; 
+        
+        if(input.value.length > 0) {
+            input.value += ", " + nick;
+        } else {
+            input.value = nick;
+        }
+    };
+
+    // 2. OBLICZANIE I ZAPISYWANIE
     window.calculateAndSaveSplit = async () => {
         if(!currentUser) return alert("Musisz być zalogowany!");
 
@@ -2980,30 +3061,25 @@ window.renderOffers = () => {
 
         if(!item || !rawAmount || !bossName || !peopleStr) return alert("Uzupełnij wszystkie pola!");
 
-        const totalAmount = parseGold(rawAmount);
+        // Używamy funkcji globalnych (parseGold, formatGold), które masz wyżej w kodzie
+        const totalAmount = parseGold(rawAmount); 
         const peopleArr = peopleStr.split(',').map(s => s.trim()).filter(s => s.length > 0);
         const teamCount = peopleArr.length;
         
         if(teamCount === 0) return alert("Podaj ekipę!");
 
-        // Matematyka 50/50
         const halfAmount = Math.floor(totalAmount / 2);
         const bossShare = halfAmount; 
         const remainder = totalAmount - bossShare;
         const teamPerPerson = Math.floor(remainder / teamCount);
 
-        const confirmMsg = `
-            Przedmiot: ${item} (${formatGold(totalAmount)})
-            👑 ${bossName} (50%): ${formatGold(bossShare)}
-            ⚔️ Ekipa (${teamCount} os.): Po ${formatGold(teamPerPerson)} na głowę.
-            Czy zapisać?
-        `;
+        const confirmMsg = `Przedmiot: ${item}\nSzef (${bossName}): ${formatGold(bossShare)}\nEkipa: Po ${formatGold(teamPerPerson)}\n\nZapisać?`;
 
         if(confirm(confirmMsg)) {
             await addDoc(collection(db, "podzialy"), {
                 item: item, total: totalAmount, bossName: bossName, bossShare: bossShare,
                 teamPerPerson: teamPerPerson, people: peopleArr,
-                date: new Date().toISOString(), author: currentNick
+                date: new Date().toISOString(), author: currentNick, uid: currentUser.uid
             });
             
             document.getElementById('splitItem').value = "";
@@ -3014,18 +3090,36 @@ window.renderOffers = () => {
         }
     };
 
+    // 3. USUWANIE WPISU
+    window.deleteSplit = async (id) => {
+        if(confirm("Czy na pewno usunąć ten wpis z historii?")) {
+            await deleteDoc(doc(db, "podzialy", id));
+        }
+    };
+
+    // 4. NASŁUCHIWANIE I WYŚWIETLANIE
     function startSplitsListener() {
         const q = query(collection(db, "podzialy"), orderBy("date", "desc"), limit(20));
         splitsUnsub = onSnapshot(q, (snapshot) => {
             const list = document.getElementById('splitsListContent');
             list.innerHTML = "";
-            snapshot.forEach(doc => {
-                const data = doc.data();
+            
+            snapshot.forEach(docSnap => {
+                const data = docSnap.data();
+                const id = docSnap.id; 
                 const date = new Date(data.date).toLocaleDateString();
+                
+                const canDelete = (currentUser && (currentUser.uid === ADMIN_UID || currentUser.uid === data.uid));
+                const deleteBtn = canDelete ? `<button class="delete-split-btn" onclick="deleteSplit('${id}')" title="Usuń">🗑️</button>` : '';
+
                 list.innerHTML += `
                     <div class="split-card">
                         <div class="split-header">
-                            <span class="split-item">${window.escapeHtml(data.item)}</span> <span>${date}</span>
+                            <span class="split-item">${window.escapeHtml(data.item)}</span> 
+                            <div style="display:flex; align-items:center; gap:10px;">
+                                <span>${date}</span>
+                                ${deleteBtn}
+                            </div>
                         </div>
                         <div style="border-bottom:1px solid #333; padding-bottom:5px; margin-bottom:5px;">
                             <span style="color:#00ffff;">👑 ${window.escapeHtml(data.bossName)}</span>: 
@@ -3048,6 +3142,7 @@ window.renderOffers = () => {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
