@@ -1963,9 +1963,7 @@ const lootTable = {
         if(row) row.remove();
     };
 	
-    window.renderBestiary = (category) => {
-    
-		
+window.renderBestiary = (category) => {
         const container = document.getElementById('bestiaryContent');
         container.innerHTML = "";
         
@@ -1976,8 +1974,19 @@ const lootTable = {
             let lootHtml = "";
             
             loot.forEach(item => {
+                // Wyciągamy czystą nazwę (bez rarity)
                 const pureName = item.stats.split('||')[0].replace(/\s*\([^)]*\)$/, "");
-                lootHtml += `<div class="loot-item" title="${pureName}"><img src="${item.img}"></div>`;
+                
+                // Tworzymy link do MargoWorld
+                const safeName = encodeURIComponent(pureName);
+                const mwLink = `https://margoworld.pl/item?name=${safeName}`;
+
+                // Zmieniliśmy <div> na <a> (link)
+                lootHtml += `
+                    <a href="${mwLink}" target="_blank" class="loot-item" title="${pureName} (Kliknij, aby sprawdzić)">
+                        <img src="${item.img}" alt="${pureName}">
+                    </a>
+                `;
             });
 
             container.innerHTML += `
@@ -2811,6 +2820,7 @@ window.renderOffers = () => {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
