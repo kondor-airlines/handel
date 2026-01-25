@@ -458,7 +458,12 @@
             <select id="itemSource" class="full-width" onchange="updateLootList()"><option value="">-- Przeciwnik --</option></select>
             <input type="text" id="itemSearch" class="full-width search-box" placeholder="🔍 Szukaj przedmiotu..." oninput="updateLootList()" style="display:none;">
             <select id="itemSelect" class="full-width" onchange="fillItemDetails()"><option value="">-- Przedmiot --</option></select>
-            
+			<select id="itemBonding" class="full-width" style="border-color: #444;">
+                <option value="bound">🔒 Związany (Standard)</option>
+                <option value="unbound">🔓 Odwiązany (Unbound)</option>
+            </select>
+
+			
             <div id="livePreview" class="preview-box" style="display: none;">
                 <div class="preview-content">
                     <span class="preview-label">Podgląd</span>
@@ -1687,9 +1692,9 @@ const lootTable = {
         
         const type = typeEl.value;
         const isSpecial = ['gold', 'exp', 'other'].includes(type);
-        const isChest = type === 'chest'; // Nowy typ
+        const isChest = type === 'chest';
         
-        // Ukrywamy standardowe, jeśli to specjalne LUB skrzynki
+        // Ukrywamy standardowe pola, jeśli to specjalne LUB skrzynki
         const displayStyle = (isSpecial || isChest) ? 'none' : 'block';
         
         document.getElementById('sourceCategory').style.display = displayStyle;
@@ -1698,21 +1703,24 @@ const lootTable = {
         document.getElementById('sourceSearch').style.display = displayStyle;
         document.getElementById('itemSearch').style.display = displayStyle;
         
+        // --- NOWOŚĆ: Ukrywamy wybór wiązania dla nietypowych ofert ---
+        const bondingSelect = document.getElementById('itemBonding');
+        if (bondingSelect) bondingSelect.style.display = displayStyle;
+
         // Obsługa kontenera skrzynek
         const chestDiv = document.getElementById('chestBundleContainer');
         const standardName = document.getElementById('itemName');
         const standardImg = document.getElementById('itemImg');
         
         if (isChest) {
-            chestDiv.style.display = 'block';
+            if(chestDiv) chestDiv.style.display = 'block';
             standardName.placeholder = "Nazwa wygeneruje się sama...";
-            standardName.disabled = true; // Blokujemy, bo skrypt sam to wypełni
-            standardImg.style.display = 'none'; // Ukrywamy input obrazka, bo weźmiemy go z bazy
+            standardName.disabled = true;
+            standardImg.style.display = 'none';
             document.getElementById('livePreview').style.display = 'none';
-            // Jeśli pusto, dodaj pierwszy wiersz
-            if(document.getElementById('chestRowsArea').innerHTML === "") window.addChestRow();
+            if(document.getElementById('chestRowsArea') && document.getElementById('chestRowsArea').innerHTML === "") window.addChestRow();
         } else {
-            chestDiv.style.display = 'none';
+            if(chestDiv) chestDiv.style.display = 'none';
             standardName.disabled = false;
             standardName.placeholder = "Nazwa przedmiotu";
             standardImg.style.display = 'block';
@@ -2035,6 +2043,11 @@ const lootTable = {
         list.innerHTML = "";
         let count = 0;
         allOffers.forEach(data => {
+			// Sprawdzamy czy odwiązany
+            let bondingIcon = "";
+            if (data.bonding === 'unbound') {
+                bondingIcon = '<span title="Przedmiot Odwiązany" style="margin-right:5px; text-shadow:0 0 10px var(--gold);">🔓</span>';
+            }
             const isHeros = monstersList.herosi.some(m => m.name === data.source);
             const isE2 = monstersList.e2.some(m => m.name === data.source);
             const isFav = favs.includes(data.id);
@@ -2127,7 +2140,7 @@ const lootTable = {
                             return "";
                         } 
                     })()}
-                    <div class="item-title">${window.escapeHtml(displayName)}</div>
+                    <div class="item-title">${bondingIcon}${window.escapeHtml(displayName)}</div>
                     <div class="item-source">
                         <img src="${data.sourceImg}"> <span>${data.source}</span>
                     </div>
@@ -2201,21 +2214,21 @@ const lootTable = {
         // Walidacja ceny
         const pricePattern = /^\d+(\.\d+)?[kmg]$/i;
         if (!priceVal) { return window.alert("Błąd: Podaj cenę!"); }
-        if (!pricePattern.test(priceVal)) { return window.alert("Błąd ceny! Użyj k, m lub g."); }
+        if (!pricePattern.test(priceVal)) { return window.alert("Błąd formatu! Cena MUSI kończyć się literą k, m lub g (np. 500k, 150m, 1.2g)."); }
 
+        // Zmienne, które zaraz ustalimy w zależności od typu
         let finalName = document.getElementById('itemName').value;
         let finalImg = document.getElementById('itemImg').value;
         let finalSource = sel.value;
         let finalSourceImg = sel.options[sel.selectedIndex]?.dataset.img || '';
 
-        // --- LOGIKA DLA SKRZYNEK ---
-        // --- LOGIKA DLA SKRZYNEK ---
+        // --- LOGIKA DLA SKRZYNEK (Zestawy) ---
         if (isChest) {
             const rows = document.querySelectorAll('.chest-row');
             if (rows.length === 0) return window.alert("Dodaj przynajmniej jedną skrzynkę!");
             
             let chestSummary = [];
-            let imagesArray = []; // Tutaj zbieramy obrazki
+            let imagesArray = [];
             
             for (let row of rows) {
                 const select = row.querySelector('.chest-select');
@@ -2224,36 +2237,41 @@ const lootTable = {
                 
                 if (!name || qty < 1) return window.alert("Uzupełnij wszystkie pola skrzynek!");
                 
-                // Zapisujemy skróconą nazwę
+                // Nazwa do opisu
                 chestSummary.push(`${qty}x ${name.replace('Skrzynia ', '')}`);
                 
-                // Dodajemy obrazek do listy (jeśli jeszcze takiego nie ma w zestawie, żeby nie dublować przy tych samych skrzyniach)
+                // Obrazek do listy
                 const imgUrl = select.options[select.selectedIndex].dataset.img;
                 if(imgUrl) imagesArray.push(imgUrl); 
             }
             
             finalName = "Zestaw: " + chestSummary.join(', ');
-            // Łączymy linki znakiem specjalnym "|", żeby potem je rozdzielić
-            finalImg = imagesArray.join('|'); 
+            finalImg = imagesArray.join('|'); // Łączymy linki znakiem "|"
             
             finalSource = "Skrzynki Herosów";
-        }
-        // --- LOGIKA DLA INNYCH ---
+            finalSourceImg = "https://micc.garmory-cdn.cloud/obrazki/itemy/con/skrzynia_heros.gif";
+        } 
+        // --- LOGIKA DLA ZŁOTA / EXP / INNE ---
         else if (isSpecial) {
             finalName = document.getElementById('itemName').value || (type === 'gold' ? 'Złoto' : 'Usługa');
             finalSource = type === 'gold' ? 'Kantor' : 'Ogłoszenie';
+            // finalImg bierzemy z inputa (link lub upload)
         } 
+        // --- LOGIKA DLA ZWYKŁYCH PRZEDMIOTÓW ---
         else {
-            // Zwykły przedmiot
-            if (!sel.value) return window.alert("Wybierz przeciwnika!");
+            if (!sel.value) return window.alert("Błąd: Wybierz przeciwnika z listy!");
+            // finalImg bierzemy z inputa (link lub upload)
         }
 
-        // Dodawanie do bazy
+        // --- ZAPIS DO BAZY DANYCH (To jest ten fragment, o który pytałeś) ---
         await addDoc(collection(db, "oferty"), {
             userId: currentUser.uid, 
             nick: currentNick, 
             avatar: currentUser.photoURL,
             type: type,
+            // --- NOWOŚĆ: Zapisujemy status wiązania ---
+            bonding: (isSpecial || isChest) ? 'bound' : document.getElementById('itemBonding').value, 
+            // ------------------------------------------
             name: finalName,
             price: priceVal.toLowerCase(), 
             source: finalSource, 
@@ -2267,15 +2285,20 @@ const lootTable = {
         window.playSound('coin');
         window.alert("Dodano ofertę!");
         
-        // Reset formularza
+        // Reset formularza po dodaniu
         document.getElementById('itemPrice').value = "";
         document.getElementById('itemName').value = "";
         document.getElementById('itemImg').value = "";
         document.getElementById('itemDesc').value = "";
-        document.getElementById('chestRowsArea').innerHTML = ""; // Czyścimy wiersze skrzynek
-        document.getElementById('livePreview').style.display = 'none';
         
+        // Czyścimy sekcję skrzynek
+        const chestArea = document.getElementById('chestRowsArea');
+        if(chestArea) chestArea.innerHTML = "";
+        
+        document.getElementById('livePreview').style.display = 'none';
         document.getElementById('offerType').value = 'sprzedam';
+        
+        // Reset widoku pól
         window.toggleSpecialFields();
     };
     
@@ -2426,5 +2449,6 @@ const lootTable = {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
