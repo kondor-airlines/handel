@@ -2601,6 +2601,7 @@ window.renderOffers = () => {
             startMailListener();
             startHeartbeat();
 			startAnnouncementListener(); // <--- DODAJ TO
+			startSplitHistory();
         } else {
             document.getElementById('googleLoginBtn').style.display = 'flex';
             document.getElementById('userProfile').style.display = 'none';
@@ -3030,7 +3031,6 @@ window.renderOffers = () => {
         
         // 3. Ładujemy listę graczy i historię
         loadSplitUsers();
-        if(!splitUnsub) startSplitHistory();
 
         // 4. POWIADOMIENIA: Oznaczamy podziały jako przeczytane
         // Zapisujemy aktualną liczbę podziałów w pamięci przeglądarki
@@ -3360,6 +3360,7 @@ function startSplitHistory() {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
