@@ -2108,7 +2108,6 @@ const lootTable = {
     const isSpecial = ['gold', 'exp', 'other'].includes(type);
     const isChest = type === 'chest';
     
-    // Ukrywamy standardowe pola wyboru z listy, jeśli to specjalne LUB skrzynki
     const displayStyle = (isSpecial || isChest) ? 'none' : 'block';
     
     document.getElementById('sourceCategory').style.display = displayStyle;
@@ -2131,32 +2130,45 @@ const lootTable = {
         standardName.disabled = true;
         standardImg.style.display = 'none';
         preview.style.display = 'none';
-        if(document.getElementById('chestRowsArea') && document.getElementById('chestRowsArea').innerHTML === "") window.addChestRow();
+        if(document.getElementById('chestRowsArea')?.innerHTML === "") window.addChestRow();
     } 
     else if (type === 'gold') {
-        // --- NOWOŚĆ: AUTOMATYCZNE ZŁOTO ---
         if(chestDiv) chestDiv.style.display = 'none';
         standardName.disabled = false;
         standardName.value = "Sprzedaż Złota";
         standardImg.style.display = 'block';
         standardImg.value = "https://micc.garmory-cdn.cloud/obrazki/itemy/zlo/zloto8.gif";
         
-        // Wymuszamy pokazanie podglądu z ikonką złota
         preview.style.display = 'flex';
         document.getElementById('previewIcon').src = standardImg.value;
         document.getElementById('previewName').innerText = "Sprzedaż Złota";
     } 
+    else if (type === 'other') {
+        // --- LOGIKA DLA INNE (Pył Sakryfikacji) ---
+        if(chestDiv) chestDiv.style.display = 'none';
+        standardName.disabled = false;
+        standardName.value = "Inne";
+        standardImg.style.display = 'block';
+        standardImg.value = "https://micc.garmory-cdn.cloud/obrazki/itemy/neu/pyl-sakryfikacji.gif";
+        
+        preview.style.display = 'flex';
+        document.getElementById('previewIcon').src = standardImg.value;
+        document.getElementById('previewName').innerText = "Inne";
+    }
     else {
         if(chestDiv) chestDiv.style.display = 'none';
         standardName.disabled = false;
         standardName.placeholder = "Nazwa przedmiotu";
         standardImg.style.display = 'block';
         
-        // Czyścimy dane "Złota", jeśli użytkownik zmienił typ na inny
-        if(standardName.value === "Sprzedaż Złota") standardName.value = "";
-        if(standardImg.value.includes('zloto8.gif')) standardImg.value = "";
+        // Czyszczenie pól, jeśli przełączasz się z Gold/Other na zwykły przedmiot
+        if(standardName.value === "Sprzedaż Złota" || standardName.value === "Inne") {
+            standardName.value = "";
+        }
+        if(standardImg.value.includes('zloto8.gif') || standardImg.value.includes('pyl-sakryfikacji.gif')) {
+            standardImg.value = "";
+        }
         
-        // Ukrywamy podgląd dla exp/other, ale zostawiamy aktywny dla zwykłych itemów
         if(isSpecial) {
              preview.style.display = 'none';
         }
@@ -3429,6 +3441,7 @@ function startSplitHistory() {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
