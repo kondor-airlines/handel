@@ -2543,20 +2543,26 @@ window.renderOffers = () => {
         const monsterLvl = extractLevel(data.source);
         const isAdmin = currentNick === ADMIN_NICK;
 
-        // --- 2. LOGIKA FILTRÓW ---
+        // --- 2. LOGIKA ARCHIWUM I WIDOCZNOŚCI (ZMIENIONA) ---
         
-        // Filtr Archiwum (separacja od reszty)
         if (currentFilters.type === 'archive') {
+            // W samym archiwum chcemy TYLKO sprzedane
             if (!isSold) return;
-        } else {
+        } 
+        else if (currentFilters.type === 'all') {
+            // W trybie "Wszystkie" NIE ROBIMY nic - przepuszczamy i sprzedane, i dostępne
+        } 
+        else {
+            // W każdym innym konkretnym filtrze (Sprzedam, Kupię, Moje, Ulubione itd.) 
+            // ukrywamy sprzedane, żeby zachować przejrzystość
             if (isSold) return;
         }
 
-        // Filtry Specjalne (Moje / Ulubione)
+        // --- 3. FILTRY SPECJALNE I TYPY ---
+        
         if (currentFilters.type === 'fav' && !isFav) return;
         if (currentFilters.type === 'mine' && !isOwner) return;
 
-        // Logika Typów i Skrzynek
         if (currentFilters.type === 'chest') {
             if (data.type !== 'chest' && !isSkrytka) return;
         } 
@@ -2566,18 +2572,16 @@ window.renderOffers = () => {
                  currentFilters.type !== 'fav') {
             
             if (data.type !== currentFilters.type) return;
-            // Skrytki (s) chowamy z filtrów handlowych, bo mają własną kategorię
             if (currentFilters.type === 'sprzedam' && isSkrytka) return;
         }
 
-        // Filtry Kategorii i Wyszukiwanie
+        // Pozostałe filtry (Kategoria, Szukaj, Level, Profesja)
         if (currentFilters.cat === 'herosi' && !isHeros) return;
         if (currentFilters.cat === 'e2' && !isE2) return;
         if (!data.name.toLowerCase().includes(search)) return;
         if (selectedUser && data.nick !== selectedUser) return;
         if (monsterLvl < minLvl || monsterLvl > maxLvl) return;
 
-        // Filtr profesji
         if (selectedProf && selectedProf !== 'a') {
             const match = data.name.match(/\(([^)]+)\)[^()]*$/);
             if (match) {
@@ -2585,12 +2589,10 @@ window.renderOffers = () => {
             } else { return; }
         }
 
-        // --- 3. PRZYGOTOWANIE ELEMENTÓW WIZUALNYCH ---
+        // --- 4. PRZYGOTOWANIE WIZUALNE (Kłódki, Klasy, Przyciski) ---
         
-        // Logika kłódek (Poprawa błędu: ReferenceError)
         let bondingIcon = "";
         const hideBondingFor = ['gold', 'chest', 'exp', 'other'];
-
         if (!hideBondingFor.includes(data.type) && !isSkrytka) {
             if (data.bonding === 'unbound') {
                 bondingIcon = '<span title="Przedmiot Odwiązany" style="margin-right:5px; text-shadow:0 0 10px var(--gold); cursor:help;">🔓</span>';
@@ -2599,12 +2601,10 @@ window.renderOffers = () => {
             }
         }
 
-        // Klasy CSS karty
         let typeClass = "type-" + data.type;
         if (data.type === 'chest' || isSkrytka) typeClass = "type-chest";
         const soldClass = isSold ? "is-sold" : "";
 
-        // Obrazki
         let imgHtml = "";
         if (data.img && data.img.includes('|')) {
             const urls = data.img.split('|');
@@ -2615,7 +2615,7 @@ window.renderOffers = () => {
             imgHtml = `<img src="${data.img}" class="item-img">`;
         }
 
-        // --- 4. PRZYCISKI AKCJI ---
+        // Przyciski
         let btnRes = "";
         if (!data.reservedBy && !isSold) {
             btnRes = `<button class="small-btn reserve-btn" onclick="reserveOffer('${data.id}')" title="Zarezerwuj">🛡️</button>`;
@@ -2635,15 +2635,13 @@ window.renderOffers = () => {
         
         let deleteBtn = (isOwner || isAdmin) ? `<button class="small-btn delete-btn" onclick="deleteOffer('${data.id}')" title="Usuń całkowicie">🗑️</button>` : "";
 
-        // Tooltip i nazwa
         let tooltipHtml = (['sprzedam', 'kupie', 'zamienie'].includes(data.type) && !isSkrytka) ? getTooltipHtml(data.name, data.img) : "";
         const displayName = data.name.replace(/\s*\([^)]*\)$/, "");
-
-        // --- 5. BUDOWANIE KARTY ---
-        count++;
         const isOnline = isUserOnline(data.userId);
         const onlineHtml = isOnline ? '<span class="online-dot" title="Online"></span>' : '';
 
+        // --- 5. RENDEROWANIE KARTY ---
+        count++;
         list.innerHTML += `
             <div class="offer-card ${typeClass} ${soldClass}">
                 ${tooltipHtml}
@@ -3495,6 +3493,7 @@ function startSplitHistory() {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
