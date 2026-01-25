@@ -3267,9 +3267,8 @@ function startSplitHistory() {
         splitUnsub = onSnapshot(q, (snap) => {
 			currentSplitCount = snap.size; 
         	updateSplitBadge(currentSplitCount);
-			const totalCount = snap.size; // Pobiera ogólną liczbę podziałów z bazy
-    		updateSplitBadge(totalCount); // Aktualizuje czerwoną kropkę
-            const cont = document.getElementById('splitHistoryContent');
+            
+			const cont = document.getElementById('splitHistoryContent');
             if (!cont) return;
 
             cont.innerHTML = "<h4 style='color:#555; margin-bottom:10px; border-bottom:1px solid #222; padding-bottom:5px;'>Ostatnie wypłaty:</h4>";
@@ -3360,6 +3359,7 @@ function startSplitHistory() {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
