@@ -2147,8 +2147,7 @@ window.toggleSpecialFields = () => {
     itemSelect.style.display = displayStyle;
     sourceSearch.style.display = displayStyle;
     itemSearch.style.display = displayStyle;
-    if (bondingSelect) bondingSelect.style.display = displayStyle;
-
+	if (bondingSelect) bondingSelect.style.display = (isSpecial || isChest) ? 'none' : 'block';
     if (isChest) {
         if(chestDiv) chestDiv.style.display = 'block';
         standardName.placeholder = "Nazwa wygeneruje się sama...";
@@ -2544,12 +2543,14 @@ window.renderOffers = () => {
 
            // Logika wyświetlania kłódek
             let bondingIcon = "";
-            if (data.bonding === 'unbound') {
-                // Ikona dla odwiązanych (świecąca na złoto)
-                bondingIcon = '<span title="Przedmiot Odwiązany" style="margin-right:5px; text-shadow:0 0 10px var(--gold); cursor:help;">🔓</span>';
-            } else {
-                // Ikona dla związanych (lekko szara, domyślna)
-                bondingIcon = '<span title="Przedmiot Związany" style="margin-right:5px; opacity: 0.5; cursor:help;">🔒</span>';
+			const hideBondingFor = ['gold', 'chest', 'exp', 'other'];
+			
+            if (!hideBondingFor.includes(data.type)) {
+                if (data.bonding === 'unbound') {
+                    bondingIcon = '<span title="Przedmiot Odwiązany" style="margin-right:5px; text-shadow:0 0 10px var(--gold); cursor:help;">🔓</span>';
+                } else {
+                    bondingIcon = '<span title="Przedmiot Związany" style="margin-right:5px; opacity: 0.5; cursor:help;">🔒</span>';
+                }
             }
 			const isHeros = monstersList.herosi.some(m => m.name === data.source);
             const isE2 = monstersList.e2.some(m => m.name === data.source);
@@ -2626,8 +2627,7 @@ window.renderOffers = () => {
             let ownerBtns = "";
             if (isOwner && !isSold) {
                 // 1. Przycisk Edycji (przekazujemy ID, Nazwę, Cenę, Opis, Obrazek i WIĄZANIE)
-                ownerBtns += `<button class="small-btn edit-added" onclick="openFullEdit('${data.id}','${window.escapeHtml(data.name)}','${window.escapeHtml(data.price)}','${window.escapeHtml(data.desc)}','${window.escapeHtml(data.img)}', '${data.bonding}')">✏️</button>`;
-
+			ownerBtns += `<button class="small-btn edit-added" onclick="openFullEdit('${data.id}','${window.escapeHtml(data.name)}','${window.escapeHtml(data.price)}','${window.escapeHtml(data.desc)}','${window.escapeHtml(data.img)}','${data.bonding || 'bound'}', '${data.type}')">✏️</button>`;
                 // 2. Przycisk "Sprzedane" (ten, który już masz)
                 if (['sprzedam', 'gold', 'chest', 'exp', 'other'].includes(data.type)) {
                     ownerBtns += `<button class="small-btn" onclick="markAsSold('${data.id}')" title="Oznacz jako sprzedane" style="border-color:var(--gold); color:var(--gold);">💰</button>`;
@@ -2841,18 +2841,26 @@ window.renderOffers = () => {
         
         window.open(url, '_blank');
     };
-	window.openFullEdit = (id, n, p, d, i, b) => {
-    currentEditId = id;
-    document.getElementById('fullEditName').value = n;
-    document.getElementById('fullEditPrice').value = p;
-    document.getElementById('fullEditDesc').value = d;
-    document.getElementById('fullEditImg').value = i;
-    
-    // Ustawienie aktualnego statusu wiązania (b to nowy parametr)
-    document.getElementById('fullEditBonding').value = b || 'bound';
-    
-    document.getElementById('editModal').style.display = 'flex';
-};
+		window.openFullEdit = (id, n, p, d, i, b, type) => {
+        currentEditId = id;
+        document.getElementById('fullEditName').value = n;
+        document.getElementById('fullEditPrice').value = p;
+        document.getElementById('fullEditDesc').value = d;
+        document.getElementById('fullEditImg').value = i;
+        
+        const bondingSelect = document.getElementById('fullEditBonding');
+        bondingSelect.value = b || 'bound';
+
+        // Ukrywamy wybór kłódki, jeśli edytujemy złoto, skrzynki lub exp
+        const hideBondingFor = ['gold', 'chest', 'exp', 'other'];
+        if (hideBondingFor.includes(type)) {
+            bondingSelect.style.display = 'none';
+        } else {
+            bondingSelect.style.display = 'block';
+        }
+        
+        document.getElementById('editModal').style.display = 'flex';
+    };
 	window.closeFullEdit = () => document.getElementById('editModal').style.display='none';
     window.confirmFullEdit = async () => {
         // Pobieramy wartości z pól w oknie edycji
@@ -3503,6 +3511,7 @@ function startSplitHistory() {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
