@@ -3039,6 +3039,25 @@ window.renderOffers = () => {
             if(snapshot.empty) list.innerHTML = "<div style='color:#666; text-align:center;'>Brak dłużników!</div>";
         });
     }
+
+	// --- FUNKCJE DO ZŁOTA (Przywracamy je, bo są potrzebne!) ---
+    function parseGold(str) {
+        if(!str) return 0;
+        str = str.toString().toLowerCase().replace(',','.');
+        let mult = 1;
+        if(str.includes('k')) mult = 1000;
+        if(str.includes('m')) mult = 1000000;
+        if(str.includes('g')) mult = 1000000000;
+        return parseFloat(str) * mult;
+    }
+
+    function formatGold(num) {
+        if(!num) return "0";
+        if(num >= 1000000000) return (num/1000000000).toFixed(2) + 'G';
+        if(num >= 1000000) return (num/1000000).toFixed(2) + 'm';
+        if(num >= 1000) return (num/1000).toFixed(1) + 'k';
+        return num.toLocaleString();
+    }
 	
 	// --- SYSTEM PODZIAŁÓW (WERSJA PRO) ---
     let splitsUnsub = null;
@@ -3203,6 +3222,7 @@ window.renderOffers = () => {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
