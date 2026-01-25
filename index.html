@@ -3156,7 +3156,10 @@ window.renderSplitLoot = (mobName) => {
     }
 
     // Pomocniczy format (bo w Twoim kodzie parseGold już jest)
-    function s_formatGold(n) {
+		function s_formatGold(n) {
+        // Zabezpieczenie: jeśli n nie jest liczbą, zwróć "0" zamiast błędu
+        if (n === undefined || n === null || isNaN(n)) return "0";
+        
         if(n >= 1000000000) return (n/1000000000).toFixed(2) + 'G';
         if(n >= 1000000) return (n/1000000).toFixed(1) + 'm';
         if(n >= 1000) return (n/1000).toFixed(0) + 'k';
@@ -3248,28 +3251,36 @@ window.saveFinalSplit = async () => {
             const cont = document.getElementById('splitHistoryContent');
             cont.innerHTML = "<h4 style='color:#555; margin-bottom:10px; border-bottom:1px solid #222; padding-bottom:5px;'>Ostatnie wypłaty:</h4>";
             
-            snap.forEach(docSnap => {
-// Wewnątrz pętli snap.forEach w startSplitHistory:
-    const d = docSnap.data();
-    const bossInfo = d.bosses && d.bosses.length > 0 
-        ? `<div style="color:gold;">👑 VIP: ${d.bosses.join(", ")} (po ${s_formatGold(d.bossShareEach)})</div>` 
-        : '';
+           snap.forEach(docSnap => {
+        const d = docSnap.data();
+        const id = docSnap.id;
+        
+        // Zabezpieczenie canDelete
+        const canDelete = (currentUser && (currentUser.uid === ADMIN_UID || currentUser.uid === d.authorId));
+        const delBtn = canDelete ? `<span class="del-split-icon" onclick="deleteSplit('${id}')">🗑️</span>` : '';
 
-    cont.innerHTML += `
-        <div style="background:rgba(255,255,255,0.03); padding:10px; margin-bottom:8px; border-left:3px solid #00ffff; display:flex; gap:10px; align-items:center;">
-            <img src="${d.itemImg || 'https://micc.garmory-cdn.cloud/obrazki/itemy/nas/pyt.gif'}" style="width:32px; height:32px;">
-            <div style="flex:1;">
-                <div style="display:flex; justify-content:space-between; font-weight:bold;">
-                    <span>${d.item}</span>
-                    <span onclick="deleteSplit('${docSnap.id}')" style="cursor:pointer;">🗑️</span>
+        // Ustawiamy 0 jeśli pole w bazie jest puste (dla starych wpisów)
+        const bShare = d.bossShareEach || 0;
+        const tShare = d.teamShareEach || 0;
+        const teamNames = d.team ? d.team.join(", ") : "Brak ekipy";
+
+        const bossInfo = d.bosses && d.bosses.length > 0 
+            ? `<div style="color:gold;">👑 VIP: ${d.bosses.join(", ")} (po ${s_formatGold(bShare)})</div>` 
+            : '';
+
+        cont.innerHTML += `
+            <div style="background:rgba(255,255,255,0.03); padding:10px; margin-bottom:8px; border-left:3px solid #00ffff; display:flex; gap:10px; align-items:center;">
+                <img src="${d.itemImg || 'https://micc.garmory-cdn.cloud/obrazki/itemy/nas/pyt.gif'}" style="width:32px; height:32px;">
+                <div style="flex:1;">
+                    <div style="display:flex; justify-content:space-between; font-weight:bold;">
+                        <span>${d.item || "Nieznany przedmiot"}</span>
+                        ${delBtn}
+                    </div>
+                    ${bossInfo}
+                    <div style="color:#aaa; font-size:0.85em;">⚔️ Ekipa: ${teamNames} (po <b>${s_formatGold(tShare)}</b>)</div>
                 </div>
-                ${bossInfo}
-                <div style="color:#aaa; font-size:0.85em;">⚔️ Ekipa: ${d.team.join(", ")} (po ${s_formatGold(d.teamShareEach)})</div>
-            </div>
-        </div>`;
-            });
-            if(snap.empty) cont.innerHTML += "<div style='color:#444; text-align:center;'>Historia jest pusta</div>";
-        });
+            </div>`;
+    });
     }
 
     window.deleteSplit = async (id) => {
@@ -3288,6 +3299,7 @@ window.saveFinalSplit = async () => {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
