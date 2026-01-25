@@ -853,6 +853,15 @@
                 <input type="hidden" id="splitSelectedName">
             </div>
 
+			<div class="split-section">
+                <span class="split-label">Wybierz Tryb Podziału:</span>
+                <select id="splitMode" onchange="window.playSound('click')" style="width:100%; padding:10px; background:#222; color:#eee; border:1px solid #444; border-radius:5px;">
+                    <option value="equal">⚖️ Równy podział</option>
+                    <option value="finder">👑 Zasada Znalazcy (Szef 50%)</option>
+                    <option value="detector">👁️ Wykrywajka (Szef + 1 os. po 25%)</option>
+                </select>
+            </div>
+			
             <div class="split-section">
                 <span class="split-label">3. Kwota sprzedaży:</span>
                 <input type="text" id="splitFinalAmount" placeholder="np. 1.2g lub 500m" style="width:100%; padding:10px; text-align:center; background:#111; color:#00ffff; font-weight:bold; border:1px solid #444;">
@@ -3116,25 +3125,82 @@ window.renderOffers = () => {
     }
 
     window.saveFinalSplit = async () => {
+        if(!currentUser) return alert("Zaloguj się!");
+
         const item = document.getElementById('splitSelectedName').value;
         const amountStr = document.getElementById('splitFinalAmount').value;
-        if(!item || !amountStr || !s_Boss || s_Team.length === 0) return alert("Błąd: Wybierz item, kwotę, szefa i ekipę!");
+        const mode = document.getElementById('splitMode').value;
+        
+        if(!item) return alert("Wybierz przedmiot z obrazka!");
+        if(!amountStr) return alert("Wpisz kwotę sprzedaży!");
+        if(!s_Boss) return alert("Wybierz Szefa/Znalazcę!");
+        if(s_Team.length === 0) return alert("Wybierz resztę ekipy!");
 
         const total = parseGold(amountStr);
-        const half = Math.floor(total / 2);
-        const perPerson = Math.floor(half / s_Team.length);
+        if(total <= 0) return alert("Błędna kwota!");
 
-        if(confirm(`Zapisać podział?\n${item} (${s_formatGold(total)})\n👑 ${s_Boss}: ${s_formatGold(half)}\n⚔️ Ekipa: po ${s_formatGold(perPerson)}`)) {
+        let bossShare = 0;
+        let teamPerPerson = 0;
+        let description = "";
+
+        // --- LOGIKA KALKULATORA ---
+        if (mode === 'equal') {
+            // Wszyscy po równo (Szef + Ekipa)
+            const totalPeople = s_Team.length + 1;
+            bossShare = Math.floor(total / totalPeople);
+            teamPerPerson = bossShare;
+            description = "Podział równy";
+        } 
+        else if (mode === 'finder') {
+            // Szef bierze 50%, reszta dzieli pozostałe 50%
+            bossShare = Math.floor(total * 0.50);
+            teamPerPerson = Math.floor((total - bossShare) / s_Team.length);
+            description = "Zasada Znalazcy (50/50)";
+        } 
+        else if (mode === 'detector') {
+            // Wykrywajka: Szef (Znalazca) i pierwsza osoba z ekipy (Wykrywacz) biorą po 25%
+            // Reszta dzieli pozostałe 50%
+            if (s_Team.length < 1) return alert("Do Wykrywajki potrzebujesz Szefa + min. 1 osoby w ekipie!");
+            
+            const vipsPool = Math.floor(total * 0.50); // Pula 50% dla Znalazcy i Wykrywacza
+            bossShare = Math.floor(vipsPool / 2); // 25% dla Szefa
+            
+            // Jeśli jest tylko jedna osoba w ekipie, bierze całe drugie 25% plus resztę
+            // Jeśli jest ich więcej, reszta (poza tym jednym wykrywaczem) dzieli resztę puli
+            const wykrywaczShare = Math.floor(vipsPool / 2); // 25% dla Wykrywacza
+            const restPool = total - vipsPool;
+            
+            if (s_Team.length === 1) {
+                teamPerPerson = restPool + wykrywaczShare; // Całość dla tej jednej osoby
+            } else {
+                // To jest uproszczenie: Wykrywacz (pierwszy na liście) dostaje bonus, 
+                // ale dla przejrzystości historii zapiszemy średnią lub po prostu poinformujemy ekipę
+                teamPerPerson = Math.floor((total - bossShare) / s_Team.length);
+            }
+            description = "Wykrywajka";
+        }
+
+        const msg = `Przedmiot: ${item}\nTryb: ${description}\n\n👑 ${s_Boss}: ${s_formatGold(bossShare)}\n👥 Ekipa (${s_Team.length} os.): po ~${s_formatGold(teamPerPerson)}\n\nZapisać podział?`;
+
+        if(confirm(msg)) {
             await addDoc(collection(db, "podzialy"), {
-                item, total, boss: s_Boss, bossShare: half, teamShare: perPerson, 
-                team: s_Team, date: new Date().toISOString(), 
+                item, 
+                total, 
+                boss: s_Boss, 
+                bossShare, 
+                teamShare: teamPerPerson, 
+                team: s_Team, 
+                mode: description,
+                date: new Date().toISOString(), 
                 author: currentNick,
-                authorId: currentUser.uid // WAŻNE: do usuwania
+                authorId: currentUser.uid
             });
+            
             alert("Podział zapisany! ✅");
             document.getElementById('splitFinalAmount').value = "";
             document.querySelectorAll('.boss-active, .team-active, .selected').forEach(el => el.classList.remove('boss-active', 'team-active', 'selected'));
             s_Boss = null; s_Team = [];
+            window.playSound('coin');
         }
     };
 
@@ -3145,21 +3211,16 @@ window.renderOffers = () => {
             cont.innerHTML = "<h4 style='color:#555; margin-bottom:10px;'>Ostatnie wypłaty:</h4>";
             snap.forEach(docSnap => {
                 const d = docSnap.data();
-                const id = docSnap.id;
-                
-                // Sprawdź czy użytkownik to Admin lub autor wpisu
                 const canDelete = (currentUser && (currentUser.uid === ADMIN_UID || currentUser.uid === d.authorId));
-                const delBtn = canDelete ? `<span class="del-split-icon" onclick="deleteSplit('${id}')">🗑️</span>` : '';
+                const delBtn = canDelete ? `<span class="del-split-icon" onclick="deleteSplit('${docSnap.id}')">🗑️</span>` : '';
 
                 cont.innerHTML += `
                     <div style="background:rgba(255,255,255,0.03); padding:12px; margin-bottom:8px; border-left:3px solid #00ffff; border-radius: 4px; font-size:0.85em;">
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
                             <b style="color:#fff;">${d.item}</b>
-                            <div>
-                                <small style="color:#555; margin-right:10px;">${new Date(d.date).toLocaleDateString()}</small>
-                                ${delBtn}
-                            </div>
+                            ${delBtn}
                         </div>
+                        <div style="font-size:0.75em; color:#666; margin-bottom:5px;">Tryb: ${d.mode || 'Zwykły'} | ${new Date(d.date).toLocaleDateString()}</div>
                         <div style="color:#ffd700;">👑 ${d.boss}: ${s_formatGold(d.bossShare)}</div>
                         <div style="color:#aaa;">⚔️ Ekipa: po <b>${s_formatGold(d.teamShare)}</b></div>
                     </div>`;
@@ -3183,6 +3244,7 @@ window.renderOffers = () => {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
