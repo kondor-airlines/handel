@@ -73,10 +73,74 @@
             opacity: 0.5;
         }
 
-        /* Lekka modyfikacja przycisków, żeby pasowały do grup */
+		/* --- STYLOWE PRZYCISKI FILTRÓW --- */
         .filter-btn {
-            font-size: 0.9em;
-            padding: 6px 14px;
+            background: rgba(0, 0, 0, 0.6); /* Ciemne tło */
+            color: #aaa; /* Szary tekst nieaktywny */
+            border: 1px solid #444; /* Ciemna ramka */
+            padding: 8px 16px;
+            border-radius: 20px; /* Zaokrąglone rogi (pastylka) */
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 600;
+            font-size: 0.85em;
+            text-transform: uppercase;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Efekt najechania (Hover) */
+        .filter-btn:hover {
+            border-color: var(--gold);
+            color: #fff;
+            background: rgba(255, 215, 0, 0.1); /* Lekka złota poświata */
+            transform: translateY(-2px); /* Lekkie uniesienie */
+            box-shadow: 0 4px 8px rgba(0,0,0,0.5);
+        }
+
+        /* Aktywny przycisk (wybrany) */
+        .filter-btn.active {
+            background: linear-gradient(135deg, #ffd700 0%, #b8860b 100%) !important; /* Złoty gradient */
+            color: #000 !important; /* Czarny tekst dla kontrastu */
+            border: 1px solid #ffd700 !important;
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.4) !important; /* Świecenie */
+            font-weight: 800;
+        }
+
+        /* Specjalne kolory dla specyficznych przycisków po aktywacji (Opcjonalne, ale fajne) */
+        /* Jeśli chcesz, żeby "Kupię" było niebieskie, a "Sprzedam" zielone jak są aktywne: */
+        
+        /* Sprzedam - Zielony */
+        .filter-btn#f-sprzedam.active {
+            background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%) !important;
+            border-color: #2ecc71 !important;
+            box-shadow: 0 0 15px rgba(46, 204, 113, 0.4) !important;
+            color: #fff !important;
+        }
+
+        /* Kupię - Niebieski */
+        .filter-btn#f-kupie.active {
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%) !important;
+            border-color: #3498db !important;
+            box-shadow: 0 0 15px rgba(52, 152, 219, 0.4) !important;
+            color: #fff !important;
+        }
+
+        /* Zamienię - Pomarańczowy */
+        .filter-btn#f-zamienie.active {
+            background: linear-gradient(135deg, #e67e22 0%, #d35400 100%) !important;
+            border-color: #e67e22 !important;
+            box-shadow: 0 0 15px rgba(230, 126, 34, 0.4) !important;
+            color: #fff !important;
+        }
+
+        /* Exp - Fioletowy */
+        .filter-btn#f-exp.active {
+            background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%) !important;
+            border-color: #9b59b6 !important;
+            box-shadow: 0 0 15px rgba(155, 89, 182, 0.4) !important;
+            color: #fff !important;
         }
         
         /* Na telefonach grupy mogą być węższe */
@@ -2070,6 +2134,7 @@ const lootTable = {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
