@@ -2521,170 +2521,159 @@ window.renderBestiary = (category) => {
         window.renderOffers();
     };
 window.renderOffers = () => {
-        const list = document.getElementById('offersList');
-        const search = document.getElementById('globalSearch').value.toLowerCase();
-        const selectedUser = document.getElementById('userFilterSelect').value;
-        const selectedProf = document.getElementById('profFilter').value;
-        const minLvl = parseInt(document.getElementById('minLvlInput').value) || 0;
-        const maxLvl = parseInt(document.getElementById('maxLvlInput').value) || 9999;
-        const favs = JSON.parse(localStorage.getItem('targ_favs') || '[]');
-        
-        list.innerHTML = "";
-        let count = 0;
-        
-allOffers.forEach(data => {
-            // --- 1. INICJALIZACJA DANYCH (Musi być na samej górze!) ---
-            const isSold = data.status === 'sold';
-            const isSkrytka = data.name.toLowerCase().includes('(s)');
-            const isFav = favs.includes(data.id);
-            const isOwner = currentUser && data.userId === currentUser.uid;
-            const isHeros = monstersList.herosi.some(m => m.name === data.source);
-            const isE2 = monstersList.e2.some(m => m.name === data.source);
-            const monsterLvl = extractLevel(data.source);
+    const list = document.getElementById('offersList');
+    const search = document.getElementById('globalSearch').value.toLowerCase();
+    const selectedUser = document.getElementById('userFilterSelect').value;
+    const selectedProf = document.getElementById('profFilter').value;
+    const minLvl = parseInt(document.getElementById('minLvlInput').value) || 0;
+    const maxLvl = parseInt(document.getElementById('maxLvlInput').value) || 9999;
+    const favs = JSON.parse(localStorage.getItem('targ_favs') || '[]');
+    
+    list.innerHTML = "";
+    let count = 0;
+    
+    allOffers.forEach(data => {
+        // --- 1. INICJALIZACJA DANYCH ---
+        const isSold = data.status === 'sold';
+        const isSkrytka = data.name.toLowerCase().includes('(s)');
+        const isFav = favs.includes(data.id);
+        const isOwner = currentUser && data.userId === currentUser.uid;
+        const isHeros = monstersList.herosi.some(m => m.name === data.source);
+        const isE2 = monstersList.e2.some(m => m.name === data.source);
+        const monsterLvl = extractLevel(data.source);
+        const isAdmin = currentNick === ADMIN_NICK;
 
-            // --- 2. LOGIKA ARCHIWUM (Ścisła separacja) ---
-            if (currentFilters.type === 'archive') {
-                // Jeśli jesteśmy w archiwum, odrzucamy wszystko, co NIE jest sprzedane
-                if (!isSold) return;
+        // --- 2. LOGIKA FILTRÓW ---
+        
+        // Filtr Archiwum (separacja od reszty)
+        if (currentFilters.type === 'archive') {
+            if (!isSold) return;
+        } else {
+            if (isSold) return;
+        }
+
+        // Filtry Specjalne (Moje / Ulubione)
+        if (currentFilters.type === 'fav' && !isFav) return;
+        if (currentFilters.type === 'mine' && !isOwner) return;
+
+        // Logika Typów i Skrzynek
+        if (currentFilters.type === 'chest') {
+            if (data.type !== 'chest' && !isSkrytka) return;
+        } 
+        else if (currentFilters.type !== 'all' && 
+                 currentFilters.type !== 'archive' && 
+                 currentFilters.type !== 'mine' && 
+                 currentFilters.type !== 'fav') {
+            
+            if (data.type !== currentFilters.type) return;
+            // Skrytki (s) chowamy z filtrów handlowych, bo mają własną kategorię
+            if (currentFilters.type === 'sprzedam' && isSkrytka) return;
+        }
+
+        // Filtry Kategorii i Wyszukiwanie
+        if (currentFilters.cat === 'herosi' && !isHeros) return;
+        if (currentFilters.cat === 'e2' && !isE2) return;
+        if (!data.name.toLowerCase().includes(search)) return;
+        if (selectedUser && data.nick !== selectedUser) return;
+        if (monsterLvl < minLvl || monsterLvl > maxLvl) return;
+
+        // Filtr profesji
+        if (selectedProf && selectedProf !== 'a') {
+            const match = data.name.match(/\(([^)]+)\)[^()]*$/);
+            if (match) {
+                if (!match[1].toLowerCase().includes(selectedProf)) return;
+            } else { return; }
+        }
+
+        // --- 3. PRZYGOTOWANIE ELEMENTÓW WIZUALNYCH ---
+        
+        // Logika kłódek (Poprawa błędu: ReferenceError)
+        let bondingIcon = "";
+        const hideBondingFor = ['gold', 'chest', 'exp', 'other'];
+
+        if (!hideBondingFor.includes(data.type) && !isSkrytka) {
+            if (data.bonding === 'unbound') {
+                bondingIcon = '<span title="Przedmiot Odwiązany" style="margin-right:5px; text-shadow:0 0 10px var(--gold); cursor:help;">🔓</span>';
             } else {
-                // W każdym innym widoku (Wszystkie, Sprzedam, Moje itd.) ukrywamy sprzedane
-                if (isSold) return;
+                bondingIcon = '<span title="Przedmiot Związany" style="margin-right:5px; opacity: 0.5; cursor:help;">🔒</span>';
             }
+        }
 
-            // --- 3. FILTRY SPECJALNE (Moje / Ulubione) ---
-            if (currentFilters.type === 'fav' && !isFav) return;
-            if (currentFilters.type === 'mine' && !isOwner) return;
+        // Klasy CSS karty
+        let typeClass = "type-" + data.type;
+        if (data.type === 'chest' || isSkrytka) typeClass = "type-chest";
+        const soldClass = isSold ? "is-sold" : "";
 
-            // --- 4. LOGIKA TYPÓW I SKRZYNEK ---
-            if (currentFilters.type === 'chest') {
-                // Widok skrzynek: bierzemy typ 'chest' LUB przedmioty z (s)
-                if (data.type !== 'chest' && !isSkrytka) return;
-            } 
-            else if (currentFilters.type !== 'all' && 
-                     currentFilters.type !== 'archive' && 
-                     currentFilters.type !== 'mine' && 
-                     currentFilters.type !== 'fav') {
-                
-                // Sprawdzanie konkretnego typu (np. Złoto, Exp)
-                if (data.type !== currentFilters.type) return;
-                
-                // Ukrywamy skrytki (s) w zwykłym filtrze "Sprzedam", żeby nie robiły tłoku
-                if (currentFilters.type === 'sprzedam' && isSkrytka) return;
+        // Obrazki
+        let imgHtml = "";
+        if (data.img && data.img.includes('|')) {
+            const urls = data.img.split('|');
+            imgHtml = '<div class="multi-chest-wrapper">';
+            urls.forEach(url => { imgHtml += `<img src="${url}" class="mini-chest-img">`; });
+            imgHtml += '</div>';
+        } else {
+            imgHtml = `<img src="${data.img}" class="item-img">`;
+        }
+
+        // --- 4. PRZYCISKI AKCJI ---
+        let btnRes = "";
+        if (!data.reservedBy && !isSold) {
+            btnRes = `<button class="small-btn reserve-btn" onclick="reserveOffer('${data.id}')" title="Zarezerwuj">🛡️</button>`;
+        } else if ((isOwner || isAdmin) && data.reservedBy && !isSold) {
+            btnRes = `<button class="small-btn unreserve-btn" onclick="cancelReservation('${data.id}')" title="Cofnij rezerwację">🔓</button>`;
+        }
+
+        let mailBtn = (!isOwner && currentUser && !isSold) ? `<button class="small-btn msg-btn" onclick="openCompose('${data.userId}', '${window.escapeHtml(data.nick)}', '${window.escapeHtml(data.name)}')" title="Wyślij wiadomość">✉️</button>` : "";
+        
+        let ownerBtns = "";
+        if (isOwner && !isSold) {
+            ownerBtns += `<button class="small-btn edit-added" onclick="openFullEdit('${data.id}','${window.escapeHtml(data.name)}','${window.escapeHtml(data.price)}','${window.escapeHtml(data.desc)}','${window.escapeHtml(data.img)}','${data.bonding || 'bound'}', '${data.type}')">✏️</button>`;
+            if (['sprzedam', 'gold', 'chest', 'exp', 'other'].includes(data.type)) {
+                ownerBtns += `<button class="small-btn" onclick="markAsSold('${data.id}')" title="Oznacz jako sprzedane" style="border-color:var(--gold); color:var(--gold);">💰</button>`;
             }
+        }
+        
+        let deleteBtn = (isOwner || isAdmin) ? `<button class="small-btn delete-btn" onclick="deleteOffer('${data.id}')" title="Usuń całkowicie">🗑️</button>` : "";
 
-            // --- 5. FILTRY KATEGORII (Herosi / E2) ---
-            if (currentFilters.cat === 'herosi' && !isHeros) return;
-            if (currentFilters.cat === 'e2' && !isE2) return;
-   
-            // Wyszukiwanie
-            if(!data.name.toLowerCase().includes(search)) return;
-            if(selectedUser && data.nick !== selectedUser) return;
-            if(monsterLvl < minLvl || monsterLvl > maxLvl) return;
+        // Tooltip i nazwa
+        let tooltipHtml = (['sprzedam', 'kupie', 'zamienie'].includes(data.type) && !isSkrytka) ? getTooltipHtml(data.name, data.img) : "";
+        const displayName = data.name.replace(/\s*\([^)]*\)$/, "");
 
-            if (selectedProf && selectedProf !== 'a') {
-                const match = data.name.match(/\(([^)]+)\)[^()]*$/);
-                if (match) {
-                    const itemProfs = match[1].toLowerCase();
-                    if (!itemProfs.includes(selectedProf)) return;
-                } else { return; }
-            }
+        // --- 5. BUDOWANIE KARTY ---
+        count++;
+        const isOnline = isUserOnline(data.userId);
+        const onlineHtml = isOnline ? '<span class="online-dot" title="Online"></span>' : '';
 
-            count++;
-            const isAdmin = currentNick === ADMIN_NICK;
-            const isOnline = isUserOnline(data.userId);
-            const onlineHtml = isOnline ? '<span class="online-dot" title="Online"></span>' : '';
-            
-            let typeClass = "";
-            if (data.type === 'sprzedam') typeClass = "type-sprzedam";
-            if (data.type === 'kupie') typeClass = "type-kupie";
-            if (data.type === 'zamienie') typeClass = "type-zamienie";
-            if (data.type === 'gold') typeClass = "type-gold";
-            if (data.type === 'exp') typeClass = "type-exp";
-            if (data.type === 'other') typeClass = "type-other";
-            if (data.type === 'chest') typeClass = "type-chest";
-
-            let tooltipHtml = "";
-            if (['sprzedam', 'kupie', 'zamienie'].includes(data.type)) {
-                tooltipHtml = getTooltipHtml(data.name, data.img);
-            }
-            const displayName = data.name.replace(/\s*\([^)]*\)$/, "");
-
-            // --- PRZYCISKI ---
-            let btnRes = "";
-            if (!data.reservedBy && !isSold) {
-                btnRes = `<button class="small-btn reserve-btn" onclick="reserveOffer('${data.id}')" title="Zarezerwuj">🛡️</button>`;
-            } else if ((isOwner || isAdmin) && data.reservedBy && !isSold) {
-                btnRes = `<button class="small-btn unreserve-btn" onclick="cancelReservation('${data.id}')" title="Cofnij rezerwację">🔓</button>`;
-            }
-
-            let mailBtn = (!isOwner && currentUser && !isSold) ? `<button class="small-btn msg-btn" onclick="openCompose('${data.userId}', '${window.escapeHtml(data.nick)}', '${window.escapeHtml(data.name)}')" title="Wyślij wiadomość">✉️</button>` : "";
-            
-            let ownerBtns = "";
-            if (isOwner && !isSold) {
-                // 1. Przycisk Edycji (przekazujemy ID, Nazwę, Cenę, Opis, Obrazek i WIĄZANIE)
-			ownerBtns += `<button class="small-btn edit-added" onclick="openFullEdit('${data.id}','${window.escapeHtml(data.name)}','${window.escapeHtml(data.price)}','${window.escapeHtml(data.desc)}','${window.escapeHtml(data.img)}','${data.bonding || 'bound'}', '${data.type}')">✏️</button>`;
-                // 2. Przycisk "Sprzedane" (ten, który już masz)
-                if (['sprzedam', 'gold', 'chest', 'exp', 'other'].includes(data.type)) {
-                    ownerBtns += `<button class="small-btn" onclick="markAsSold('${data.id}')" title="Oznacz jako sprzedane" style="border-color:var(--gold); color:var(--gold);">💰</button>`;
-                }
-            }
-            
-            let deleteBtn = "";
-            if (isOwner || isAdmin) {
-                deleteBtn = `<button class="small-btn delete-btn" onclick="deleteOffer('${data.id}')" title="Usuń całkowicie">🗑️</button>`;
-            }
-
-            // --- OBSŁUGA OBRAZKÓW (Skrzynki vs Zwykłe) ---
-            let imgHtml = "";
-            if (data.img && data.img.includes('|')) {
-                const urls = data.img.split('|');
-                imgHtml = '<div class="multi-chest-wrapper">';
-                urls.forEach(url => { imgHtml += `<img src="${url}" class="mini-chest-img">`; });
-                imgHtml += '</div>';
-            } else if (window.isValidImageUrl(data.img) || (data.img && data.img.startsWith('data:image'))) {
-                imgHtml = `<img src="${data.img}" class="item-img">`;
-            }
-
-            // --- STEMPEL SPRZEDANE ---
-            const soldStamp = isSold ? `<div class="sold-stamp">SPRZEDANE</div>` : "";
-            const soldClass = isSold ? "is-sold" : "";
-
-            list.innerHTML += `
-                <div class="offer-card ${typeClass} ${soldClass}">
-                    ${tooltipHtml}
-                    ${soldStamp}
-                    <div class="tag ${data.type}">${data.type.toUpperCase()}</div>
-                    <button class="fav-btn ${isFav?'active':''}" onclick="toggleFav('${data.id}')">❤</button>
-                    ${imgHtml}
-                    <div class="item-title">${bondingIcon}${window.escapeHtml(displayName)}</div>
-                    <div class="item-source">
-                        <img src="${data.sourceImg}"> <span>${data.source}</span>
-                    </div>
-                    <div class="price-tag">
-                        ${window.escapeHtml(data.price)}
-                    </div>
-                     ${data.reservedBy ? `<div style="font-size:0.7em; color:var(--green); margin:5px 0;">🔒 Rez: ${data.reservedBy}</div>` : ""}
-                    ${data.desc ? `<div style="font-size:0.8em; color:#888; font-style:italic; margin-bottom:10px; text-align:center;">"${window.escapeHtml(data.desc)}"</div>` : ""}
-                    
-                    <div class="seller-info">
-                        <div class="seller-left">
-                            <div class="avatar-wrapper">
-                                <img src="${data.avatar}" class="tiny-avatar">
-                                ${onlineHtml}
-                            </div>
-                            <b>${window.escapeHtml(data.nick)}</b>
+        list.innerHTML += `
+            <div class="offer-card ${typeClass} ${soldClass}">
+                ${tooltipHtml}
+                ${isSold ? '<div class="sold-stamp">SPRZEDANE</div>' : ''}
+                <div class="tag ${data.type}">${data.type.toUpperCase()}</div>
+                <button class="fav-btn ${isFav?'active':''}" onclick="toggleFav('${data.id}')">❤</button>
+                ${imgHtml}
+                <div class="item-title">${bondingIcon}${window.escapeHtml(displayName)}</div>
+                <div class="item-source">
+                    <img src="${data.sourceImg}"> <span>${data.source}</span>
+                </div>
+                <div class="price-tag">${window.escapeHtml(data.price)}</div>
+                ${data.reservedBy ? `<div style="font-size:0.7em; color:var(--green); margin:5px 0;">🔒 Rez: ${data.reservedBy}</div>` : ""}
+                ${data.desc ? `<div style="font-size:0.8em; color:#888; font-style:italic; margin-bottom:10px; text-align:center;">"${window.escapeHtml(data.desc)}"</div>` : ""}
+                <div class="seller-info">
+                    <div class="seller-left">
+                        <div class="avatar-wrapper">
+                            <img src="${data.avatar}" class="tiny-avatar">
+                            ${onlineHtml}
                         </div>
-                        <div class="btn-group">
-                            ${mailBtn}
-                            ${btnRes}
-                            ${ownerBtns}
-                            ${deleteBtn}
-                        </div>
+                        <b>${window.escapeHtml(data.nick)}</b>
                     </div>
-                </div>`;
-        });
-        document.getElementById('offerStats').innerText = `Widocznych ofert: ${count}`;
-    };
+                    <div class="btn-group">
+                        ${mailBtn} ${btnRes} ${ownerBtns} ${deleteBtn}
+                    </div>
+                </div>
+            </div>`;
+    });
+    document.getElementById('offerStats').innerText = `Widocznych ofert: ${count}`;
+};
     window.loginGoogle = () => { signInWithPopup(auth, provider).catch(e => alert(e.message)); };
     document.getElementById('googleLoginBtn').addEventListener('click', window.loginGoogle);
     onAuthStateChanged(auth, async (user) => {
@@ -3506,6 +3495,7 @@ function startSplitHistory() {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
