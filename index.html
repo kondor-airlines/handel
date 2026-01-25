@@ -2526,12 +2526,27 @@ window.renderOffers = () => {
             const isOwner = currentUser && data.userId === currentUser.uid;
             const monsterLvl = extractLevel(data.source);
 
-            // Filtry
+// --- FILTRY SPECJALNE ---
             if(currentFilters.type === 'fav' && !isFav) return;
             if(currentFilters.type === 'mine' && !isOwner) return;
-            // Ważne: pomijamy standardowy filtr typu, jeśli jesteśmy w archiwum
-            if(currentFilters.type !== 'archive' && currentFilters.type !== 'fav' && currentFilters.type !== 'mine' && currentFilters.type !== 'all' && data.type !== currentFilters.type) return;
-            
+
+            // --- NOWA LOGIKA TYPÓW I SKRZYNEK ---
+            const isSkrytka = data.name.toLowerCase().includes('(s)');
+
+            if (currentFilters.type === 'chest') {
+                // Jeśli wybraliśmy filtr "Skrzynki", pokazujemy typ 'chest' LUB przedmioty z (s)
+                if (data.type !== 'chest' && !isSkrytka) return;
+            } 
+            else if (currentFilters.type !== 'all' && currentFilters.type !== 'archive') {
+                // Jeśli wybraliśmy konkretny filtr (np. Sprzedam, Złoto), sprawdzamy zgodność typu
+                if (data.type !== currentFilters.type) return;
+                
+                // DODATKOWO: Jeśli jesteśmy w filtrze "Sprzedam", ukrywamy przedmioty (s), 
+                // żeby nie robiły bałaganu i lądowały TYLKO w Skrzynkach
+                if (currentFilters.type === 'sprzedam' && isSkrytka) return;
+            }
+            // ------------------------------------
+
             if(currentFilters.cat === 'herosi' && !isHeros) return;
             if(currentFilters.cat === 'e2' && !isE2) return;
    
@@ -3441,6 +3456,7 @@ function startSplitHistory() {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
