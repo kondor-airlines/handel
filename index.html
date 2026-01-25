@@ -573,26 +573,18 @@
         <h3 style="color:#cca3ff; font-family:'MedievalSharp'; margin-top:0;">Kalkulator Esencji</h3>
         <img src="https://micc.garmory-cdn.cloud/obrazki/itemy/neu/pyl-sakryfikacji.gif" style="margin-bottom:15px;">
 
-        <div style="margin-bottom:15px; text-align:left;">
+        <div style="margin-bottom:20px; text-align:left;">
             <label style="color:#aaa; font-size:0.8em; display:block; margin-bottom:5px;">Poziom przedmiotu (lvl)</label>
-            <input type="number" id="essLvl" placeholder="np. 185" style="width:100%;">
+            <input type="number" id="essLvl" placeholder="np. 185" style="width:100%; padding:10px; background:#000; border:1px solid #444; color:white; border-radius:5px;">
         </div>
 
-        <div style="margin-bottom:20px; text-align:left;">
-            <label style="color:#aaa; font-size:0.8em; display:block; margin-bottom:5px;">Ulepszenie</label>
-            <select id="essUpgrade" style="width:100%; background:#000; color:#eee; border:1px solid #444; padding:10px; border-radius:5px;">
-                <option value="0">Czysty (+0)</option>
-                <option value="1">+1</option>
-                <option value="2">+2</option>
-                <option value="3">+3</option>
-                <option value="4">+4</option>
-                <option value="5">+5</option>
-                <option value="6">+6</option>
-                <option value="7">+7</option>
-                <option value="8">+8</option>
-                <option value="9">+9</option>
-            </select>
+        <button onclick="calculateEssence()" class="action-btn" style="background:var(--purple); color:white;">OBLICZ WARTOŚĆ</button>
+        
+        <div id="essResult" class="calc-result" style="display:none; border-color:#9b59b6; color:#cca3ff; margin-top:15px;">
+            Wynik...
         </div>
+    </div>
+</div>
 
         <button onclick="calculateEssence()" class="action-btn" style="background:var(--purple); color:white;">OBLICZ WARTOŚĆ</button>
         
@@ -2509,7 +2501,6 @@ const lootTable = {
 
     window.calculateEssence = () => {
         const lvl = parseFloat(document.getElementById('essLvl').value);
-        const upgrade = parseInt(document.getElementById('essUpgrade').value);
         const resultBox = document.getElementById('essResult');
 
         if (isNaN(lvl) || lvl < 1) {
@@ -2519,16 +2510,15 @@ const lootTable = {
             return;
         }
 
-        // Wzór: (lvl/10 + 10) * (1 + 0.2 * ulepszenie)
-        const baseValue = (lvl / 10) + 10;
-        const multiplier = 1 + (0.2 * upgrade);
-        const finalValue = Math.round(baseValue * multiplier);
+        // Wzór uproszczony (tylko baza): lvl / 10 + 10
+        // Zaokrąglamy do najbliższej liczby całkowitej zgodnie z zasadami gry
+        const finalValue = Math.round((lvl / 10) + 10);
 
         resultBox.style.display = 'block';
         resultBox.style.color = '#cca3ff';
         resultBox.innerHTML = `
-            <div style="font-size:0.8em; color:#888;">Baza: ${baseValue.toFixed(1)} | Mnożnik: x${multiplier.toFixed(1)}</div>
-            <div style="margin-top:5px; font-size:1.4em; font-weight:bold;">${finalValue} esencji</div>
+            <div style="font-size:0.9em; color:#aaa; margin-bottom:5px;">Przedmiot ${lvl} lvl (Czysty)</div>
+            <div style="font-size:1.6em; font-weight:bold;">${finalValue} esencji</div>
         `;
         window.playSound('click');
     };
@@ -2538,6 +2528,7 @@ const lootTable = {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
