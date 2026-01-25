@@ -897,6 +897,7 @@
     window.escapeHtml = function(text) { return text ? text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;") : ""; };
     window.isValidImageUrl = (url) => url && /^https?:\/\/[^<>"]+\.(jpeg|jpg|gif|png|webp|bmp)$/i.test(url);
     const ADMIN_NICK = "Stachu Drzymała";
+	const ADMIN_UID = "9rFgcWVJwBWyykHf6nuIwyGFrPR2"; // Twoje ID Admina
     let currentUser = null;
     let currentNick = null;
     let allOffers = [];
@@ -3182,6 +3183,7 @@ window.renderOffers = () => {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
