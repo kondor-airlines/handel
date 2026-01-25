@@ -82,7 +82,7 @@
         .price-tag { font-size: 1.4em; color: #fff; font-weight: bold; margin: 5px 0; border-top: 1px solid #333; padding-top: 10px; width: 100%; text-align: center; }
         .price-tag span { color: #4fffa8; text-shadow: 0 0 10px rgba(79, 255, 168, 0.3); }
 
-        /* STOPKA */
+        /* STOPKA - NAPRAWIONE PRZYCISKI */
         .seller-info { margin-top: auto; width: 100%; padding-top: 15px; border-top: 1px dotted #444; display: flex; flex-direction: column; gap: 12px; }
         .seller-left { display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 0.9em; }
         .tiny-avatar { width: 30px; height: 30px; border-radius: 50%; border: 1px solid var(--gold); }
@@ -450,7 +450,7 @@
         other: "https://micc.garmory-cdn.cloud/obrazki/itemy/pap/zwoj.gif"
     };
 
-    // --- SOUND SYSTEM ---
+    // --- DŹWIĘKI ---
     const sounds = {
         click: document.getElementById('snd-click'),
         coin: document.getElementById('snd-coin'),
@@ -475,14 +475,15 @@
     // --- ZEGAR GRY ---
     function updateClock() {
         const now = new Date();
-        const timeString = now.toLocaleTimeString('pl-PL');
         const clockEl = document.getElementById('gameClock');
-        if(clockEl) clockEl.innerText = timeString;
+        if(clockEl) clockEl.innerText = now.toLocaleTimeString('pl-PL');
     }
     setInterval(updateClock, 1000);
     updateClock();
 
-    // --- MIEJSCE NA TWOJE BAZY DANYCH (WKLEJ TU SWOJE PEŁNE LISTY) ---
+    // ============================================================
+    // === TUTAJ WKLEJ SWOJE PEŁNE LISTY (monstersList i lootTable) ===
+    // ============================================================
     const monstersList = {
         herosi: [
             { name: "Mroczny Patryk (35 lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/her/bardzozlypatryk.gif" },
@@ -1353,7 +1354,9 @@ const lootTable = {
     ]
     };
 
-// --- NOWA FUNKCJA: ZMIANA TRYBU FORMULARZA ---
+// ============================================================
+
+    // --- NOWA FUNKCJA: ZMIANA TRYBU FORMULARZA ---
     window.toggleFormMode = () => {
         const cat = document.getElementById('offerCategory').value;
         const monsterSec = document.getElementById('monsterSection');
@@ -1363,20 +1366,17 @@ const lootTable = {
         const previewIcon = document.getElementById('previewIcon');
         const previewName = document.getElementById('previewName');
 
-        // Reset
         document.getElementById('itemImg').value = "";
         
         if (cat === 'item') {
             monsterSec.style.display = 'grid';
             statsBtn.style.display = 'flex';
             nameInput.placeholder = "Nazwa przedmiotu (lub wybierz z listy)";
-            preview.style.display = 'none'; // Ukryj, dopóki nie wybierze potwora
+            preview.style.display = 'none'; 
         } else {
             monsterSec.style.display = 'none';
             statsBtn.style.display = 'none';
             nameInput.placeholder = "Tytuł ogłoszenia (np. Sprzedam 100m)";
-            
-            // Auto podgląd dla innych kategorii
             preview.style.display = 'flex';
             previewIcon.src = categoryIcons[cat] || categoryIcons.other;
             previewName.innerText = document.getElementById('offerCategory').options[document.getElementById('offerCategory').selectedIndex].text;
@@ -1428,7 +1428,6 @@ const lootTable = {
         const inp = document.getElementById('chatInput');
         const txt = inp.value.trim();
         if (!txt || !currentUser) return;
-        
         await addDoc(collection(db, "chat"), {
             nick: currentNick,
             text: window.escapeHtml(txt),
@@ -1437,9 +1436,7 @@ const lootTable = {
         inp.value = "";
     };
     document.getElementById('chatInput').addEventListener('keypress', function (e) {
-        if (e.key === 'Enter') {
-            sendChatMessage();
-        }
+        if (e.key === 'Enter') sendChatMessage();
     });
     onSnapshot(query(collection(db, "chat"), orderBy("date", "asc"), limit(50)), (snap) => {
         const div = document.getElementById('chatMessages');
@@ -1531,7 +1528,7 @@ const lootTable = {
         });
     };
 
-    // --- RENDEROWANIE OFERT (ZAKTUALIZOWANE) ---
+    // --- RENDEROWANIE OFERT ---
     function extractLevel(sourceName) {
         if (!sourceName) return 0;
         const match = sourceName.match(/\((\d+)\s*lvl\)/i);
@@ -1723,28 +1720,25 @@ const lootTable = {
         allOffers.forEach(data => {
             const isHeros = monstersList.herosi.some(m => m.name === data.source);
             const isE2 = monstersList.e2.some(m => m.name === data.source);
-            // Rozpoznawanie kategorii "Inne" (jeśli nie jest herosem ani E2 i kategoria to nie 'item')
+            // Wykrywanie "Innych"
             const isOther = (data.category && data.category !== 'item') || (!isHeros && !isE2);
 
             const isFav = favs.includes(data.id);
             const isOwner = currentUser && data.userId === currentUser.uid;
             const monsterLvl = extractLevel(data.source);
 
-            // Filtry
+            // FILTRY
             if(currentFilters.type === 'fav' && !isFav) return;
             if(currentFilters.type === 'mine' && !isOwner) return;
             if(currentFilters.type !== 'fav' && currentFilters.type !== 'mine' && currentFilters.type !== 'all' && data.type !== currentFilters.type) return;
             
-            // Filtrowanie kategorii
             if(currentFilters.cat === 'herosi' && !isHeros) return;
             if(currentFilters.cat === 'e2' && !isE2) return;
             if(currentFilters.cat === 'inne' && !isOther) return;
    
-            // Wyszukiwanie
             if(!data.name.toLowerCase().includes(search)) return;
             if(selectedUser && data.nick !== selectedUser) return;
             
-            // Level działa tylko dla potworów (nie dla Innych)
             if(!isOther && (monsterLvl < minLvl || monsterLvl > maxLvl)) return;
 
             // Filtrowanie profesji
@@ -1754,7 +1748,7 @@ const lootTable = {
                     const itemProfs = match[1].toLowerCase();
                     if (!itemProfs.includes(selectedProf)) return;
                 } else if (!isOther) {
-                    return; // Ukryj, jeśli to przedmiot bez profesji, a szukamy konkretnej
+                    return; 
                 }
             }
 
@@ -1767,11 +1761,9 @@ const lootTable = {
             if (data.type === 'kupie') typeClass = "type-kupie";
             if (data.type === 'zamienie') typeClass = "type-zamienie";
 
-            // Tooltip tylko dla przedmiotów z lootTable
             const tooltipHtml = (data.category === 'item' || (!data.category && (isHeros || isE2))) ? getTooltipHtml(data.name, data.img) : '';
             const displayName = data.name.replace(/\s*\([^)]*\)$/, "");
 
-            // Źródło (Drop z...)
             let sourceHtml = "";
             if(data.sourceImg) {
                 sourceHtml = `<div class="item-source"><img src="${data.sourceImg}"> <span>${data.source}</span></div>`;
@@ -1864,8 +1856,6 @@ const lootTable = {
         }
         window.renderOffers();
     });
-    
-    // --- DODAWANIE OFERTY (ZAKTUALIZOWANE) ---
     window.addOffer = async () => {
         const cat = document.getElementById('offerCategory').value;
         const sel = document.getElementById('itemSource');
