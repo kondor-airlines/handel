@@ -2819,8 +2819,19 @@ window.renderOffers = () => {
         
         window.open(url, '_blank');
     };
-    window.openFullEdit = (id, n, p, d, i) => { currentEditId = id; document.getElementById('fullEditName').value=n; document.getElementById('fullEditPrice').value=p; document.getElementById('fullEditDesc').value=d; document.getElementById('fullEditImg').value=i; document.getElementById('editModal').style.display='flex'; };
-    window.closeFullEdit = () => document.getElementById('editModal').style.display='none';
+	window.openFullEdit = (id, n, p, d, i, b) => {
+    currentEditId = id;
+    document.getElementById('fullEditName').value = n;
+    document.getElementById('fullEditPrice').value = p;
+    document.getElementById('fullEditDesc').value = d;
+    document.getElementById('fullEditImg').value = i;
+    
+    // Ustawienie aktualnego statusu wiązania (b to nowy parametr)
+    document.getElementById('fullEditBonding').value = b || 'bound';
+    
+    document.getElementById('editModal').style.display = 'flex';
+};
+	window.closeFullEdit = () => document.getElementById('editModal').style.display='none';
     window.confirmFullEdit = async () => { await updateDoc(doc(db, "oferty", currentEditId), { name: document.getElementById('fullEditName').value, price: document.getElementById('fullEditPrice').value, desc: document.getElementById('fullEditDesc').value, img: document.getElementById('fullEditImg').value }); window.closeFullEdit(); };
     window.updateSourceList = () => {
         const cat = document.getElementById('sourceCategory').value;
@@ -3464,6 +3475,7 @@ function startSplitHistory() {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
