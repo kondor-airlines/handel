@@ -1489,20 +1489,33 @@ const lootTable = {
     window.renderBestiary = (category) => {
 
 		// --- UKRYWANIE PÓL DLA ZŁOTA/EXP ---
+    // --- UKRYWANIE PÓL DLA ZŁOTA/EXP (NAPRAWIONE) ---
     window.toggleSpecialFields = () => {
-        const type = document.getElementById('offerType').value;
+        const typeEl = document.getElementById('offerType');
+        if (!typeEl) return; // Zabezpieczenie, gdyby element nie istniał
+        
+        const type = typeEl.value;
         const isSpecial = ['gold', 'exp', 'other'].includes(type);
         const displayStyle = isSpecial ? 'none' : 'block';
         
         // Ukrywamy/pokazujemy zbędne selecty
-        document.getElementById('sourceCategory').style.display = displayStyle;
-        document.getElementById('itemSource').style.display = displayStyle;
-        document.getElementById('itemSelect').style.display = displayStyle;
+        const catSelect = document.getElementById('sourceCategory');
+        const sourceSelect = document.getElementById('itemSource');
+        const itemSelect = document.getElementById('itemSelect');
+
+        if(catSelect) catSelect.style.display = displayStyle;
+        if(sourceSelect) sourceSelect.style.display = displayStyle;
+        if(itemSelect) itemSelect.style.display = displayStyle;
         
-        // Ukrywamy wyszukiwarki jeśli były aktywne
+        // Ukrywamy pola wyszukiwania i podgląd, jeśli przełączamy na specjale
         if(isSpecial) {
-            document.getElementById('sourceSearch').style.display = 'none';
-            document.getElementById('itemSearch').style.display = 'none';
+            const sourceSearch = document.getElementById('sourceSearch');
+            const itemSearch = document.getElementById('itemSearch');
+            const livePreview = document.getElementById('livePreview');
+            
+            if(sourceSearch) sourceSearch.style.display = 'none';
+            if(itemSearch) itemSearch.style.display = 'none';
+            if(livePreview) livePreview.style.display = 'none';
         }
     };
 		
@@ -2001,5 +2014,6 @@ const lootTable = {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
