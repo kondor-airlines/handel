@@ -441,22 +441,6 @@
             50% { opacity: 0.8; }
             100% { opacity: 0; transform: translateY(-80vh) scale(0.2); }
         }
-
-		/* --- MAGICZNY PYŁ (KURSOR) --- */
-    .cursor-trail {
-        position: fixed;
-        width: 8px; height: 8px;
-        background: radial-gradient(circle, rgba(255,215,0,1) 0%, rgba(255,140,0,0) 70%);
-        border-radius: 50%;
-        pointer-events: none; /* Żeby nie blokowało klikania */
-        z-index: 9999;
-        animation: fadeTrail 0.8s forwards;
-    }
-    
-    @keyframes fadeTrail {
-        0% { transform: scale(1); opacity: 1; }
-        100% { transform: scale(0.2); opacity: 0; }
-    }
 		
         @keyframes slideDown { from { transform: translateY(-20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
         @keyframes shine { 0% { left: -150%; } 100% { left: 150%; } }
@@ -2910,32 +2894,13 @@ window.renderOffers = () => {
 
     // Twórz nową iskrę co 300ms (możesz zmienić na 100ms żeby było ich więcej)
     setInterval(createEmber, 350);
-
-	// --- MAGICZNY PYŁ ZA KURSOREM ---
-    document.addEventListener('mousemove', function(e) {
-        // Ograniczamy ilość pyłu (co 3 ruch, żeby nie zamulało)
-        if(Math.random() > 0.3) return; 
-
-        const trail = document.createElement('div');
-        trail.classList.add('cursor-trail');
-        
-        // Ustawiamy pozycję tam, gdzie jest myszka
-        trail.style.left = e.clientX + 'px';
-        trail.style.top = e.clientY + 'px';
-        
-        document.body.appendChild(trail);
-        
-        // Usuwamy element po zakończeniu animacji (0.8s)
-        setTimeout(() => {
-            trail.remove();
-        }, 800);
-    });
 	
 </script>
 
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
