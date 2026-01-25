@@ -2108,7 +2108,7 @@ const lootTable = {
         window.renderBestiary(cat);
     };
 
-	window.toggleSpecialFields = () => {
+window.toggleSpecialFields = () => {
     const typeEl = document.getElementById('offerType');
     if (!typeEl) return;
     
@@ -2118,25 +2118,44 @@ const lootTable = {
     
     const displayStyle = (isSpecial || isChest) ? 'none' : 'block';
     
-    document.getElementById('sourceCategory').style.display = displayStyle;
-    document.getElementById('itemSource').style.display = displayStyle;
-    document.getElementById('itemSelect').style.display = displayStyle;
-    document.getElementById('sourceSearch').style.display = displayStyle;
-    document.getElementById('itemSearch').style.display = displayStyle;
-    
+    // Elementy do manipulacji
+    const sourceCategory = document.getElementById('sourceCategory');
+    const itemSource = document.getElementById('itemSource');
+    const itemSelect = document.getElementById('itemSelect');
+    const sourceSearch = document.getElementById('sourceSearch');
+    const itemSearch = document.getElementById('itemSearch');
     const bondingSelect = document.getElementById('itemBonding');
-    if (bondingSelect) bondingSelect.style.display = displayStyle;
-
     const chestDiv = document.getElementById('chestBundleContainer');
     const standardName = document.getElementById('itemName');
     const standardImg = document.getElementById('itemImg');
     const preview = document.getElementById('livePreview');
-    
+
+    // --- KLUCZOWA POPRAWKA: Resetowanie ukrytych wyborów ---
+    if (isSpecial || isChest) {
+        sourceCategory.value = ""; 
+        itemSource.innerHTML = '<option value="">-- Przeciwnik --</option>';
+        itemSource.value = "";
+        itemSelect.innerHTML = '<option value="">-- Przedmiot --</option>';
+        itemSelect.value = "";
+        sourceSearch.value = "";
+        itemSearch.value = "";
+    }
+
+    // Sterowanie widocznością pól standardowych
+    sourceCategory.style.display = displayStyle;
+    itemSource.style.display = displayStyle;
+    itemSelect.style.display = displayStyle;
+    sourceSearch.style.display = displayStyle;
+    itemSearch.style.display = displayStyle;
+    if (bondingSelect) bondingSelect.style.display = displayStyle;
+
     if (isChest) {
         if(chestDiv) chestDiv.style.display = 'block';
         standardName.placeholder = "Nazwa wygeneruje się sama...";
         standardName.disabled = true;
+        standardName.value = ""; // Czyścimy nazwę przy wejściu w skrzynki
         standardImg.style.display = 'none';
+        standardImg.value = "";  // Czyścimy link przy wejściu w skrzynki
         preview.style.display = 'none';
         if(document.getElementById('chestRowsArea')?.innerHTML === "") window.addChestRow();
     } 
@@ -2152,7 +2171,6 @@ const lootTable = {
         document.getElementById('previewName').innerText = "Sprzedaż Złota";
     } 
     else if (type === 'other') {
-        // --- LOGIKA DLA INNE (Pył Sakryfikacji) ---
         if(chestDiv) chestDiv.style.display = 'none';
         standardName.disabled = false;
         standardName.value = "Inne";
@@ -2164,12 +2182,13 @@ const lootTable = {
         document.getElementById('previewName').innerText = "Inne";
     }
     else {
+        // Powrót do zwykłego przedmiotu
         if(chestDiv) chestDiv.style.display = 'none';
         standardName.disabled = false;
         standardName.placeholder = "Nazwa przedmiotu";
         standardImg.style.display = 'block';
         
-        // Czyszczenie pól, jeśli przełączasz się z Gold/Other na zwykły przedmiot
+        // Czyścimy autouzupełnianie Złota/Innych
         if(standardName.value === "Sprzedaż Złota" || standardName.value === "Inne") {
             standardName.value = "";
         }
@@ -2177,9 +2196,8 @@ const lootTable = {
             standardImg.value = "";
         }
         
-        if(isSpecial) {
-             preview.style.display = 'none';
-        }
+        // Ukrywamy podgląd (pokaże się po wybraniu itemu z listy)
+        preview.style.display = 'none';
     }
 };
 
@@ -3485,6 +3503,7 @@ function startSplitHistory() {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
