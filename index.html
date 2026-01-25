@@ -391,16 +391,35 @@
             padding: 5px 10px; border-radius: 5px; font-size: 0.9em; transition: 0.3s;
         }
         .edit-ann-btn:hover { background: #fff; color: #000; }
-        
-        @keyframes slideDown { from { transform: translateY(-20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+		/* --- EFEKT ISKIER (BACKGROUND) --- */
+        #embers-container {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            overflow: hidden; pointer-events: none; z-index: -1; /* Pod spodem */
+        }
+        .ember {
+            position: absolute; bottom: -10px;
+            background: orange;
+            border-radius: 50%;
+            opacity: 0;
+            box-shadow: 0 0 10px 2px rgba(255, 69, 0, 0.7);
+            animation: rise linear infinite;
+        }
+        @keyframes rise {
+            0% { opacity: 0; transform: translateY(0) scale(1); }
+            10% { opacity: 1; }
+            50% { opacity: 0.8; }
+            100% { opacity: 0; transform: translateY(-80vh) scale(0.2); }
+        }
 		
+        @keyframes slideDown { from { transform: translateY(-20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
         @keyframes shine { 0% { left: -150%; } 100% { left: 150%; } }
         @keyframes cardAppear { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes pulseBadge { 0% { transform: scale(1); } 50% { transform: scale(1.2); } 100% { transform: scale(1); } }
     </style>
 </head>
 <body>
-
+<div id="embers-container"></div>
 <div class="game-clock-wrapper">
     <span class="clock-icon">⏳</span>
     <span id="gameClock">00:00:00</span>
@@ -2814,12 +2833,44 @@ window.renderOffers = () => {
             window.alert("Sprzedane! Przeniesiono do archiwum.");
         }
     };
+
+// --- GENERATOR ISKIER ---
+    function createEmber() {
+        const container = document.getElementById('embers-container');
+        if(!container) return; // Zabezpieczenie
+
+        const ember = document.createElement('div');
+        ember.classList.add('ember');
+        
+        // Losowe parametry dla każdej iskierki
+        const size = Math.random() * 4 + 2 + 'px'; // Wielkość 2-6px
+        const left = Math.random() * 100 + 'vw';   // Pozycja pozioma
+        const duration = Math.random() * 3 + 4 + 's'; // Czas lotu 4-7s
+        const color = Math.random() > 0.5 ? '#ff4500' : '#ffd700'; // Pomarańcz lub złoto
+        
+        ember.style.width = size;
+        ember.style.height = size;
+        ember.style.left = left;
+        ember.style.animationDuration = duration;
+        ember.style.background = color;
+        
+        container.appendChild(ember);
+
+        // Usuń iskrę po zakończeniu animacji, żeby nie zapychać pamięci
+        setTimeout(() => {
+            ember.remove();
+        }, 7000);
+    }
+
+    // Twórz nową iskrę co 300ms (możesz zmienić na 100ms żeby było ich więcej)
+    setInterval(createEmber, 350);
 	
 </script>
 
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
