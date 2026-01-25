@@ -3032,15 +3032,16 @@ window.renderOffers = () => {
         document.getElementById('splitLootSection').style.display = 'none';
     };
 
-    window.renderSplitLoot = (mobName) => {
+window.renderSplitLoot = (mobName) => {
         const grid = document.getElementById('splitLootGrid');
         const section = document.getElementById('splitLootSection');
         const hiddenInput = document.getElementById('splitSelectedName');
+        const hiddenImgInput = document.getElementById('splitSelectedImg'); // <--- DODAJ TO
         
         grid.innerHTML = "";
         hiddenInput.value = "";
+        if(hiddenImgInput) hiddenImgInput.value = ""; // Resetuj obrazek
 
-        // Sprawdzenie czy potwór istnieje w Twojej bazie lootTable
         if(!mobName || !lootTable[mobName]) {
             section.style.display = 'none';
             return;
@@ -3050,27 +3051,22 @@ window.renderOffers = () => {
         const items = lootTable[mobName];
 
         items.forEach(item => {
-            // 1. Wyciągamy czystą nazwę z Twojego formatu "Nazwa||rarity=..."
-            // Bierzemy to co przed kreskami ||
             let displayName = item.stats.split('||')[0].trim();
             
-            // 2. Tworzymy kafelek
             const div = document.createElement('div');
             div.className = 'loot-card-select';
             
-            // Dodajemy grafikę i tooltip z pełną nazwą
             div.innerHTML = `
                 <img src="${item.img}" title="${displayName}" onerror="this.src='https://cdn.margonem.pl/obrazki/itemy/nas/pyt.gif'">
                 <div class="loot-name-tooltip">${displayName}</div>
             `;
             
             div.onclick = () => {
-                // Usuwamy zaznaczenie z innych
                 document.querySelectorAll('.loot-card-select').forEach(c => c.classList.remove('selected'));
-                // Zaznaczamy ten kliknięty
                 div.classList.add('selected');
-                // Zapisujemy nazwę do ukrytego pola (potrzebne przy zapisie do bazy)
+                
                 hiddenInput.value = displayName;
+                if(hiddenImgInput) hiddenImgInput.value = item.img; // <--- TĘ LINIKĘ DOPISZ
                 
                 if(window.playSound) window.playSound('click');
             };
@@ -3264,6 +3260,7 @@ window.renderOffers = () => {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
