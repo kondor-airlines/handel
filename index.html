@@ -2956,17 +2956,6 @@ window.renderOffers = () => {
         if(!splitsUnsub) startSplitsListener();
     };
 
-    // Funkcje pomocnicze do złota
-    function parseGold(str) {
-        if(!str) return 0;
-        str = str.toLowerCase().replace(',','.');
-        let mult = 1;
-        if(str.includes('k')) mult = 1000;
-        if(str.includes('m')) mult = 1000000;
-        if(str.includes('g')) mult = 1000000000;
-        return parseFloat(str) * mult;
-    }
-
     function formatGold(num) {
         if(num >= 1000000000) return (num/1000000000).toFixed(2) + 'G';
         if(num >= 1000000) return (num/1000000).toFixed(2) + 'm';
@@ -3052,6 +3041,7 @@ window.renderOffers = () => {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
