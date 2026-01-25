@@ -949,6 +949,27 @@
     </div>
 </div>
 
+<div id="essenceModal" style="display: none; position: fixed; z-index: 10007; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.85); align-items: center; justify-content: center; backdrop-filter: blur(3px);">
+    <div style="background: #1a1a1a; padding: 25px; border: 2px solid #9b59b6; border-radius: 12px; width: 90%; max-width: 350px; position:relative; text-align:center;">
+        
+        <button onclick="document.getElementById('essenceModal').style.display='none'" style="position:absolute; top:10px; right:15px; background:none; border:none; color:#888; cursor:pointer; font-size:1.2em;">✕</button>
+        
+        <h3 style="color:#cca3ff; font-family:'MedievalSharp'; margin-top:0;">Kalkulator Esencji</h3>
+        <img src="https://micc.garmory-cdn.cloud/obrazki/itemy/neu/pyl-sakryfikacji.gif" style="margin-bottom:15px;">
+
+        <div style="margin-bottom:20px; text-align:left;">
+            <label style="color:#aaa; font-size:0.8em; display:block; margin-bottom:5px;">Poziom przedmiotu (lvl)</label>
+            <input type="number" id="essLvl" placeholder="np. 185" style="width:100%; padding:10px; background:#000; border:1px solid #444; color:white; border-radius:5px;">
+        </div>
+
+        <button onclick="calculateEssence()" class="action-btn" style="background:var(--purple); color:white;">OBLICZ WARTOŚĆ</button>
+        
+        <div id="essResult" class="calc-result" style="display:none; border-color:#9b59b6; color:#cca3ff; margin-top:15px;">
+            Wynik...
+        </div>
+    </div>
+</div>
+	
 <div id="encyclopediaModal" style="display: none; position: fixed; z-index: 10006; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.9); align-items: center; justify-content: center; backdrop-filter: blur(5px);">
     <div style="background: #1a1a1a; padding: 25px; border: 2px solid #ccc; border-radius: 12px; width: 95%; max-width: 700px; height: 80vh; display:flex; flex-direction:column; position:relative;">
         <button onclick="document.getElementById('encyclopediaModal').style.display='none'" style="position:absolute; top:10px; right:15px; background:none; border:none; color:#888; cursor:pointer; font-size:1.5em;">✕</button>
@@ -3711,6 +3732,7 @@ function startSplitHistory() {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
