@@ -39,10 +39,29 @@
         .tag.chest { background: #8d6e63; color: #fff; }
         
         /* Wygląd wiersza w formularzu skrzynek */
+		
         .chest-row { display: flex; gap: 10px; margin-bottom: 10px; align-items: center; animation: slideIn 0.3s; }
         .chest-row select { flex: 3; }
         .chest-row input { flex: 1; text-align: center; }
         .remove-chest-btn { background: var(--red); color: white; border: none; border-radius: 4px; cursor: pointer; padding: 0 10px; height: 42px; font-weight: bold; }
+		/* Kontener na wiele skrzynek */
+        .multi-chest-wrapper {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 5px;
+            margin: 15px auto 10px auto;
+            max-width: 100%;
+        }
+        /* Mała ikonka skrzynki w zestawie */
+        .mini-chest-img {
+            width: 40px;
+            height: 40px;
+            object-fit: contain;
+            filter: drop-shadow(0 0 5px rgba(255, 215, 0, 0.3));
+            transition: 0.3s;
+        }
+        .mini-chest-img:hover { transform: scale(1.2); }
 		
         /* --- NOWY UKŁAD FILTRÓW --- */
         .filters-container {
@@ -2055,7 +2074,24 @@ const lootTable = {
                     ${tooltipHtml}
                     <div class="tag ${data.type}">${data.type.toUpperCase()}</div>
                     <button class="fav-btn ${isFav?'active':''}" onclick="toggleFav('${data.id}')">❤</button>
-                    ${window.isValidImageUrl(data.img) ? `<img src="${data.img}" class="item-img">` : ""}
+                   ${(() => {
+                        // Jeśli w linku jest znak "|", to znaczy że to zestaw skrzynek
+                        if (data.img && data.img.includes('|')) {
+                            const urls = data.img.split('|');
+                            let html = '<div class="multi-chest-wrapper">';
+                            urls.forEach(url => {
+                                html += `<img src="${url}" class="mini-chest-img" title="Element zestawu">`;
+                            });
+                            html += '</div>';
+                            return html;
+                        } 
+                        // Jeśli to zwykły pojedynczy link
+                        else if (window.isValidImageUrl(data.img)) {
+                            return `<img src="${data.img}" class="item-img">`;
+                        } else {
+                            return "";
+                        } 
+                    })()}
                     <div class="item-title">${window.escapeHtml(displayName)}</div>
                     <div class="item-source">
                         <img src="${data.sourceImg}"> <span>${data.source}</span>
@@ -2138,14 +2174,14 @@ const lootTable = {
         let finalSourceImg = sel.options[sel.selectedIndex]?.dataset.img || '';
 
         // --- LOGIKA DLA SKRZYNEK ---
+        // --- LOGIKA DLA SKRZYNEK ---
         if (isChest) {
             const rows = document.querySelectorAll('.chest-row');
             if (rows.length === 0) return window.alert("Dodaj przynajmniej jedną skrzynkę!");
             
             let chestSummary = [];
-            let firstImg = "";
+            let imagesArray = []; // Tutaj zbieramy obrazki
             
-            // Zbieramy dane z wierszy
             for (let row of rows) {
                 const select = row.querySelector('.chest-select');
                 const qty = row.querySelector('.chest-qty').value;
@@ -2153,17 +2189,20 @@ const lootTable = {
                 
                 if (!name || qty < 1) return window.alert("Uzupełnij wszystkie pola skrzynek!");
                 
-                // Zapisujemy pierwszy obrazek jako główny obrazek oferty
-                if (!firstImg) firstImg = select.options[select.selectedIndex].dataset.img;
+                // Zapisujemy skróconą nazwę
+                chestSummary.push(`${qty}x ${name.replace('Skrzynia ', '')}`);
                 
-                chestSummary.push(`${qty}x ${name.replace('Skrzynia ', '')}`); // Skracamy nazwę w opisie
+                // Dodajemy obrazek do listy (jeśli jeszcze takiego nie ma w zestawie, żeby nie dublować przy tych samych skrzyniach)
+                const imgUrl = select.options[select.selectedIndex].dataset.img;
+                if(imgUrl) imagesArray.push(imgUrl); 
             }
             
             finalName = "Zestaw: " + chestSummary.join(', ');
-            finalImg = firstImg; // Obrazek pierwszej skrzynki
-            finalSource = "Skrzynki Herosów"; // Kategoria
-            finalSourceImg = "https://micc.garmory-cdn.cloud/obrazki/other/png/escape-mechanizm.png"; // Ikonka kategorii
-        } 
+            // Łączymy linki znakiem specjalnym "|", żeby potem je rozdzielić
+            finalImg = imagesArray.join('|'); 
+            
+            finalSource = "Skrzynki Herosów";
+        }
         // --- LOGIKA DLA INNYCH ---
         else if (isSpecial) {
             finalName = document.getElementById('itemName').value || (type === 'gold' ? 'Złoto' : 'Usługa');
@@ -2304,6 +2343,7 @@ const lootTable = {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
