@@ -3079,29 +3079,28 @@ window.renderSplitLoot = (mobName) => {
         });
     };
 
-    // Funkcja odświeżająca widok po zmianie trybu
     window.updateSplitUI = () => {
         const mode = document.getElementById('splitMode').value;
         const bossSection = document.getElementById('bossSection');
         const teamLabel = document.getElementById('teamLabel');
         const bossLabel = document.getElementById('bossLabel');
 
-        // Reset wyborów przy zmianie trybu, żeby uniknąć błędów
+        // Czyścimy poprzednie wybory przy zmianie trybu, żeby uniknąć błędów w liczeniu
         s_Bosses = [];
         s_Team = [];
         document.querySelectorAll('.boss-active, .team-active').forEach(el => el.classList.remove('boss-active', 'team-active'));
 
         if (mode === 'equal') {
-            bossSection.style.display = 'none'; // Ukrywamy szefa
-            teamLabel.innerText = "👥 WSZYSCY UCZESTNICY (Równy podział):";
+            bossSection.style.display = 'none'; 
+            teamLabel.innerHTML = "<span style='color:#2ecc71;'>👥 Zaznacz wszystkich uczestników bicia:</span>";
         } else if (mode === 'detector') {
             bossSection.style.display = 'block';
-            bossLabel.innerText = "👁️ VIP-owie (Dzielą 50% między siebie):";
-            teamLabel.innerText = "⚔️ RESZTA EKIPY (Dzielą pozostałe 50%):";
+            bossLabel.innerText = "👁️ Zaznacz VIP-ów (Znalazca + Wykrywacz):";
+            teamLabel.innerText = "⚔️ Zaznacz resztę osób (Ekipa):";
         } else {
             bossSection.style.display = 'block';
-            bossLabel.innerText = "👑 SZEF / ZNALAZCA (Bierze 50%):";
-            teamLabel.innerText = "⚔️ EKIPA (Dzielą pozostałe 50%):";
+            bossLabel.innerText = "👑 Zaznacz Szefa / Znalazcę (50%):";
+            teamLabel.innerText = "⚔️ Zaznacz resztę ekipy:";
         }
     };
 
@@ -3165,41 +3164,81 @@ window.renderSplitLoot = (mobName) => {
     }
 
 window.saveFinalSplit = async () => {
+        if (!currentUser) return alert("Zaloguj się!");
+
         const item = document.getElementById('splitSelectedName').value;
         const itemImg = document.getElementById('splitSelectedImg').value;
         const amountStr = document.getElementById('splitFinalAmount').value;
         const mode = document.getElementById('splitMode').value;
 
-        if (!item || !amountStr || (mode !== 'equal' && s_Bosses.length === 0) || s_Team.length === 0) {
-            return alert("Błąd: Uzupełnij przedmiot, kwotę i zaznacz ludzi!");
-        }
+        if (!item || !amountStr) return alert("Wybierz przedmiot i wpisz kwotę!");
 
         const total = parseGold(amountStr);
+        if (total <= 0) return alert("Błędna kwota!");
+
         let bossShareEach = 0;
         let teamShareEach = 0;
+        let description = "";
 
+        // --- MATEMATYKA PODZIAŁÓW ---
+        
         if (mode === 'equal') {
+            // TRYB: RÓWNY PODZIAŁ
+            if (s_Team.length === 0) return alert("Zaznacz uczestników w dolnej sekcji!");
+            
+            description = "Równy podział";
             teamShareEach = Math.floor(total / s_Team.length);
-        } else {
+            bossShareEach = 0; // W tym trybie nie ma "Szefa"
+            s_Bosses = [];    // Czyścimy szefów na wszelki wypadek
+        } 
+        else if (mode === 'finder') {
+            // TRYB: ZASADA ZNALAZCY
+            if (s_Bosses.length !== 1) return alert("Wybierz dokładnie jednego Znalazcę (50%)!");
+            if (s_Team.length === 0) return alert("Zaznacz resztę ekipy!");
+
+            description = "Zasada Znalazcy (50/50)";
+            const poolBoss = Math.floor(total * 0.5);
+            const poolRest = total - poolBoss;
+            
+            bossShareEach = poolBoss;
+            teamShareEach = Math.floor(poolRest / s_Team.length);
+        } 
+        else if (mode === 'detector') {
+            // TRYB: WYKRYWAJKA
+            if (s_Bosses.length === 0) return alert("Zaznacz VIP-ów (Znalazca/Wykrywacz)!");
+            if (s_Team.length === 0) return alert("Zaznacz resztę ekipy!");
+
+            description = "Wykrywajka (50% dla VIP)";
             const poolVIP = Math.floor(total * 0.5);
             const poolRest = total - poolVIP;
+            
             bossShareEach = Math.floor(poolVIP / s_Bosses.length);
             teamShareEach = Math.floor(poolRest / s_Team.length);
         }
 
-        if (confirm("Zapisać ten podział w historii?")) {
+        const msg = `Zapisać podział?\nItem: ${item}\nTryb: ${description}\n` + 
+                    (bossShareEach > 0 ? `👑 VIP (${s_Bosses.length} os.): po ${s_formatGold(bossShareEach)}\n` : "") +
+                    `⚔️ Ekipa (${s_Team.length} os.): po ${s_formatGold(teamShareEach)}`;
+
+        if (confirm(msg)) {
             await addDoc(collection(db, "podzialy"), {
                 item, itemImg, total,
-                bosses: s_Bosses, // Tablica VIPów
+                bosses: s_Bosses,
                 bossShareEach,
                 team: s_Team,
                 teamShareEach,
-                mode,
+                mode: description,
                 date: new Date().toISOString(),
-                authorId: currentUser.uid
+                authorId: currentUser.uid,
+                author: currentNick
             });
-            alert("Zapisano! ✅");
-            document.getElementById('splitModal').style.display = 'none';
+            
+            alert("Podział zapisany! ✅");
+            // Resetuj okno
+            document.getElementById('splitFinalAmount').value = "";
+            document.querySelectorAll('.boss-active, .team-active, .selected').forEach(el => el.classList.remove('boss-active', 'team-active', 'selected'));
+            s_Bosses = []; s_Team = [];
+            window.playSound('coin');
         }
     };
 
@@ -3249,6 +3288,7 @@ window.saveFinalSplit = async () => {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
