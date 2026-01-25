@@ -3014,6 +3014,7 @@ window.renderOffers = () => {
 
 	// --- SYSTEM PODZIAŁÓW 2.0 (GRAFICZNY) ---
     let splitUnsub = null;
+	let currentSplitCount = 0; // Ta zmienna będzie trzymać aktualną liczbę wpisów
 // --- SYSTEM PODZIAŁÓW 2.0 (ZMIENNE STANU) ---
     // Upewnij się, że te dwie linie są wyżej niż funkcje, które ich używają
     var s_Bosses = []; 
@@ -3023,22 +3024,21 @@ window.renderOffers = () => {
         // 1. Pokazujemy okno
         document.getElementById('splitModal').style.display = 'flex';
         
-        // 2. Resetujemy tryb na "Równy podział" przy każdym otwarciu (opcjonalnie)
+        // 2. Ustawiamy domyślny tryb i odświeżamy widok sekcji szefa
         document.getElementById('splitMode').value = 'equal';
-        
-        // 3. KLUCZOWE: Wywołujemy aktualizację UI, żeby ukryć/pokazać sekcje
         window.updateSplitUI(); 
         
-        // 4. Ładujemy resztę danych
+        // 3. Ładujemy listę graczy i historię
         loadSplitUsers();
         if(!splitUnsub) startSplitHistory();
 
-		window.markSplitsAsRead(allOffers.filter(o => o.type === 'podzial').length || snap.size); 
-    // Lub po prostu:
-    const currentTotal = document.querySelectorAll('#splitHistoryContent > div').length;
-    localStorage.setItem('lastSplitCount', currentTotal);
-    document.getElementById('splitBadge').style.display = 'none';
-		
+        // 4. POWIADOMIENIA: Oznaczamy podziały jako przeczytane
+        // Zapisujemy aktualną liczbę podziałów w pamięci przeglądarki
+        localStorage.setItem('lastSplitCount', currentSplitCount);
+        
+        // Ukrywamy badge (czerwoną kropkę)
+        const badge = document.getElementById('splitBadge');
+        if(badge) badge.style.display = 'none';
     };
 
     window.selectSplitMobType = (type, btn) => {
@@ -3265,6 +3265,8 @@ function startSplitHistory() {
         const q = query(collection(db, "podzialy"), orderBy("date", "desc"), limit(15));
         
         splitUnsub = onSnapshot(q, (snap) => {
+			currentSplitCount = snap.size; 
+        	updateSplitBadge(currentSplitCount);
 			const totalCount = snap.size; // Pobiera ogólną liczbę podziałów z bazy
     		updateSplitBadge(totalCount); // Aktualizuje czerwoną kropkę
             const cont = document.getElementById('splitHistoryContent');
@@ -3358,6 +3360,7 @@ function startSplitHistory() {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
