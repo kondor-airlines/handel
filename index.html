@@ -435,6 +435,20 @@
             box-shadow: 0 0 10px 2px rgba(255, 69, 0, 0.7);
             animation: rise linear infinite;
         }
+
+		/* --- STYL PODZIAŁÓW --- */
+    .split-card {
+        background: #1a1a1a;
+        border-left: 4px solid #00ffff;
+        padding: 10px;
+        margin-bottom: 10px;
+        font-size: 0.9em;
+        position: relative;
+    }
+    .split-header { display:flex; justify-content:space-between; color: #fff; font-weight:bold; margin-bottom:5px; }
+    .split-item { color: #00ffff; }
+    .split-list { color: #888; margin-top:5px; font-style:italic; }
+		
         @keyframes rise {
             0% { opacity: 0; transform: translateY(0) scale(1); }
             10% { opacity: 1; }
@@ -478,6 +492,9 @@
                 📩 <span id="mailBadge" class="badge" style="display:none;">0</span>
             </button>
 			<button class="icon-btn" onclick="toggleDebts()" title="Zeszyt Dłużników">📜</button>
+			<button onclick="openSplitModal()" class="action-btn" style="background:none; border: 1px solid #00ffff; color: #00ffff; margin-right: 5px; box-shadow: 0 0 5px rgba(0, 255, 255, 0.2);">
+    ⚖️ Podziały
+</button>
             <div class="avatar-wrapper">
                 <img id="userAvatar" class="user-avatar" src="" alt="">
             </div>
@@ -681,6 +698,42 @@
     </div>
 </div>
 
+<div id="splitModal" style="display: none; position: fixed; z-index: 10050; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.95); align-items: center; justify-content: center;">
+    <div style="background: #111; padding: 25px; border: 2px solid #00ffff; border-radius: 12px; width: 95%; max-width: 600px; display:flex; flex-direction:column; max-height: 90vh;">
+        
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; border-bottom:1px solid #333; padding-bottom:10px;">
+            <h3 style="color:#00ffff; font-family:'MedievalSharp'; margin:0; font-size:1.5em;">⚖️ Rejestr Podziałów</h3>
+            <button onclick="document.getElementById('splitModal').style.display='none'" style="background:none; border:none; color:#888; font-size:1.5em; cursor:pointer;">✕</button>
+        </div>
+
+        <div style="background:rgba(0,255,255,0.05); padding:15px; border-radius:8px; margin-bottom:20px; border:1px solid #333;">
+            <h4 style="margin-top:0; color:#ddd;">Dodaj podział (System 50/50):</h4>
+            
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:10px;">
+                <input type="text" id="splitItem" placeholder="Nazwa przedmiotu" style="padding:8px;">
+                <input type="text" id="splitAmount" placeholder="Kwota (np. 1.2g)" style="padding:8px;">
+            </div>
+
+            <div style="margin-bottom:10px;">
+                <label style="color:#00ffff; font-size:0.8em; margin-left:5px;">👑 Kto bierze 50% (Szef/Tank):</label>
+                <input type="text" id="splitBoss" placeholder="Jeden Nick (np. Rex)" style="padding:8px; width:100%; border-color:#008b8b;">
+            </div>
+
+            <div style="margin-bottom:10px;">
+                <label style="color:#aaa; font-size:0.8em; margin-left:5px;">⚔️ Reszta ekipy (dzielą się drugą połówką):</label>
+                <input type="text" id="splitPeople" placeholder="Nicki: Max, Kot, Zoltan" style="padding:8px; width:100%;">
+            </div>
+
+            <button onclick="calculateAndSaveSplit()" class="action-btn" style="width:100%; background:#008b8b; border:1px solid #00ffff;">PRZELICZ I ZAPISZ</button>
+        </div>
+
+        <div style="overflow-y:auto; flex-grow:1; padding-right:5px;">
+            <h4 style="color:#888; margin-top:0;">Historia wypłat:</h4>
+            <div id="splitsListContent">Ładowanie historii...</div>
+        </div>
+    </div>
+</div>
+	
 <div id="annModal" style="display: none; position: fixed; z-index: 10020; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.9); align-items: center; justify-content: center;">
     <div style="background: #1a1a1a; padding: 25px; border: 2px solid #ff6666; border-radius: 12px; width: 90%; max-width: 500px;">
         <h3 style="color:#ff6666; margin-top:0;">Edytuj Ogłoszenie</h3>
@@ -2894,12 +2947,112 @@ window.renderOffers = () => {
 
     // Twórz nową iskrę co 300ms (możesz zmienić na 100ms żeby było ich więcej)
     setInterval(createEmber, 350);
+
+	// --- SYSTEM PODZIAŁÓW (50% + RESZTA) ---
+    let splitsUnsub = null;
+
+    window.openSplitModal = () => {
+        document.getElementById('splitModal').style.display = 'flex';
+        if(!splitsUnsub) startSplitsListener();
+    };
+
+    // Funkcje pomocnicze do złota
+    function parseGold(str) {
+        if(!str) return 0;
+        str = str.toLowerCase().replace(',','.');
+        let mult = 1;
+        if(str.includes('k')) mult = 1000;
+        if(str.includes('m')) mult = 1000000;
+        if(str.includes('g')) mult = 1000000000;
+        return parseFloat(str) * mult;
+    }
+
+    function formatGold(num) {
+        if(num >= 1000000000) return (num/1000000000).toFixed(2) + 'G';
+        if(num >= 1000000) return (num/1000000).toFixed(2) + 'm';
+        if(num >= 1000) return (num/1000).toFixed(1) + 'k';
+        return num.toLocaleString();
+    }
+
+    window.calculateAndSaveSplit = async () => {
+        if(!currentUser) return alert("Musisz być zalogowany!");
+
+        const item = document.getElementById('splitItem').value;
+        const rawAmount = document.getElementById('splitAmount').value;
+        const bossName = document.getElementById('splitBoss').value;
+        const peopleStr = document.getElementById('splitPeople').value;
+
+        if(!item || !rawAmount || !bossName || !peopleStr) return alert("Uzupełnij wszystkie pola!");
+
+        const totalAmount = parseGold(rawAmount);
+        const peopleArr = peopleStr.split(',').map(s => s.trim()).filter(s => s.length > 0);
+        const teamCount = peopleArr.length;
+        
+        if(teamCount === 0) return alert("Podaj ekipę!");
+
+        // Matematyka 50/50
+        const halfAmount = Math.floor(totalAmount / 2);
+        const bossShare = halfAmount; 
+        const remainder = totalAmount - bossShare;
+        const teamPerPerson = Math.floor(remainder / teamCount);
+
+        const confirmMsg = `
+            Przedmiot: ${item} (${formatGold(totalAmount)})
+            👑 ${bossName} (50%): ${formatGold(bossShare)}
+            ⚔️ Ekipa (${teamCount} os.): Po ${formatGold(teamPerPerson)} na głowę.
+            Czy zapisać?
+        `;
+
+        if(confirm(confirmMsg)) {
+            await addDoc(collection(db, "podzialy"), {
+                item: item, total: totalAmount, bossName: bossName, bossShare: bossShare,
+                teamPerPerson: teamPerPerson, people: peopleArr,
+                date: new Date().toISOString(), author: currentNick
+            });
+            
+            document.getElementById('splitItem').value = "";
+            document.getElementById('splitAmount').value = "";
+            document.getElementById('splitPeople').value = "";
+            document.getElementById('splitBoss').value = "";
+            if(window.playSound) window.playSound('coin');
+        }
+    };
+
+    function startSplitsListener() {
+        const q = query(collection(db, "podzialy"), orderBy("date", "desc"), limit(20));
+        splitsUnsub = onSnapshot(q, (snapshot) => {
+            const list = document.getElementById('splitsListContent');
+            list.innerHTML = "";
+            snapshot.forEach(doc => {
+                const data = doc.data();
+                const date = new Date(data.date).toLocaleDateString();
+                list.innerHTML += `
+                    <div class="split-card">
+                        <div class="split-header">
+                            <span class="split-item">${window.escapeHtml(data.item)}</span> <span>${date}</span>
+                        </div>
+                        <div style="border-bottom:1px solid #333; padding-bottom:5px; margin-bottom:5px;">
+                            <span style="color:#00ffff;">👑 ${window.escapeHtml(data.bossName)}</span>: 
+                            <span style="color:var(--gold); font-weight:bold;">${formatGold(data.bossShare)}</span>
+                        </div>
+                        <div class="split-list">
+                            <span style="color:#aaa;">Reszta (${data.people.length} os.):</span> <span style="color:#ddd;">${data.people.join(', ')}</span>
+                        </div>
+                        <div style="margin-top:5px; color:var(--green); text-align:right; font-weight:bold;">
+                            Po ${formatGold(data.teamPerPerson)} na głowę
+                        </div>
+                    </div>`;
+            });
+            if(snapshot.empty) list.innerHTML = "<div style='color:#666; text-align:center;'>Brak wpisów.</div>";
+        });
+    }
 	
 </script>
 
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
