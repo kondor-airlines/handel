@@ -2047,7 +2047,12 @@ const lootTable = {
             if (data.type === 'other') typeClass = "type-other";
 			if (data.type === 'chest') typeClass = "type-chest";
 
-            const tooltipHtml = getTooltipHtml(data.name, data.img);
+            // --- BLOKADA TOOLTIPA DLA USŁUG I SKRZYNEK ---
+            let tooltipHtml = "";
+            // Generuj tooltip TYLKO dla zwykłych przedmiotów (nie dla złota, expa, innych ani skrzynek)
+            if (['sprzedam', 'kupie', 'zamienie'].includes(data.type)) {
+                tooltipHtml = getTooltipHtml(data.name, data.img);
+            }
             const displayName = data.name.replace(/\s*\([^)]*\)$/, "");
 
             // --- NOWE PRZYCISKI ---
@@ -2343,16 +2348,3 @@ const lootTable = {
 <div id="toast-container"></div>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
