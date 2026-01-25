@@ -322,24 +322,7 @@
         .loot-item img { width: 100%; height: 100%; object-fit: contain; }
         .loot-item:hover { border-color: var(--green); transform: scale(1.1); }
         .loot-item:hover::after { content: attr(title); position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%); background: black; color: white; padding: 5px; border-radius: 4px; font-size: 0.7em; white-space: nowrap; z-index: 10; pointer-events: none; border: 1px solid #555; }
-
-		/* --- KALKULATOR ESENCJI --- */
-        .essence-btn-toggle { 
-            position: fixed; 
-            bottom: 210px; /* Nad Bestiariuszem (150px + 60px) */
-            right: 30px; 
-            width: 50px; height: 50px; 
-            border-radius: 50%; 
-            background: linear-gradient(135deg, #1a1a1a, #4a004a); /* Fioletowy akcent */
-            border: 2px solid #9b59b6; 
-            cursor: pointer; z-index: 999; 
-            box-shadow: 0 5px 15px rgba(0,0,0,0.5); 
-            transition: 0.3s; 
-            display: flex; align-items: center; justify-content: center;
-        }
-        .essence-btn-toggle:hover { transform: scale(1.1); box-shadow: 0 0 20px #9b59b6; }
-        .essence-btn-toggle img { width: 32px; height: 32px; }
-		
+        
         @keyframes shine { 0% { left: -150%; } 100% { left: 150%; } }
         @keyframes cardAppear { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes pulseBadge { 0% { transform: scale(1); } 50% { transform: scale(1.2); } 100% { transform: scale(1); } }
@@ -562,26 +545,6 @@
     </div>
 </div>
 
-<button class="essence-btn-toggle" onclick="toggleEssence()" title="Kalkulator Esencji">
-    <img src="https://micc.garmory-cdn.cloud/obrazki/itemy/neu/pyl-sakryfikacji.gif" alt="Esencja">
-</button>
-
-<div id="essenceModal" style="display: none; position: fixed; z-index: 10007; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.85); align-items: center; justify-content: center; backdrop-filter: blur(3px);">
-    <div style="background: #1a1a1a; padding: 25px; border: 2px solid #9b59b6; border-radius: 12px; width: 90%; max-width: 350px; position:relative; text-align:center;">
-        
-        <button onclick="document.getElementById('essenceModal').style.display='none'" style="position:absolute; top:10px; right:15px; background:none; border:none; color:#888; cursor:pointer; font-size:1.2em;">✕</button>
-        
-        <h3 style="color:#cca3ff; font-family:'MedievalSharp'; margin-top:0;">Kalkulator Esencji</h3>
-        <img src="https://micc.garmory-cdn.cloud/obrazki/itemy/neu/pyl-sakryfikacji.gif" style="margin-bottom:15px;">
-
-        <div style="margin-bottom:20px; text-align:left;">
-            <label style="color:#aaa; font-size:0.8em; display:block; margin-bottom:5px;">Poziom przedmiotu (lvl)</label>
-            <input type="number" id="essLvl" placeholder="np. 185" style="width:100%; padding:10px; background:#000; border:1px solid #444; color:white; border-radius:5px;">
-        </div>
-
-
-
-	
 <button class="encyclo-btn-toggle" onclick="toggleEncyclopedia()" title="Encyklopedia Dropu">📖</button>
 
 <div id="encyclopediaModal" style="display: none; position: fixed; z-index: 10006; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.9); align-items: center; justify-content: center; backdrop-filter: blur(5px);">
@@ -1894,7 +1857,6 @@ const lootTable = {
             document.getElementById('previewIcon').src = url;
             document.getElementById('previewName').innerText = document.getElementById('itemName').value || "Twój przedmiot";
         }
-	};
 
 	// --- OBSŁUGA UPLOADU Z DYSKU (Base64) ---
     window.handleFileUpload = (input) => {
@@ -1918,6 +1880,7 @@ const lootTable = {
         }
     };
 		
+    };
     function getTooltipHtml(dataName, dataImg) {
         const cleanName = dataName.replace(/\s*\([^)]*\)$/, "");
         let foundStats = "";
@@ -2479,50 +2442,9 @@ const lootTable = {
         } else {
             console.log("Anulowano wybór pliku");
         }
-
-	// --- KALKULATOR ESENCJI ---
-    window.toggleEssence = () => {
-        const modal = document.getElementById('essenceModal');
-        modal.style.display = (modal.style.display === 'flex') ? 'none' : 'flex';
     };
-
-    window.calculateEssence = () => {
-        const lvl = parseFloat(document.getElementById('essLvl').value);
-        const resultBox = document.getElementById('essResult');
-
-        if (isNaN(lvl) || lvl < 1) {
-            resultBox.style.display = 'block';
-            resultBox.style.color = 'var(--red)';
-            resultBox.innerHTML = "Podaj poprawny poziom przedmiotu!";
-            return;
-        }
-
-        // Wzór uproszczony (tylko baza): lvl / 10 + 10
-        // Zaokrąglamy do najbliższej liczby całkowitej zgodnie z zasadami gry
-        const finalValue = Math.round((lvl / 10) + 10);
-
-        resultBox.style.display = 'block';
-        resultBox.style.color = '#cca3ff';
-        resultBox.innerHTML = `
-            <div style="font-size:0.9em; color:#aaa; margin-bottom:5px;">Przedmiot ${lvl} lvl (Czysty)</div>
-            <div style="font-size:1.6em; font-weight:bold;">${finalValue} esencji</div>
-        `;
-        window.playSound('click');
-    };
-	
 </script>
 
 <div id="toast-container"></div>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
