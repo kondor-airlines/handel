@@ -465,6 +465,44 @@
         background: none; border: none; cursor: pointer; opacity: 0.5; font-size: 1.2em;
     }
     .delete-split-btn:hover { opacity: 1; transform: scale(1.1); }
+
+	/* --- NOWE STYLE PODZIAŁÓW (GRAFICZNE) --- */
+    .split-section { background: rgba(255, 255, 255, 0.02); border: 1px solid #333; padding: 15px; border-radius: 8px; }
+    .split-label { color: #888; font-size: 0.8em; text-transform: uppercase; margin-bottom: 8px; letter-spacing: 1px; }
+
+    /* Przyciski Typu */
+    .type-btn { flex: 1; background: #222; border: 1px solid #444; color: #aaa; padding: 8px 16px; cursor: pointer; transition: 0.2s; }
+    .type-btn:hover, .type-btn.active { background: #00ffff; color: #000; border-color: #00ffff; box-shadow: 0 0 10px rgba(0, 255, 255, 0.3); }
+
+    /* Siatka Wyboru Przedmiotów */
+    .loot-grid-select { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+    .loot-card-select {
+        width: 60px; height: 60px; background: #1a1a1a; border: 2px solid #333;
+        display: flex; align-items: center; justify-content: center;
+        cursor: pointer; position: relative; transition: 0.2s;
+    }
+    .loot-card-select img { max-width: 48px; max-height: 48px; }
+    .loot-card-select:hover { transform: scale(1.1); border-color: #aaa; }
+    .loot-card-select.selected { border-color: #00ffff; background: #002222; box-shadow: 0 0 15px #00ffff; }
+    
+    /* Tooltip nazwy przedmiotu */
+    .loot-name-tooltip {
+        position: absolute; bottom: -25px; left: 50%; transform: translateX(-50%);
+        background: #000; color: #fff; padding: 2px 6px; font-size: 10px;
+        white-space: nowrap; display: none; z-index: 100; border: 1px solid #555;
+    }
+    .loot-card-select:hover .loot-name-tooltip { display: block; }
+
+    /* Siatka Graczy */
+    .user-grid { display: flex; flex-wrap: wrap; gap: 6px; }
+    .user-chip {
+        background: #222; border: 1px solid #444; color: #888;
+        padding: 6px 12px; font-size: 0.85em; cursor: pointer; border-radius: 4px; user-select: none;
+    }
+    .user-chip:hover { color: #fff; border-color: #666; }
+    
+    .boss-active { background: #ffd700 !important; color: #000 !important; font-weight: bold; border-color: gold !important; }
+    .team-active { background: #00ffff !important; color: #000 !important; font-weight: bold; border-color: cyan !important; }
 		
         @keyframes rise {
             0% { opacity: 0; transform: translateY(0) scale(1); }
@@ -723,40 +761,60 @@
 </div>
 
 <div id="splitModal" style="display: none; position: fixed; z-index: 10050; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.95); align-items: center; justify-content: center;">
-    <div style="background: #111; padding: 25px; border: 2px solid #00ffff; border-radius: 12px; width: 95%; max-width: 600px; display:flex; flex-direction:column; max-height: 90vh;">
+    <div style="background: #0f0f0f; border: 2px solid #00ffff; border-radius: 12px; width: 95%; max-width: 700px; display:flex; flex-direction:column; max-height: 90vh; box-shadow: 0 0 30px rgba(0, 255, 255, 0.1);">
         
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; border-bottom:1px solid #333; padding-bottom:10px;">
-            <h3 style="color:#00ffff; font-family:'MedievalSharp'; margin:0; font-size:1.5em;">⚖️ Rejestr Podziałów</h3>
+        <div style="background: linear-gradient(90deg, #111 0%, #1a2a2a 100%); padding: 15px 20px; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #333;">
+            <h3 style="color:#00ffff; font-family:'MedievalSharp'; margin:0; font-size:1.4em;">⚖️ Kreator Podziału Łupów</h3>
             <button onclick="document.getElementById('splitModal').style.display='none'" style="background:none; border:none; color:#888; font-size:1.5em; cursor:pointer;">✕</button>
         </div>
 
-        <div style="background:rgba(0,255,255,0.05); padding:15px; border-radius:8px; margin-bottom:20px; border:1px solid #333;">
-            <h4 style="margin-top:0; color:#ddd;">Dodaj podział (50/50):</h4>
+        <div style="overflow-y:auto; padding: 20px; display:flex; flex-direction:column; gap:20px;">
             
-            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:10px;">
-                <input type="text" id="splitItem" list="availableItems" placeholder="Nazwa przedmiotu (zacznij pisać...)" style="padding:8px;">
-                <datalist id="availableItems"></datalist>
-
-                <input type="text" id="splitAmount" placeholder="Kwota (np. 1.2g)" style="padding:8px;">
+            <div class="split-section">
+                <div class="split-label">1. Wybierz Przeciwnika:</div>
+                <div style="display:flex; gap:10px; justify-content:center; margin-bottom: 10px;">
+                    <button class="type-btn" onclick="selectMobType('herosi', this)">👹 Herosi</button>
+                    <button class="type-btn" onclick="selectMobType('e2', this)">💀 E2</button>
+                </div>
+                <select id="mobSelect" onchange="renderLoot(this.value)" style="width:100%; padding:10px; background:#222; color:#fff; border:1px solid #444; display:none;">
+                    <option value="">-- Wybierz z listy --</option>
+                </select>
             </div>
 
-            <div style="margin-bottom:10px;">
-                <label style="color:#00ffff; font-size:0.8em; margin-left:5px;">👑 Kto bierze 50% (Szef/Tank):</label>
-                <input type="text" id="splitBoss" list="availableUsers" placeholder="Wybierz nick..." style="padding:8px; width:100%; border-color:#008b8b;">
-                <datalist id="availableUsers"></datalist>
+            <div id="lootSection" class="split-section" style="display:none;">
+                <div class="split-label">2. Wybierz Przedmiot:</div>
+                <div id="lootGrid" class="loot-grid-select"></div>
+                <input type="hidden" id="selectedItemName">
             </div>
 
-            <div style="margin-bottom:10px;">
-                <label style="color:#aaa; font-size:0.8em; margin-left:5px;">⚔️ Reszta ekipy (Kliknij nicki poniżej):</label>
-                <input type="text" id="splitPeople" placeholder="Max, Rex, Kot..." style="padding:8px; width:100%;">
+            <div class="split-section">
+                <div class="split-label">3. Kwota Sprzedaży:</div>
+                <input type="text" id="splitAmount" placeholder="np. 1.5g (miliarda) lub 500m" style="width:100%; padding:10px; text-align:center; background:#111; border:1px solid #444; color:#00ffff; font-weight:bold; font-size: 1.1em;">
+            </div>
+
+            <div class="split-section">
+                <div class="split-label">4. Podział Złota:</div>
                 
-                <div id="quickUserSelect" style="display:flex; flex-wrap:wrap; gap:5px; margin-top:5px; max-height:60px; overflow-y:auto;">
-                    <span style="color:#666; font-size:0.8em;">Ładowanie listy graczy...</span>
+                <div style="margin-bottom:15px;">
+                    <span style="color:#ffd700; font-size:0.9em; display:block; margin-bottom:5px;">👑 Kto bierze 50% (Szef/Tank):</span>
+                    <div id="bossGrid" class="user-grid"></div>
+                </div>
+
+                <div>
+                    <span style="color:#00ffff; font-size:0.9em; display:block; margin-bottom:5px;">⚔️ Reszta ekipy (Dzielą drugą połówkę):</span>
+                    <div id="teamGrid" class="user-grid"></div>
                 </div>
             </div>
 
-            <button onclick="calculateAndSaveSplit()" class="action-btn" style="width:100%; background:#008b8b; border:1px solid #00ffff;">PRZELICZ I ZAPISZ</button>
+            <button onclick="calculateAndSaveSplit()" class="action-btn" style="width:100%; padding:15px; font-size:1.1em; background: linear-gradient(45deg, #008b8b, #005f5f); border:1px solid #00ffff;">ZATWIERDŹ PODZIAŁ</button>
+
+            <div style="margin-top:20px; border-top:1px solid #333; padding-top:10px;">
+                <h4 style="color:#666; margin:0 0 10px 0;">Ostatnie podziały:</h4>
+                <div id="splitsListContent"></div>
+            </div>
         </div>
+    </div>
+</div>
 
         <div style="overflow-y:auto; flex-grow:1; padding-right:5px;">
             <h4 style="color:#888; margin-top:0;">Historia wypłat:</h4>
@@ -3048,124 +3106,229 @@ window.renderOffers = () => {
         return num.toLocaleString();
     }
 	
-	// --- SYSTEM PODZIAŁÓW (WERSJA PRO) ---
+	// --- SYSTEM PODZIAŁÓW (WERSJA GRAFICZNA) ---
     let splitsUnsub = null;
+    let selectedBoss = null;
+    let selectedTeam = [];
+    let selectedMobType = null;
 
     window.openSplitModal = () => {
         document.getElementById('splitModal').style.display = 'flex';
-        loadSplitData(); // Załaduj podpowiedzi (przedmioty i gracze)
+        loadUsersForSplit(); // Ładuje listę graczy (klikalne kafelki)
         if(!splitsUnsub) startSplitsListener();
     };
 
-    // 1. ŁADOWANIE DANYCH DO PODPOWIEDZI
-    async function loadSplitData() {
-        // A. Wyciąganie przedmiotów z Twojego lootTable (z kodu)
-        const itemsList = document.getElementById('availableItems');
-        if(itemsList) {
-            itemsList.innerHTML = "";
-            let allItems = new Set();
-            if(typeof lootTable !== 'undefined') {
-                for (const mob in lootTable) {
-                    lootTable[mob].forEach(loot => {
-                        let cleanName = loot.stats.split('||')[0].replace(/\(.*\)/, '').trim();
-                        if(cleanName) allItems.add(cleanName);
-                    });
-                }
-            }
-            allItems.forEach(item => {
+    // 1. WYBÓR TYPU (Herosi/E2) - Korzysta z Twojej zmiennej monstersList
+    window.selectMobType = (type, btn) => {
+        selectedMobType = type;
+        document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+
+        const select = document.getElementById('mobSelect');
+        select.innerHTML = '<option value="">-- Wybierz Przeciwnika --</option>';
+        select.style.display = 'block';
+
+        // Pobieramy nazwy potworów z Twojej listy
+        if(typeof monstersList !== 'undefined' && monstersList[type]) {
+            monstersList[type].forEach(mob => {
                 const opt = document.createElement('option');
-                opt.value = item;
-                itemsList.appendChild(opt);
+                opt.value = mob.name; // Np. "Mushita (23 lvl)"
+                opt.innerText = mob.name;
+                select.appendChild(opt);
             });
+        } else {
+            console.error("Błąd: Nie znaleziono listy potworów dla: " + type);
         }
+        // Ukrywamy sekcję przedmiotów przy zmianie typu
+        document.getElementById('lootSection').style.display = 'none';
+    };
 
-        // B. Wyciąganie graczy z bazy danych
-        const usersList = document.getElementById('availableUsers'); // Do pola Szefa
-        const quickSelect = document.getElementById('quickUserSelect'); // Do pola Ekipy
+    // 2. RENDEROWANIE PRZEDMIOTÓW - Korzysta z Twojej zmiennej lootTable
+    window.renderLoot = (mobName) => {
+        const grid = document.getElementById('lootGrid');
+        grid.innerHTML = "";
+        document.getElementById('selectedItemName').value = "";
+
+        if(!mobName || typeof lootTable === 'undefined' || !lootTable[mobName]) return;
+
+        document.getElementById('lootSection').style.display = 'block';
+        const items = lootTable[mobName];
+
+        items.forEach(item => {
+            // Twoja struktura lootTable to obiekty {img: "url", stats: "Nazwa||..."}
+            // Musimy wyciągnąć nazwę ze stats
+            let rawName = item.stats ? item.stats.split('||')[0] : "Przedmiot";
+            // Usuwamy ewentualne dopiski w nawiasie z nazwy (dla czytelności)
+            let cleanName = rawName.replace(/\s*\([^)]*\)$/, "");
+            
+            const div = document.createElement('div');
+            div.className = 'loot-card-select';
+            div.innerHTML = `
+                <img src="${item.img}" onerror="this.src='https://cdn.margonem.pl/obrazki/itemy/nas/pyt.gif'">
+                <div class="loot-name-tooltip">${cleanName}</div>
+            `;
+            
+            div.onclick = () => {
+                // Odznacz inne
+                document.querySelectorAll('.loot-card-select').forEach(c => c.classList.remove('selected'));
+                // Zaznacz ten
+                div.classList.add('selected');
+                document.getElementById('selectedItemName').value = cleanName;
+            };
+            grid.appendChild(div);
+        });
+    };
+
+    // 3. ŁADOWANIE UŻYTKOWNIKÓW (Jako kafelki do klikania)
+    async function loadUsersForSplit() {
+        const bossGrid = document.getElementById('bossGrid');
+        const teamGrid = document.getElementById('teamGrid');
+        if(!bossGrid || !teamGrid) return;
         
-        if(usersList) usersList.innerHTML = "";
-        if(quickSelect) quickSelect.innerHTML = "";
+        bossGrid.innerHTML = "Ładowanie..."; teamGrid.innerHTML = "Ładowanie...";
 
-        const querySnapshot = await getDocs(collection(db, "users"));
-        querySnapshot.forEach((docSnap) => {
-            const userData = docSnap.data();
-            const nick = userData.nick || "Nieznany";
+        // Pobieramy listę wszystkich użytkowników z bazy
+        const snap = await getDocs(collection(db, "users"));
+        const users = [];
+        snap.forEach(d => { 
+            const data = d.data();
+            if(data.nick) users.push(data.nick); 
+        });
+        users.sort(); // Alfabetycznie
 
-            if(usersList) {
-                const opt = document.createElement('option');
-                opt.value = nick;
-                usersList.appendChild(opt);
-            }
+        bossGrid.innerHTML = ""; teamGrid.innerHTML = "";
 
-            if(quickSelect) {
-                const chip = document.createElement('button');
-                chip.innerText = nick;
-                chip.className = 'user-chip';
-                chip.onclick = () => addToTeam(nick);
-                quickSelect.appendChild(chip);
-            }
+        users.forEach(nick => {
+            // Kafelek dla Szefa
+            const bChip = document.createElement('div');
+            bChip.className = 'user-chip';
+            bChip.innerText = nick;
+            bChip.onclick = () => {
+                // Szef może być tylko jeden
+                if(selectedBoss === nick) { selectedBoss = null; bChip.classList.remove('boss-active'); }
+                else {
+                    selectedBoss = nick;
+                    // Usuń zaznaczenie z innych w tej grupie
+                    document.querySelectorAll('#bossGrid .user-chip').forEach(c => c.classList.remove('boss-active'));
+                    bChip.classList.add('boss-active');
+                }
+            };
+            bossGrid.appendChild(bChip);
+
+            // Kafelek dla Ekipy
+            const tChip = document.createElement('div');
+            tChip.className = 'user-chip';
+            tChip.innerText = nick;
+            tChip.onclick = () => {
+                // Ekipa to wiele osób
+                if(selectedTeam.includes(nick)) {
+                    selectedTeam = selectedTeam.filter(n => n !== nick);
+                    tChip.classList.remove('team-active');
+                } else {
+                    selectedTeam.push(nick);
+                    tChip.classList.add('team-active');
+                }
+            };
+            teamGrid.appendChild(tChip);
         });
     }
 
-    // Funkcja pomocnicza: Kliknięcie w nick dodaje go do pola "Reszta ekipy"
-    window.addToTeam = (nick) => {
-        const input = document.getElementById('splitPeople');
-        if(input.value.includes(nick)) return; 
-        
-        if(input.value.length > 0) {
-            input.value += ", " + nick;
-        } else {
-            input.value = nick;
-        }
-    };
-
-    // 2. OBLICZANIE I ZAPISYWANIE
+    // 4. ZAPISYWANIE PODZIAŁU (Logika: 50% Szef, 50% Reszta)
     window.calculateAndSaveSplit = async () => {
         if(!currentUser) return alert("Musisz być zalogowany!");
-
-        const item = document.getElementById('splitItem').value;
-        const rawAmount = document.getElementById('splitAmount').value;
-        const bossName = document.getElementById('splitBoss').value;
-        const peopleStr = document.getElementById('splitPeople').value;
-
-        if(!item || !rawAmount || !bossName || !peopleStr) return alert("Uzupełnij wszystkie pola!");
-
-        // Używamy funkcji globalnych (parseGold, formatGold), które masz wyżej w kodzie
-        const totalAmount = parseGold(rawAmount); 
-        const peopleArr = peopleStr.split(',').map(s => s.trim()).filter(s => s.length > 0);
-        const teamCount = peopleArr.length;
         
-        if(teamCount === 0) return alert("Podaj ekipę!");
+        const item = document.getElementById('selectedItemName').value;
+        const rawAmount = document.getElementById('splitAmount').value;
+        
+        if(!item) return alert("Wybierz przedmiot z obrazka!");
+        if(!rawAmount) return alert("Wpisz kwotę sprzedaży (np. 1.2g)!");
+        if(!selectedBoss) return alert("Wybierz Szefa (dostaje 50%)!");
+        if(selectedTeam.length === 0) return alert("Zaznacz resztę ekipy!");
 
-        const halfAmount = Math.floor(totalAmount / 2);
-        const bossShare = halfAmount; 
-        const remainder = totalAmount - bossShare;
-        const teamPerPerson = Math.floor(remainder / teamCount);
+        // Przeliczanie kwoty
+        const total = parseGold(rawAmount); 
+        if(total <= 0) return alert("Nieprawidłowa kwota!");
 
-        const confirmMsg = `Przedmiot: ${item}\nSzef (${bossName}): ${formatGold(bossShare)}\nEkipa: Po ${formatGold(teamPerPerson)}\n\nZapisać?`;
+        const half = Math.floor(total / 2);
+        const bossShare = half; // Szef bierze połowę
+        const teamPerPerson = Math.floor(half / selectedTeam.length); // Reszta dzieli drugą połowę
 
-        if(confirm(confirmMsg)) {
+        const msg = `
+            Przedmiot: ${item}
+            Sprzedaż: ${formatGold(total)}
+            
+            👑 Szef (${selectedBoss}): ${formatGold(bossShare)}
+            ⚔️ Ekipa (${selectedTeam.length} os.): Po ${formatGold(teamPerPerson)} na głowę.
+            
+            Zapisać?
+        `;
+
+        if(confirm(msg)) {
             await addDoc(collection(db, "podzialy"), {
-                item: item, total: totalAmount, bossName: bossName, bossShare: bossShare,
-                teamPerPerson: teamPerPerson, people: peopleArr,
-                date: new Date().toISOString(), author: currentNick, uid: currentUser.uid
+                item: item, 
+                total: total, 
+                bossName: selectedBoss, 
+                bossShare: bossShare,
+                teamPerPerson: teamPerPerson, 
+                people: selectedTeam,
+                date: new Date().toISOString(), 
+                author: currentNick, 
+                uid: currentUser.uid
             });
             
-            document.getElementById('splitItem').value = "";
+            // Reset formularza
             document.getElementById('splitAmount').value = "";
-            document.getElementById('splitPeople').value = "";
-            document.getElementById('splitBoss').value = "";
+            document.querySelectorAll('.selected, .boss-active, .team-active').forEach(el => el.classList.remove('selected', 'boss-active', 'team-active'));
+            selectedBoss = null; 
+            selectedTeam = [];
+            
             if(window.playSound) window.playSound('coin');
         }
     };
 
-    // 3. USUWANIE WPISU
+    // 5. NASŁUCHIWANIE HISTORII I USUWANIE
+    function startSplitsListener() {
+        const q = query(collection(db, "podzialy"), orderBy("date", "desc"), limit(20));
+        splitsUnsub = onSnapshot(q, (snap) => {
+            const list = document.getElementById('splitsListContent');
+            list.innerHTML = "";
+            
+            snap.forEach(docSnap => {
+                const data = docSnap.data();
+                const date = new Date(data.date).toLocaleDateString();
+                
+                // Sprawdzamy uprawnienia do usuwania (Admin lub Autor wpisu)
+                const canDel = (currentUser && (currentUser.uid === ADMIN_UID || currentUser.uid === data.uid));
+                const delBtn = canDel ? `<span onclick="deleteSplit('${docSnap.id}')" style="cursor:pointer; float:right; font-size:1.2em;" title="Usuń wpis">🗑️</span>` : '';
+                
+                list.innerHTML += `
+                    <div style="background:#1a1a1a; padding:10px; margin-bottom:8px; border-left:3px solid #00ffff; font-size:0.9em; position:relative;">
+                        <div style="display:flex; justify-content:space-between; font-weight:bold; color:#fff; border-bottom:1px solid #333; padding-bottom:5px; margin-bottom:5px;">
+                            <span>${window.escapeHtml(data.item)} <span style="font-weight:normal; color:#666; font-size:0.8em;">(${date})</span></span> 
+                            ${delBtn}
+                        </div>
+                        <div style="margin-bottom:5px;">
+                            <span style="color:#00ffff;">👑 ${window.escapeHtml(data.bossName)}</span>: 
+                            <span style="color:gold; font-weight:bold;">${formatGold(data.bossShare)}</span>
+                        </div>
+                        <div style="font-size:0.85em; color:#aaa; margin-bottom:5px;">
+                            Ekipa: ${data.people.join(', ')}
+                        </div>
+                        <div style="text-align:right; color:#2ecc71; font-weight:bold;">
+                            Po ${formatGold(data.teamPerPerson)} na głowę
+                        </div>
+                    </div>`;
+            });
+            
+            if(snap.empty) list.innerHTML = "<div style='text-align:center; color:#555;'>Brak wpisów w historii.</div>";
+        });
+    }
+
     window.deleteSplit = async (id) => {
         if(confirm("Czy na pewno usunąć ten wpis z historii?")) {
             await deleteDoc(doc(db, "podzialy", id));
         }
     };
-
     // 4. NASŁUCHIWANIE I WYŚWIETLANIE
     function startSplitsListener() {
         const q = query(collection(db, "podzialy"), orderBy("date", "desc"), limit(20));
@@ -3211,6 +3374,7 @@ window.renderOffers = () => {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
