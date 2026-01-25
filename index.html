@@ -33,6 +33,17 @@
         .user-avatar { width: 35px; height: 35px; border-radius: 50%; border: 2px solid var(--gold); position: relative; }
         .logout-link { color: #ff6666; font-size: 0.75em; text-decoration: none; cursor: pointer; text-transform: uppercase; font-weight: bold; }
 
+
+		/* Styl dla Skrzynek */
+        .offer-card.type-chest { border-color: #8d6e63; box-shadow: inset 0 0 20px rgba(141, 110, 99, 0.2); }
+        .tag.chest { background: #8d6e63; color: #fff; }
+        
+        /* Wygląd wiersza w formularzu skrzynek */
+        .chest-row { display: flex; gap: 10px; margin-bottom: 10px; align-items: center; animation: slideIn 0.3s; }
+        .chest-row select { flex: 3; }
+        .chest-row input { flex: 1; text-align: center; }
+        .remove-chest-btn { background: var(--red); color: white; border: none; border-radius: 4px; cursor: pointer; padding: 0 10px; height: 42px; font-weight: bold; }
+		
         /* --- NOWY UKŁAD FILTRÓW --- */
         .filters-container {
             display: flex;
@@ -349,6 +360,7 @@
         <div class="filter-group">
             <span class="group-label">Usługi:</span>
             <button class="filter-btn" id="f-gold" onclick="setFilter('type', 'gold')">💰 Złoto</button>
+			<button class="filter-btn" id="f-chest" onclick="setFilter('type', 'chest')">📦 Skrzynki</button>
             <button class="filter-btn" id="f-exp" onclick="setFilter('type', 'exp')">🛡️ Exp/Pomoc</button>
             <button class="filter-btn" id="f-other" onclick="setFilter('type', 'other')">🎲 Inne</button>
         </div>
@@ -400,17 +412,23 @@
     <div id="addOfferPanel" class="panel" style="display: none;">
         <h3 style="margin-top:0; color:var(--gold); font-family:'MedievalSharp';">Wystaw Artefakt</h3>
         <div class="form-grid">
-<select id="offerType" onchange="toggleSpecialFields()">
+		<select id="offerType" onchange="toggleSpecialFields()">
                 <option value="sprzedam">Sprzedam</option>
                 <option value="kupie">Kupię</option>
                 <option value="zamienie">Zamienię</option>
                 <option value="gold">Sprzedaż Złota</option>
+				<option value="chest">Sprzedaż Skrzynek</option>
                 <option value="exp">Pomoc / Expienie</option>
                 <option value="other">Inne</option>
             </select>
             <input type="text" id="itemPrice" placeholder="Cena (wymagane m, g lub k, np. 150m)" maxlength="10" 
                    oninput="this.style.borderColor = /^\d+(\.\d+)?[kmg]$/i.test(this.value.trim().replace(',', '.')) ? 'var(--green)' : 'var(--red)'">
-            
+
+			<div id="chestBundleContainer" class="full-width" style="display:none; background:rgba(0,0,0,0.3); padding:10px; border-radius:8px; border:1px dashed #555;">
+                <div id="chestRowsArea"></div>
+                <button onclick="addChestRow()" class="small-btn" style="width:100%; margin-top:5px; border-style:dashed;">+ Dodaj kolejny rodzaj skrzyni</button>
+            </div>
+			
             <select id="sourceCategory" class="full-width" onchange="updateSourceList()">
                 <option value="">-- Wybierz Kategorię --</option>
                 <option value="herosi">Herosi</option>
@@ -602,6 +620,22 @@
     }
     setInterval(updateClock, 1000);
     updateClock();
+
+	// BAZA SKRZYNEK (Uzupełnij linki, jeśli brakuje)
+    const chestList = [
+        { name: "Skrzynia Mrocznego Patryka", img: "https://micc.garmory-cdn.cloud/obrazki/itemy/con/skrzynia_heros.gif" },
+        { name: "Skrzynia Karmazynowego Mściciela", img: "https://micc.garmory-cdn.cloud/obrazki/itemy/con/skrzynia_heros.gif" },
+        { name: "Skrzynia Złodzieja", img: "https://micc.garmory-cdn.cloud/obrazki/itemy/con/skrzynia_heros.gif" },
+        { name: "Skrzynia Złego Przewodnika", img: "https://micc.garmory-cdn.cloud/obrazki/itemy/con/skrzynia_heros.gif" },
+        { name: "Skrzynia Opętanego Paladyna", img: "https://micc.garmory-cdn.cloud/obrazki/itemy/con/skrzynia_heros.gif" },
+        { name: "Skrzynia Piekielnego Kościeja", img: "https://micc.garmory-cdn.cloud/obrazki/itemy/con/skrzynia_heros.gif" },
+        { name: "Skrzynia Koźca", img: "https://micc.garmory-cdn.cloud/obrazki/itemy/con/skrzynia_heros.gif" },
+        { name: "Skrzynia Kochanki Nocy", img: "https://micc.garmory-cdn.cloud/obrazki/itemy/con/skrzynia_heros.gif" },
+        { name: "Skrzynia Księcia Kasima", img: "https://micc.garmory-cdn.cloud/obrazki/itemy/con/skrzynia_heros.gif" },
+        { name: "Skrzynia Demonisa", img: "https://micc.garmory-cdn.cloud/obrazki/itemy/con/skrzynia_heros.gif" },
+        { name: "Skrzynia Lichwiarza", img: "https://micc.garmory-cdn.cloud/obrazki/itemy/con/skrzynia_heros.gif" }
+    ];
+	
     const monstersList = {
         herosi: [
             { name: "Mroczny Patryk (35 lvl)", img: "https://micc.garmory-cdn.cloud/obrazki/npc/her/bardzozlypatryk.gif" },
@@ -1608,30 +1642,68 @@ const lootTable = {
 
 	window.toggleSpecialFields = () => {
         const typeEl = document.getElementById('offerType');
-        if (!typeEl) return; // Zabezpieczenie, gdyby element nie istniał
+        if (!typeEl) return;
         
         const type = typeEl.value;
         const isSpecial = ['gold', 'exp', 'other'].includes(type);
-        const displayStyle = isSpecial ? 'none' : 'block';
+        const isChest = type === 'chest'; // Nowy typ
         
-        // Ukrywamy/pokazujemy zbędne selecty
-        const catSelect = document.getElementById('sourceCategory');
-        const sourceSelect = document.getElementById('itemSource');
-        const itemSelect = document.getElementById('itemSelect');
-        const searchBox = document.getElementById('sourceSearch'); // input szukania potwora
-        const itemSearch = document.getElementById('itemSearch'); // input szukania przedmiotu
-
-        if(catSelect) catSelect.style.display = displayStyle;
-        if(sourceSelect) sourceSelect.style.display = displayStyle;
-        if(itemSelect) itemSelect.style.display = displayStyle;
-        if(searchBox) searchBox.style.display = displayStyle;
-        if(itemSearch) itemSearch.style.display = displayStyle;
+        // Ukrywamy standardowe, jeśli to specjalne LUB skrzynki
+        const displayStyle = (isSpecial || isChest) ? 'none' : 'block';
         
-        // Ukrywamy podgląd, jeśli przełączamy na specjale (bo tam nie ma obrazka z bazy)
-        if(isSpecial) {
-            const livePreview = document.getElementById('livePreview');
-            if(livePreview) livePreview.style.display = 'none';
+        document.getElementById('sourceCategory').style.display = displayStyle;
+        document.getElementById('itemSource').style.display = displayStyle;
+        document.getElementById('itemSelect').style.display = displayStyle;
+        document.getElementById('sourceSearch').style.display = displayStyle;
+        document.getElementById('itemSearch').style.display = displayStyle;
+        
+        // Obsługa kontenera skrzynek
+        const chestDiv = document.getElementById('chestBundleContainer');
+        const standardName = document.getElementById('itemName');
+        const standardImg = document.getElementById('itemImg');
+        
+        if (isChest) {
+            chestDiv.style.display = 'block';
+            standardName.placeholder = "Nazwa wygeneruje się sama...";
+            standardName.disabled = true; // Blokujemy, bo skrypt sam to wypełni
+            standardImg.style.display = 'none'; // Ukrywamy input obrazka, bo weźmiemy go z bazy
+            document.getElementById('livePreview').style.display = 'none';
+            // Jeśli pusto, dodaj pierwszy wiersz
+            if(document.getElementById('chestRowsArea').innerHTML === "") window.addChestRow();
+        } else {
+            chestDiv.style.display = 'none';
+            standardName.disabled = false;
+            standardName.placeholder = "Nazwa przedmiotu";
+            standardImg.style.display = 'block';
+            if(isSpecial) {
+                 document.getElementById('livePreview').style.display = 'none';
+            }
         }
+    };
+
+	window.addChestRow = () => {
+        const area = document.getElementById('chestRowsArea');
+        const rowId = Date.now(); // Unikalne ID
+        
+        let optionsHtml = `<option value="">-- Wybierz skrzynię --</option>`;
+        chestList.forEach(c => {
+            optionsHtml += `<option value="${c.name}" data-img="${c.img}">${c.name}</option>`;
+        });
+
+        const div = document.createElement('div');
+        div.className = 'chest-row';
+        div.id = `row-${rowId}`;
+        div.innerHTML = `
+            <select class="chest-select">${optionsHtml}</select>
+            <input type="number" class="chest-qty" placeholder="Ilość" min="1" value="1">
+            <button class="remove-chest-btn" onclick="removeChestRow('${rowId}')">✕</button>
+        `;
+        area.appendChild(div);
+    };
+
+    window.removeChestRow = (id) => {
+        const row = document.getElementById(`row-${id}`);
+        if(row) row.remove();
     };
 	
     window.renderBestiary = (category) => {
@@ -1939,6 +2011,7 @@ const lootTable = {
 			if (data.type === 'gold') typeClass = "type-gold";
             if (data.type === 'exp') typeClass = "type-exp";
             if (data.type === 'other') typeClass = "type-other";
+			if (data.type === 'chest') typeClass = "type-chest";
 
             const tooltipHtml = getTooltipHtml(data.name, data.img);
             const displayName = data.name.replace(/\s*\([^)]*\)$/, "");
@@ -2032,49 +2105,87 @@ const lootTable = {
     });
     window.addOffer = async () => {
         const type = document.getElementById('offerType').value;
+        const isChest = type === 'chest';
         const isSpecial = ['gold', 'exp', 'other'].includes(type);
         
         const sel = document.getElementById('itemSource');
         const priceInput = document.getElementById('itemPrice');
         const priceVal = priceInput.value.trim().replace(',', '.'); 
         
-        // Walidacja przeciwnika TYLKO dla zwykłych ofert
-        if(!isSpecial && !sel.value) return window.alert("Błąd: Wybierz przeciwnika z listy!");
-        
+        // Walidacja ceny
         const pricePattern = /^\d+(\.\d+)?[kmg]$/i;
         if (!priceVal) { return window.alert("Błąd: Podaj cenę!"); }
-        if (!pricePattern.test(priceVal)) { return window.alert("Błąd formatu! Cena MUSI kończyć się literą k, m lub g (np. 500k, 150m, 1.2g)."); }
+        if (!pricePattern.test(priceVal)) { return window.alert("Błąd ceny! Użyj k, m lub g."); }
 
-        // Ustawiamy "fake" dane dla ofert specjalnych, żeby baza się nie sypała
-        const finalSource = isSpecial ? (type === 'gold' ? 'Kantor' : 'Ogłoszenie') : sel.value;
-        const finalImg = isSpecial ? '' : (sel.options[sel.selectedIndex]?.dataset.img || '');
+        let finalName = document.getElementById('itemName').value;
+        let finalImg = document.getElementById('itemImg').value;
+        let finalSource = sel.value;
+        let finalSourceImg = sel.options[sel.selectedIndex]?.dataset.img || '';
 
+        // --- LOGIKA DLA SKRZYNEK ---
+        if (isChest) {
+            const rows = document.querySelectorAll('.chest-row');
+            if (rows.length === 0) return window.alert("Dodaj przynajmniej jedną skrzynkę!");
+            
+            let chestSummary = [];
+            let firstImg = "";
+            
+            // Zbieramy dane z wierszy
+            for (let row of rows) {
+                const select = row.querySelector('.chest-select');
+                const qty = row.querySelector('.chest-qty').value;
+                const name = select.value;
+                
+                if (!name || qty < 1) return window.alert("Uzupełnij wszystkie pola skrzynek!");
+                
+                // Zapisujemy pierwszy obrazek jako główny obrazek oferty
+                if (!firstImg) firstImg = select.options[select.selectedIndex].dataset.img;
+                
+                chestSummary.push(`${qty}x ${name.replace('Skrzynia ', '')}`); // Skracamy nazwę w opisie
+            }
+            
+            finalName = "Zestaw: " + chestSummary.join(', ');
+            finalImg = firstImg; // Obrazek pierwszej skrzynki
+            finalSource = "Skrzynki Herosów"; // Kategoria
+            finalSourceImg = "https://micc.garmory-cdn.cloud/obrazki/itemy/con/skrzynia_heros.gif"; // Ikonka kategorii
+        } 
+        // --- LOGIKA DLA INNYCH ---
+        else if (isSpecial) {
+            finalName = document.getElementById('itemName').value || (type === 'gold' ? 'Złoto' : 'Usługa');
+            finalSource = type === 'gold' ? 'Kantor' : 'Ogłoszenie';
+        } 
+        else {
+            // Zwykły przedmiot
+            if (!sel.value) return window.alert("Wybierz przeciwnika!");
+        }
+
+        // Dodawanie do bazy
         await addDoc(collection(db, "oferty"), {
             userId: currentUser.uid, 
             nick: currentNick, 
             avatar: currentUser.photoURL,
             type: type,
-            name: document.getElementById('itemName').value || (type === 'gold' ? 'Złoto' : 'Usługa'),
+            name: finalName,
             price: priceVal.toLowerCase(), 
             source: finalSource, 
-            sourceImg: finalImg,
+            sourceImg: finalSourceImg,
             desc: document.getElementById('itemDesc').value,
-            img: document.getElementById('itemImg').value,
+            img: finalImg,
             date: new Date().toISOString(), 
             reservedBy: null
         });
+        
         window.playSound('coin');
         window.alert("Dodano ofertę!");
         
         // Reset formularza
         document.getElementById('itemPrice').value = "";
-        document.getElementById('itemPrice').style.borderColor = "#333"; 
         document.getElementById('itemName').value = "";
         document.getElementById('itemImg').value = "";
         document.getElementById('itemDesc').value = "";
+        document.getElementById('chestRowsArea').innerHTML = ""; // Czyścimy wiersze skrzynek
         document.getElementById('livePreview').style.display = 'none';
         
-        // Reset widoczności pól
         document.getElementById('offerType').value = 'sprzedam';
         window.toggleSpecialFields();
     };
@@ -2178,6 +2289,7 @@ const lootTable = {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
