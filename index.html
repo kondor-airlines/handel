@@ -358,6 +358,41 @@
         .offer-card.is-sold:hover { transform: none; }
         .sold-stamp { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-15deg); font-size: 2em; font-weight: 800; color: #fff; border: 4px solid #fff; padding: 10px 20px; border-radius: 10px; z-index: 10; opacity: 0.8; pointer-events: none; text-shadow: 0 0 10px #000; letter-spacing: 2px; }
         .filter-btn#f-archive.active { background: #555 !important; color: #fff !important; border-color: #999 !important; }
+
+		/* --- TABLICA OGŁOSZEŃ --- */
+        .announcement-board {
+            max-width: 900px;
+            margin: 0 auto 25px auto;
+            background: linear-gradient(180deg, rgba(40, 0, 0, 0.8), rgba(20, 0, 0, 0.9));
+            border: 2px solid #8B0000; /* Ciemnoczerwona ramka */
+            border-radius: 8px;
+            padding: 20px;
+            position: relative;
+            box-shadow: 0 0 20px rgba(139, 0, 0, 0.3);
+            display: none; /* Ukryte domyślnie, pokaże się jak będzie wpis */
+            animation: slideDown 0.5s ease-out;
+        }
+        .ann-header {
+            display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 1px solid #551111; padding-bottom: 10px; margin-bottom: 10px;
+        }
+        .ann-title {
+            color: #ff6666; font-family: 'MedievalSharp'; font-size: 1.4em; letter-spacing: 1px;
+            text-transform: uppercase; text-shadow: 0 0 10px rgba(255, 0, 0, 0.3);
+        }
+        .ann-text {
+            font-size: 1.1em; line-height: 1.6; color: #ddd; white-space: pre-wrap; /* Zachowuje entery */
+        }
+        .ann-meta {
+            font-size: 0.8em; color: #777; margin-top: 15px; text-align: right; font-style: italic;
+        }
+        .edit-ann-btn {
+            background: none; border: 1px solid #555; color: #aaa; cursor: pointer;
+            padding: 5px 10px; border-radius: 5px; font-size: 0.9em; transition: 0.3s;
+        }
+        .edit-ann-btn:hover { background: #fff; color: #000; }
+        
+        @keyframes slideDown { from { transform: translateY(-20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 		
         @keyframes shine { 0% { left: -150%; } 100% { left: 150%; } }
         @keyframes cardAppear { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
@@ -404,6 +439,15 @@
         </div>
     </header>
 
+	<div id="announcementBoard" class="announcement-board">
+        <div class="ann-header">
+            <span class="ann-title">📢 Obwieszczenie Klanowe</span>
+            <button id="editAnnBtn" class="edit-ann-btn" style="display:none;" onclick="openAnnModal()">EDYTUJ</button>
+        </div>
+        <div id="annContent" class="ann-text">Ładowanie treści...</div>
+        <div id="annMeta" class="ann-meta"></div>
+    </div>
+	
     <div class="filters-container">
         <div class="filter-group">
             <span class="group-label">Handel:</span>
@@ -576,7 +620,18 @@
             <h3 style="color:var(--red); font-family:'MedievalSharp'; margin:0;">Zeszyt Dłużników</h3>
             <button onclick="document.getElementById('debtsModal').style.display='none'" style="background:none; border:none; color:#888; font-size:1.5em; cursor:pointer;">✕</button>
         </div>
-        
+
+		<div id="annModal" style="display: none; position: fixed; z-index: 10020; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.9); align-items: center; justify-content: center;">
+    <div style="background: #1a1a1a; padding: 25px; border: 2px solid #ff6666; border-radius: 12px; width: 90%; max-width: 500px;">
+        <h3 style="color:#ff6666; margin-top:0;">Edytuj Ogłoszenie</h3>
+        <textarea id="annInputText" rows="6" style="width:100%; margin-bottom:15px; background:#000; color:#eee; border:1px solid #444; padding:10px;" placeholder="Wpisz treść ogłoszenia..."></textarea>
+        <div style="display:flex; gap:10px;">
+            <button onclick="saveAnnouncement()" class="action-btn" style="background:#8B0000; color:white;">OPUBLIKUJ</button>
+            <button onclick="document.getElementById('annModal').style.display='none'" style="background:#333; color:white; border:none; padding:10px; border-radius:6px; cursor:pointer;">ANULUJ</button>
+        </div>
+    </div>
+</div>
+		
         <div style="background:rgba(0,0,0,0.3); padding:10px; border-radius:8px; margin-bottom:10px; display:grid; grid-template-columns: 1fr 1fr; gap:5px;">
             <input type="text" id="debtWho" placeholder="Kto pożyczył? (Nick)" style="padding:8px;">
             <input type="text" id="debtAmount" placeholder="Ile? (np. 100m)" style="padding:8px;">
@@ -701,6 +756,78 @@
     let composeTarget = {};
     let isMuted = false;
 
+	// --- TABLICA OGŁOSZEŃ ---
+    let annUnsub = null;
+
+    // Funkcja nasłuchująca na zmiany w ogłoszeniu
+    function startAnnouncementListener() {
+        // Bierzemy zawsze dokument o ID 'main' z kolekcji 'ogloszenia'
+        annUnsub = onSnapshot(doc(db, "ogloszenia", "main"), (docSnap) => {
+            const board = document.getElementById('announcementBoard');
+            const content = document.getElementById('annContent');
+            const meta = document.getElementById('annMeta');
+            const editBtn = document.getElementById('editAnnBtn');
+
+            // Pokaż przycisk edycji tylko adminowi
+            if (currentNick === ADMIN_NICK) {
+                editBtn.style.display = 'block';
+            }
+
+            if (docSnap.exists()) {
+                const data = docSnap.data();
+                if (data.text && data.text.trim().length > 0) {
+                    board.style.display = 'block'; // Pokaż tablicę tylko jak jest treść
+                    content.innerText = data.text;
+                    const date = new Date(data.date).toLocaleString();
+                    meta.innerText = `Opublikował: ${data.author} | ${date}`;
+                } else {
+                    // Jeśli treść pusta, ukryj dla zwykłych, pokaż dla admina żeby mógł dodać
+                    board.style.display = (currentNick === ADMIN_NICK) ? 'block' : 'none';
+                    if(currentNick === ADMIN_NICK) {
+                        content.innerHTML = "<i>(Brak ogłoszeń. Kliknij Edytuj, aby coś napisać)</i>";
+                        meta.innerText = "";
+                    }
+                }
+            } else {
+                // Dokument nie istnieje (pierwsze uruchomienie)
+                board.style.display = (currentNick === ADMIN_NICK) ? 'block' : 'none';
+                if(currentNick === ADMIN_NICK) {
+                    content.innerHTML = "<i>(Brak ogłoszeń. Kliknij Edytuj, aby utworzyć pierwsze)</i>";
+                }
+            }
+        });
+    }
+
+    window.openAnnModal = () => {
+        const currentText = document.getElementById('annContent').innerText;
+        // Jeśli to tekst zastępczy, wyczyść input
+        if(currentText.includes("(Brak ogłoszeń")) {
+            document.getElementById('annInputText').value = "";
+        } else {
+            document.getElementById('annInputText').value = currentText;
+        }
+        document.getElementById('annModal').style.display = 'flex';
+    };
+
+    window.saveAnnouncement = async () => {
+        const txt = document.getElementById('annInputText').value;
+        
+        // Zapisujemy pod stałym ID "main", żeby zawsze nadpisywać to samo ogłoszenie
+        await setDoc(doc(db, "ogloszenia", "main"), {
+            text: txt,
+            author: currentNick,
+            date: new Date().toISOString()
+        });
+
+        document.getElementById('annModal').style.display = 'none';
+        window.playSound('coin');
+        window.alert("Ogłoszenie zaktualizowane!");
+    };
+
+    // Dodaj uruchomienie nasłuchu przy starcie (tam gdzie masz startMailListener)
+    // Znajdź w kodzie: if(user) { ... } i dodaj tam:
+    // startAnnouncementListener();
+	
     // --- SOUND SYSTEM ---
     const sounds = {
         click: document.getElementById('snd-click'),
@@ -2277,6 +2404,7 @@ window.renderOffers = () => {
     onAuthStateChanged(auth, async (user) => {
         currentUser = user;
         if(user) {
+			
             const ref = doc(db, "users", user.uid);
             const snap = await getDoc(ref);
             if(snap.exists()) {
@@ -2297,6 +2425,7 @@ window.renderOffers = () => {
             document.getElementById('addOfferPanel').style.display = 'none'; 
             startMailListener();
             startHeartbeat();
+			startAnnouncementListener(); // <--- DODAJ TO
         } else {
             document.getElementById('googleLoginBtn').style.display = 'flex';
             document.getElementById('userProfile').style.display = 'none';
@@ -2682,6 +2811,7 @@ window.renderOffers = () => {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
