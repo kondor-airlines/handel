@@ -2544,7 +2544,7 @@ window.renderOffers = () => {
             let bondingIcon = "";
 			const hideBondingFor = ['gold', 'chest', 'exp', 'other'];
 			
-            if (!hideBondingFor.includes(data.type)) {
+            if (!hideBondingFor.includes(data.type) && !isSkrytka)) {
                 if (data.bonding === 'unbound') {
                     bondingIcon = '<span title="Przedmiot Odwiązany" style="margin-right:5px; text-shadow:0 0 10px var(--gold); cursor:help;">🔓</span>';
                 } else {
@@ -3510,6 +3510,7 @@ function startSplitHistory() {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
