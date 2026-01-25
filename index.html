@@ -2130,7 +2130,7 @@ window.toggleSpecialFields = () => {
     const standardImg = document.getElementById('itemImg');
     const preview = document.getElementById('livePreview');
 
-    // --- KLUCZOWA POPRAWKA: Resetowanie ukrytych wyborów ---
+    // Resetowanie ukrytych wyborów przy zmianie trybu
     if (isSpecial || isChest) {
         sourceCategory.value = ""; 
         itemSource.innerHTML = '<option value="">-- Przeciwnik --</option>';
@@ -2141,20 +2141,21 @@ window.toggleSpecialFields = () => {
         itemSearch.value = "";
     }
 
-    // Sterowanie widocznością pól standardowych
+    // Widoczność pól standardowych
     sourceCategory.style.display = displayStyle;
     itemSource.style.display = displayStyle;
     itemSelect.style.display = displayStyle;
     sourceSearch.style.display = displayStyle;
     itemSearch.style.display = displayStyle;
-	if (bondingSelect) bondingSelect.style.display = (isSpecial || isChest) ? 'none' : 'block';
+    if (bondingSelect) bondingSelect.style.display = (isSpecial || isChest) ? 'none' : 'block';
+
     if (isChest) {
         if(chestDiv) chestDiv.style.display = 'block';
         standardName.placeholder = "Nazwa wygeneruje się sama...";
         standardName.disabled = true;
-        standardName.value = ""; // Czyścimy nazwę przy wejściu w skrzynki
+        standardName.value = ""; 
         standardImg.style.display = 'none';
-        standardImg.value = "";  // Czyścimy link przy wejściu w skrzynki
+        standardImg.value = "";  
         preview.style.display = 'none';
         if(document.getElementById('chestRowsArea')?.innerHTML === "") window.addChestRow();
     } 
@@ -2169,6 +2170,18 @@ window.toggleSpecialFields = () => {
         document.getElementById('previewIcon').src = standardImg.value;
         document.getElementById('previewName').innerText = "Sprzedaż Złota";
     } 
+    else if (type === 'exp') {
+        // --- LOGIKA DLA EXP / POMOC (Tunia) ---
+        if(chestDiv) chestDiv.style.display = 'none';
+        standardName.disabled = false;
+        standardName.value = "Pomoc / Expienie";
+        standardImg.style.display = 'block';
+        standardImg.value = "https://micc.garmory-cdn.cloud/obrazki/npc/kob/tunia.gif";
+        
+        preview.style.display = 'flex';
+        document.getElementById('previewIcon').src = standardImg.value;
+        document.getElementById('previewName').innerText = "Pomoc / Expienie";
+    }
     else if (type === 'other') {
         if(chestDiv) chestDiv.style.display = 'none';
         standardName.disabled = false;
@@ -2187,15 +2200,17 @@ window.toggleSpecialFields = () => {
         standardName.placeholder = "Nazwa przedmiotu";
         standardImg.style.display = 'block';
         
-        // Czyścimy autouzupełnianie Złota/Innych
-        if(standardName.value === "Sprzedaż Złota" || standardName.value === "Inne") {
+        // Rozszerzone czyszczenie autouzupełniania
+        const specialNames = ["Sprzedaż Złota", "Inne", "Pomoc / Expienie"];
+        if(specialNames.includes(standardName.value)) {
             standardName.value = "";
         }
-        if(standardImg.value.includes('zloto8.gif') || standardImg.value.includes('pyl-sakryfikacji.gif')) {
+
+        const specialImgs = ["zloto8.gif", "pyl-sakryfikacji.gif", "tunia.gif"];
+        if(specialImgs.some(img => standardImg.value.includes(img))) {
             standardImg.value = "";
         }
         
-        // Ukrywamy podgląd (pokaże się po wybraniu itemu z listy)
         preview.style.display = 'none';
     }
 };
@@ -3493,6 +3508,7 @@ function startSplitHistory() {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
