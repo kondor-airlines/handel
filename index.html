@@ -2533,32 +2533,31 @@ window.renderOffers = () => {
                 // Ikona dla związanych (lekko szara, domyślna)
                 bondingIcon = '<span title="Przedmiot Związany" style="margin-right:5px; opacity: 0.5; cursor:help;">🔒</span>';
             }
-            const isHeros = monstersList.herosi.some(m => m.name === data.source);
+			const isHeros = monstersList.herosi.some(m => m.name === data.source);
             const isE2 = monstersList.e2.some(m => m.name === data.source);
             const isFav = favs.includes(data.id);
             const isOwner = currentUser && data.userId === currentUser.uid;
             const monsterLvl = extractLevel(data.source);
+            const isSkrytka = data.name.toLowerCase().includes('(s)');
 
-// --- FILTRY SPECJALNE ---
+            // --- FILTRY SPECJALNE ---
             if(currentFilters.type === 'fav' && !isFav) return;
             if(currentFilters.type === 'mine' && !isOwner) return;
 
-            // --- NOWA LOGIKA TYPÓW I SKRZYNEK ---
-            const isSkrytka = data.name.toLowerCase().includes('(s)');
-
+            // --- LOGIKA TYPÓW I SKRZYNEK (POPRAWIONA) ---
             if (currentFilters.type === 'chest') {
-                // Jeśli wybraliśmy filtr "Skrzynki", pokazujemy typ 'chest' LUB przedmioty z (s)
                 if (data.type !== 'chest' && !isSkrytka) return;
             } 
-            else if (currentFilters.type !== 'all' && currentFilters.type !== 'archive') {
-                // Jeśli wybraliśmy konkretny filtr (np. Sprzedam, Złoto), sprawdzamy zgodność typu
-                if (data.type !== currentFilters.type) return;
+            // Dodajemy mine i fav do listy wyjątków, których nie sprawdzamy pod kątem typu
+            else if (currentFilters.type !== 'all' && 
+                     currentFilters.type !== 'archive' && 
+                     currentFilters.type !== 'mine' && 
+                     currentFilters.type !== 'fav') {
                 
-                // DODATKOWO: Jeśli jesteśmy w filtrze "Sprzedam", ukrywamy przedmioty (s), 
-                // żeby nie robiły bałaganu i lądowały TYLKO w Skrzynkach
+                if (data.type !== currentFilters.type) return;
+
                 if (currentFilters.type === 'sprzedam' && isSkrytka) return;
             }
-            // ------------------------------------
 
             if(currentFilters.cat === 'herosi' && !isHeros) return;
             if(currentFilters.cat === 'e2' && !isE2) return;
@@ -3486,6 +3485,7 @@ function startSplitHistory() {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
