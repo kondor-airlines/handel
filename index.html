@@ -3012,8 +3012,10 @@ window.renderOffers = () => {
 
 	// --- SYSTEM PODZIAŁÓW 2.0 (GRAFICZNY) ---
     let splitUnsub = null;
-    let s_Boss = null;
-    let s_Team = [];
+// --- SYSTEM PODZIAŁÓW 2.0 (ZMIENNE STANU) ---
+    // Upewnij się, że te dwie linie są wyżej niż funkcje, które ich używają
+    var s_Bosses = []; 
+    var s_Team = [];
 
     window.openSplitModal = () => {
         document.getElementById('splitModal').style.display = 'flex';
@@ -3251,6 +3253,7 @@ window.saveFinalSplit = async () => {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
