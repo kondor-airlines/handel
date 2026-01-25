@@ -475,7 +475,13 @@
                     <span style="margin-right: 5px; font-size: 0.8em;">STATY</span> 🔍
                 </button>
             </div>
-            <input type="text" id="itemImg" placeholder="Link do obrazka" class="full-width" oninput="manualImgPreview()">
+            <div class="full-width" style="display:flex; gap:10px; align-items:center;">
+                <input type="text" id="itemImg" placeholder="Link do obrazka (lub wybierz plik obok ➡)" oninput="manualImgPreview()" style="flex-grow:1;">
+                <label class="small-btn" style="width:auto; padding:0 15px; cursor:pointer; height:42px; display:flex; align-items:center; justify-content:center; background:#222; border:1px solid #444;" title="Wgraj z komputera">
+                    📂
+                    <input type="file" id="fileUpload" accept="image/*" style="display:none" onchange="handleFileUpload(this)">
+                </label>
+            </div>
             <textarea id="itemDesc" placeholder="Dodatkowy opis..." class="full-width" maxlength="150" rows="2"></textarea>
             <button class="action-btn full-width" onclick="addOffer()">Opublikuj na Targu</button>
         </div>
@@ -1842,6 +1848,29 @@ const lootTable = {
             document.getElementById('previewIcon').src = url;
             document.getElementById('previewName').innerText = document.getElementById('itemName').value || "Twój przedmiot";
         }
+
+	// --- OBSŁUGA UPLOADU Z DYSKU (Base64) ---
+    window.handleFileUpload = (input) => {
+        if (input.files && input.files[0]) {
+            const file = input.files[0];
+            
+            // Zabezpieczenie: Max 800KB (Firebase ma limit 1MB na cały dokument)
+            if (file.size > 800 * 1024) {
+                return window.alert("Obrazek jest za duży! Maksymalnie 800KB. Zmniejsz go lub użyj linku.");
+            }
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                // Wpisujemy kod obrazka do pola tekstowego
+                document.getElementById('itemImg').value = e.target.result;
+                // Odpalamy podgląd
+                window.manualImgPreview();
+                window.alert("Wczytano plik!");
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+		
     };
     function getTooltipHtml(dataName, dataImg) {
         const cleanName = dataName.replace(/\s*\([^)]*\)$/, "");
@@ -2348,3 +2377,4 @@ const lootTable = {
 <div id="toast-container"></div>
 </body>
 </html>
+
