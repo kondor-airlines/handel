@@ -519,22 +519,18 @@
     <div style="background: #1a1a1a; padding: 25px; border: 2px solid var(--gold); border-radius: 12px; width: 90%; max-width: 400px; position:relative;">
         <button onclick="document.getElementById('calcModal').style.display='none'" style="position:absolute; top:10px; right:15px; background:none; border:none; color:#888; cursor:pointer; font-size:1.2em;">✕</button>
         <h3 style="color:var(--gold); font-family:'MedievalSharp'; margin-top:0; text-align:center;">Kalkulator Łupu</h3>
+        
         <label style="color:#aaa; font-size:0.8em;">Kwota sprzedaży (np. 1.2g, 150m)</label>
         <input type="text" id="calcAmount" placeholder="np. 1.2g lub 1200m" style="margin-bottom:10px;">
-        <div class="calc-inputs">
-            <div style="flex:1;">
-                <label style="color:#aaa; font-size:0.8em;">Liczba osób (razem)</label>
-                <input type="number" id="calcPlayers" value="2" min="1">
-            </div>
-            <div style="flex:1;">
-                <label style="color:#aaa; font-size:0.8em;">Podatek klanowy %</label>
-                <input type="number" id="calcTax" value="0" min="0" max="100">
-            </div>
-        </div>
-        <label class="toggle-wrapper">
-            <input type="checkbox" id="calcFinderRule" checked> 
-            <span>Zasada Znalazcy (50%)</span>
+        
+        <label style="color:#aaa; font-size:0.8em;">Liczba osób (razem)</label>
+        <input type="number" id="calcPlayers" value="2" min="1" style="margin-bottom:15px;">
+
+        <label class="toggle-wrapper" style="border: 1px solid var(--purple);">
+            <input type="checkbox" id="calcWykrywajka"> 
+            <span>👁️ Wykrywajka (2x 25% + Reszta)</span>
         </label>
+
         <button onclick="calculateLoot()" class="action-btn" style="background:var(--green);">OBLICZ PODZIAŁ</button>
         <div id="calcOutput" class="calc-result" style="display:none;">Wynik...</div>
     </div>
@@ -1796,38 +1792,64 @@ const lootTable = {
         const rawAmount = document.getElementById('calcAmount').value;
         const amount = parseGold(rawAmount);
         const totalPlayers = parseInt(document.getElementById('calcPlayers').value) || 1;
-        const tax = parseFloat(document.getElementById('calcTax').value) || 0;
-        const useFinderRule = document.getElementById('calcFinderRule').checked;
+        const useWykrywajka = document.getElementById('calcWykrywajka').checked;
         const resultBox = document.getElementById('calcOutput');
+
         if(amount <= 0 || totalPlayers < 1) {
             resultBox.style.display = 'block';
             resultBox.style.color = 'var(--red)';
             resultBox.innerText = "Podaj poprawną kwotę i liczbę graczy!";
             return;
         }
-        const taxAmount = Math.floor(amount * (tax / 100));
-        const netAmount = amount - taxAmount;
+
         const format = (num) => num.toLocaleString('pl-PL');
         let html = `<div style="font-size:0.8em; color:#888; border-bottom:1px solid #333; padding-bottom:5px; margin-bottom:10px;">
-            Sprzedaż: <b>${format(amount)}</b><br>
-            - Podatek (${tax}%): ${format(taxAmount)}<br>
-            = Do podziału: <b style="color:#eee">${format(netAmount)}</b>
+            Sprzedaż: <b>${format(amount)}</b>
         </div>`;
-        if (useFinderRule && totalPlayers > 1) {
-            const finderShare = Math.floor(netAmount * 0.5);
-            const remainder = netAmount - finderShare;
-            const othersCount = totalPlayers - 1;
-            const othersShare = Math.floor(remainder / othersCount);
+
+        if (useWykrywajka) {
+            if (totalPlayers < 2) {
+                resultBox.style.display = 'block';
+                resultBox.style.color = 'var(--red)';
+                resultBox.innerText = "Do trybu Wykrywajki potrzeba min. 2 graczy!";
+                return;
+            }
+
+            // LOGIKA WYKRYWAJKI:
+            // 50% puli idzie dla 2 osób (Wykrywacz + Znalazca), czyli po 25% na głowę.
+            const vipPool = Math.floor(amount * 0.50);
+            const vipShare = Math.floor(vipPool / 2); // To jest 25% całości
+
+            // Drugie 50% puli idzie dla reszty (Liczba osób - 2)
+            const regularPool = amount - vipPool;
+            const regularCount = totalPlayers - 2;
+
             html += `
-                <div>👑 Znalazca (50%): <br><span class="highlight-text" style="font-size:1.3em;">${format(finderShare)} złota</span></div>
-                <div style="margin-top:10px;">👥 Reszta ekipy (${othersCount} os.): <br><span style="color:#4fffa8; font-weight:bold;">${format(othersShare)} złota</span> <small>/os.</small></div>
+                <div style="margin-bottom:10px; padding-bottom:10px; border-bottom:1px dashed #444;">
+                    🕵️ <b>Wykrywacz i Znalazca</b> (2 os.): <br>
+                    <span class="highlight-text" style="font-size:1.3em; color:var(--purple);">${format(vipShare)} złota</span> <small>/os.</small>
+                </div>
             `;
+
+            if (regularCount > 0) {
+                const regularShare = Math.floor(regularPool / regularCount);
+                html += `
+                    <div>👥 <b>Reszta ekipy</b> (${regularCount} os.): <br>
+                    <span style="color:#4fffa8; font-weight:bold; font-size:1.3em;">${format(regularShare)} złota</span> <small>/os.</small>
+                    </div>
+                `;
+            } else {
+                html += `<div style="color:#666; font-size:0.8em;">(Brak innych graczy do podziału reszty)</div>`;
+            }
+
         } else {
-            const share = Math.floor(netAmount / totalPlayers);
+            // Zwykły podział (Sprawiedliwy)
+            const share = Math.floor(amount / totalPlayers);
             html += `
                 <div>Dla każdego (${totalPlayers} os.): <br><span class="highlight-text" style="font-size:1.4em;">${format(share)} złota</span></div>
             `;
         }
+
         resultBox.style.display = 'block';
         resultBox.style.color = '#eee';
         resultBox.innerHTML = html;
@@ -2134,6 +2156,7 @@ const lootTable = {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
