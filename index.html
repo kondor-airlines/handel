@@ -2104,13 +2104,24 @@ const lootTable = {
         window.playSound('coin');
     };
     window.setFilter = (type, val) => {
+        // Reset kategorii jeśli klikamy to samo, ustawiamy typ jeśli to typ
         if (type === 'cat' && currentFilters.cat === val) currentFilters.cat = 'all';
         else currentFilters[type] = val;
+
         document.querySelectorAll('.filter-btn').forEach(b => {
             const id = b.id.replace('f-', '');
-            if(type==='type' && ['all','sprzedam','kupie','zamienie','gold','exp','other','fav','mine'].includes(id)) b.classList.toggle('active', id===currentFilters.type);
-            if(type==='cat' && ['herosi','e2'].includes(id)) b.classList.toggle('active', id===currentFilters.cat);
+            
+            // Tuta była lista, w której brakowało 'archive'
+            // Dodałem 'archive' oraz 'chest' do tablicy
+            if(type==='type' && ['all','sprzedam','kupie','zamienie','gold','chest','exp','other','fav','mine','archive'].includes(id)) {
+                b.classList.toggle('active', id === currentFilters.type);
+            }
+            
+            if(type==='cat' && ['herosi','e2'].includes(id)) {
+                b.classList.toggle('active', id === currentFilters.cat);
+            }
         });
+        
         window.renderOffers();
     };
 window.renderOffers = () => {
@@ -2672,6 +2683,7 @@ window.renderOffers = () => {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
