@@ -3156,13 +3156,11 @@ window.renderSplitLoot = (mobName) => {
     }
 
     // Pomocniczy format (bo w Twoim kodzie parseGold już jest)
-		function s_formatGold(n) {
-        // Zabezpieczenie: jeśli n nie jest liczbą, zwróć "0" zamiast błędu
+function s_formatGold(n) {
         if (n === undefined || n === null || isNaN(n)) return "0";
-        
-        if(n >= 1000000000) return (n/1000000000).toFixed(2) + 'G';
-        if(n >= 1000000) return (n/1000000).toFixed(1) + 'm';
-        if(n >= 1000) return (n/1000).toFixed(0) + 'k';
+        if (n >= 1000000000) return (n/1000000000).toFixed(2) + 'G';
+        if (n >= 1000000) return (n/1000000).toFixed(1) + 'm';
+        if (n >= 1000) return (n/1000).toFixed(0) + 'k';
         return n.toLocaleString();
     }
 
@@ -3245,42 +3243,62 @@ window.saveFinalSplit = async () => {
         }
     };
 
-    function startSplitHistory() {
+function startSplitHistory() {
         const q = query(collection(db, "podzialy"), orderBy("date", "desc"), limit(15));
+        
         splitUnsub = onSnapshot(q, (snap) => {
             const cont = document.getElementById('splitHistoryContent');
+            if (!cont) return;
+
             cont.innerHTML = "<h4 style='color:#555; margin-bottom:10px; border-bottom:1px solid #222; padding-bottom:5px;'>Ostatnie wypłaty:</h4>";
             
-           snap.forEach(docSnap => {
-        const d = docSnap.data();
-        const id = docSnap.id;
-        
-        // Zabezpieczenie canDelete
-        const canDelete = (currentUser && (currentUser.uid === ADMIN_UID || currentUser.uid === d.authorId));
-        const delBtn = canDelete ? `<span class="del-split-icon" onclick="deleteSplit('${id}')">🗑️</span>` : '';
+            snap.forEach((docSnap) => {
+                const d = docSnap.data();
+                const id = docSnap.id;
+                
+                // Sprawdzamy uprawnienia (Admin lub Autor)
+                const canDelete = (currentUser && (currentUser.uid === ADMIN_UID || currentUser.uid === d.authorId));
+                const delBtn = canDelete ? `<span class="del-split-icon" onclick="deleteSplit('${id}')" style="margin-left:10px; cursor:pointer;">🗑️</span>` : '';
 
-        // Ustawiamy 0 jeśli pole w bazie jest puste (dla starych wpisów)
-        const bShare = d.bossShareEach || 0;
-        const tShare = d.teamShareEach || 0;
-        const teamNames = d.team ? d.team.join(", ") : "Brak ekipy";
+                // Pobieramy kwoty (zabezpieczenie przed starymi wpisami)
+                const bShare = d.bossShareEach || 0;
+                const tShare = d.teamShareEach || 0;
+                const teamNames = (d.team && Array.isArray(d.team)) ? d.team.join(", ") : "Brak ekipy";
 
-        const bossInfo = d.bosses && d.bosses.length > 0 
-            ? `<div style="color:gold;">👑 VIP: ${d.bosses.join(", ")} (po ${s_formatGold(bShare)})</div>` 
-            : '';
+                // Informacja o VIPach (jeśli tryb to nie "equal")
+                const bossInfo = (d.bosses && d.bosses.length > 0) 
+                    ? `<div style="color:gold; font-size:0.9em; margin-top:3px;">👑 VIP: ${d.bosses.join(", ")} (po ${s_formatGold(bShare)})</div>` 
+                    : '';
 
-        cont.innerHTML += `
-            <div style="background:rgba(255,255,255,0.03); padding:10px; margin-bottom:8px; border-left:3px solid #00ffff; display:flex; gap:10px; align-items:center;">
-                <img src="${d.itemImg || 'https://micc.garmory-cdn.cloud/obrazki/itemy/nas/pyt.gif'}" style="width:32px; height:32px;">
-                <div style="flex:1;">
-                    <div style="display:flex; justify-content:space-between; font-weight:bold;">
-                        <span>${d.item || "Nieznany przedmiot"}</span>
-                        ${delBtn}
-                    </div>
-                    ${bossInfo}
-                    <div style="color:#aaa; font-size:0.85em;">⚔️ Ekipa: ${teamNames} (po <b>${s_formatGold(tShare)}</b>)</div>
-                </div>
-            </div>`;
-    });
+                cont.innerHTML += `
+                    <div style="background:rgba(255,255,255,0.03); padding:10px; margin-bottom:10px; border-left:3px solid #00ffff; border-radius: 4px; display:flex; gap:12px; align-items:center;">
+                        <div style="width:40px; height:40px; background:#000; border:1px solid #444; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                            <img src="${d.itemImg || 'https://micc.garmory-cdn.cloud/obrazki/itemy/nas/pyt.gif'}" style="max-width:32px; max-height:32px;" onerror="this.src='https://micc.garmory-cdn.cloud/obrazki/itemy/nas/pyt.gif'">
+                        </div>
+
+                        <div style="flex-grow:1; font-size:0.85em;">
+                            <div style="display:flex; justify-content:space-between; align-items:center;">
+                                <b style="color:#fff;">${d.item || "Nieznany łup"}</b>
+                                <div>
+                                    <small style="color:#444;">${new Date(d.date).toLocaleDateString()}</small>
+                                    ${delBtn}
+                                </div>
+                            </div>
+                            
+                            ${bossInfo}
+                            
+                            <div style="color:#888; font-size:0.9em; margin-top:2px;">
+                                <span style="color:#00ffff;">⚔️</span> ${teamNames} 
+                                <b style="color:#2ecc71; margin-left:5px;">+${s_formatGold(tShare)}</b>
+                            </div>
+                        </div>
+                    </div>`;
+            });
+
+            if (snap.empty) {
+                cont.innerHTML += "<div style='color:#444; text-align:center; padding:10px;'>Historia jest pusta</div>";
+            }
+        });
     }
 
     window.deleteSplit = async (id) => {
@@ -3299,6 +3317,7 @@ window.saveFinalSplit = async () => {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
