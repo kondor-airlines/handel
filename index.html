@@ -2524,9 +2524,14 @@ window.renderOffers = () => {
             // Jeśli tryb TO archiwum, a przedmiot NIE JEST sprzedany -> ukryj
             if (currentFilters.type === 'archive' && !isSold) return;
 
+           // Logika wyświetlania kłódek
             let bondingIcon = "";
             if (data.bonding === 'unbound') {
-                bondingIcon = '<span title="Przedmiot Odwiązany" style="margin-right:5px; text-shadow:0 0 10px var(--gold);">🔓</span>';
+                // Ikona dla odwiązanych (świecąca na złoto)
+                bondingIcon = '<span title="Przedmiot Odwiązany" style="margin-right:5px; text-shadow:0 0 10px var(--gold); cursor:help;">🔓</span>';
+            } else {
+                // Ikona dla związanych (lekko szara, domyślna)
+                bondingIcon = '<span title="Przedmiot Związany" style="margin-right:5px; opacity: 0.5; cursor:help;">🔒</span>';
             }
             const isHeros = monstersList.herosi.some(m => m.name === data.source);
             const isE2 = monstersList.e2.some(m => m.name === data.source);
@@ -3481,6 +3486,7 @@ function startSplitHistory() {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
