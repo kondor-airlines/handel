@@ -1486,12 +1486,7 @@ const lootTable = {
         window.renderBestiary(cat);
     };
 
-    window.renderBestiary = (category) => {
-
-		// --- UKRYWANIE PÓL DLA ZŁOTA/EXP ---
-    // --- UKRYWANIE PÓL DLA ZŁOTA/EXP (NAPRAWIONE) ---
-   // --- UKRYWANIE PÓL DLA ZŁOTA/EXP (NAPRAWIONE) ---
-    window.toggleSpecialFields = () => {
+	window.toggleSpecialFields = () => {
         const typeEl = document.getElementById('offerType');
         if (!typeEl) return; // Zabezpieczenie, gdyby element nie istniał
         
@@ -1518,6 +1513,9 @@ const lootTable = {
             if(livePreview) livePreview.style.display = 'none';
         }
     };
+	
+    window.renderBestiary = (category) => {
+    
 		
         const container = document.getElementById('bestiaryContent');
         container.innerHTML = "";
@@ -2014,6 +2012,7 @@ const lootTable = {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
