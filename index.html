@@ -3018,7 +3018,16 @@ window.renderOffers = () => {
     var s_Team = [];
 
     window.openSplitModal = () => {
+        // 1. Pokazujemy okno
         document.getElementById('splitModal').style.display = 'flex';
+        
+        // 2. Resetujemy tryb na "Równy podział" przy każdym otwarciu (opcjonalnie)
+        document.getElementById('splitMode').value = 'equal';
+        
+        // 3. KLUCZOWE: Wywołujemy aktualizację UI, żeby ukryć/pokazać sekcje
+        window.updateSplitUI(); 
+        
+        // 4. Ładujemy resztę danych
         loadSplitUsers();
         if(!splitUnsub) startSplitHistory();
     };
@@ -3317,6 +3326,7 @@ function startSplitHistory() {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
