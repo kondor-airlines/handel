@@ -67,6 +67,17 @@
         .offer-card.type-sprzedam { border-color: var(--green); box-shadow: inset 0 0 20px rgba(46, 204, 113, 0.1); }
         .offer-card.type-kupie { border-color: var(--blue); box-shadow: inset 0 0 20px rgba(52, 152, 219, 0.1); }
         .offer-card.type-zamienie { border-color: var(--orange); box-shadow: inset 0 0 20px rgba(230, 126, 34, 0.1); }
+		/* Nowe style dla Złota, Expa i Innych */
+        .offer-card.type-gold { border-color: #ffd700;
+            box-shadow: inset 0 0 20px rgba(255, 215, 0, 0.1); }
+        .offer-card.type-exp { border-color: #9b59b6;
+            box-shadow: inset 0 0 20px rgba(155, 89, 182, 0.1); }
+        .offer-card.type-other { border-color: #7f8c8d;
+            box-shadow: inset 0 0 20px rgba(127, 140, 141, 0.1); }
+
+        .tag.gold { background: #ffd700; color: #000; }
+        .tag.exp { background: #9b59b6; color: #fff; }
+        .tag.other { background: #7f8c8d; color: #fff; }
 
         .tag { position: absolute; top: 10px; left: 10px; padding: 4px 8px; border-radius: 4px; font-size: 0.65em; font-weight: 800; text-transform: uppercase; z-index: 2; }
         .tag.sprzedam { background: var(--green); color: #000; }
@@ -220,6 +231,9 @@
         <button class="filter-btn" id="f-sprzedam" onclick="setFilter('type', 'sprzedam')">Sprzedam</button>
         <button class="filter-btn" id="f-kupie" onclick="setFilter('type', 'kupie')">Kupię</button>
         <button class="filter-btn" id="f-zamienie" onclick="setFilter('type', 'zamienie')">Zamienię</button>
+		<button class="filter-btn" id="f-gold" onclick="setFilter('type', 'gold')">💰 Złoto</button>
+        <button class="filter-btn" id="f-exp" onclick="setFilter('type', 'exp')">🛡️ Exp/Pomoc</button>
+        <button class="filter-btn" id="f-other" onclick="setFilter('type', 'other')">🎲 Inne</button>
         <button class="filter-btn" id="f-mine" onclick="setFilter('type', 'mine')">👤 Moje</button>
         <button class="filter-btn" id="f-fav" onclick="setFilter('type', 'fav')">❤️ Ulubione</button>
         <span style="color:#444; margin: 0 10px;">|</span>
@@ -268,6 +282,9 @@
                 <option value="sprzedam">Sprzedam</option>
                 <option value="kupie">Kupię</option>
                 <option value="zamienie">Zamienię</option>
+				<option value="gold">Sprzedaż Złota</option>
+                <option value="exp">Pomoc / Expienie</option>
+                <option value="other">Inne</option>
             </select>
             <input type="text" id="itemPrice" placeholder="Cena (wymagane m, g lub k, np. 150m)" maxlength="10" 
                    oninput="this.style.borderColor = /^\d+(\.\d+)?[kmg]$/i.test(this.value.trim().replace(',', '.')) ? 'var(--green)' : 'var(--red)'">
@@ -1669,7 +1686,7 @@ const lootTable = {
         else currentFilters[type] = val;
         document.querySelectorAll('.filter-btn').forEach(b => {
             const id = b.id.replace('f-', '');
-            if(type==='type' && ['all','sprzedam','kupie','zamienie','fav','mine'].includes(id)) b.classList.toggle('active', id===currentFilters.type);
+            if(type==='type' && ['all','sprzedam','kupie','zamienie','gold','exp','other','fav','mine'].includes(id)) b.classList.toggle('active', id===currentFilters.type);
             if(type==='cat' && ['herosi','e2'].includes(id)) b.classList.toggle('active', id===currentFilters.cat);
         });
         window.renderOffers();
@@ -1723,6 +1740,9 @@ const lootTable = {
             if (data.type === 'sprzedam') typeClass = "type-sprzedam";
             if (data.type === 'kupie') typeClass = "type-kupie";
             if (data.type === 'zamienie') typeClass = "type-zamienie";
+			if (data.type === 'gold') typeClass = "type-gold";
+            if (data.type === 'exp') typeClass = "type-exp";
+            if (data.type === 'other') typeClass = "type-other";
 
             const tooltipHtml = getTooltipHtml(data.name, data.img);
             const displayName = data.name.replace(/\s*\([^)]*\)$/, "");
