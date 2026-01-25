@@ -1490,6 +1490,7 @@ const lootTable = {
 
 		// --- UKRYWANIE PÓL DLA ZŁOTA/EXP ---
     // --- UKRYWANIE PÓL DLA ZŁOTA/EXP (NAPRAWIONE) ---
+   // --- UKRYWANIE PÓL DLA ZŁOTA/EXP (NAPRAWIONE) ---
     window.toggleSpecialFields = () => {
         const typeEl = document.getElementById('offerType');
         if (!typeEl) return; // Zabezpieczenie, gdyby element nie istniał
@@ -1502,19 +1503,18 @@ const lootTable = {
         const catSelect = document.getElementById('sourceCategory');
         const sourceSelect = document.getElementById('itemSource');
         const itemSelect = document.getElementById('itemSelect');
+        const searchBox = document.getElementById('sourceSearch'); // input szukania potwora
+        const itemSearch = document.getElementById('itemSearch'); // input szukania przedmiotu
 
         if(catSelect) catSelect.style.display = displayStyle;
         if(sourceSelect) sourceSelect.style.display = displayStyle;
         if(itemSelect) itemSelect.style.display = displayStyle;
+        if(searchBox) searchBox.style.display = displayStyle;
+        if(itemSearch) itemSearch.style.display = displayStyle;
         
-        // Ukrywamy pola wyszukiwania i podgląd, jeśli przełączamy na specjale
+        // Ukrywamy podgląd, jeśli przełączamy na specjale (bo tam nie ma obrazka z bazy)
         if(isSpecial) {
-            const sourceSearch = document.getElementById('sourceSearch');
-            const itemSearch = document.getElementById('itemSearch');
             const livePreview = document.getElementById('livePreview');
-            
-            if(sourceSearch) sourceSearch.style.display = 'none';
-            if(itemSearch) itemSearch.style.display = 'none';
             if(livePreview) livePreview.style.display = 'none';
         }
     };
@@ -2014,6 +2014,7 @@ const lootTable = {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
