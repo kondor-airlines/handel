@@ -865,6 +865,17 @@
             </div>
 
             <div id="chestBundleContainer" class="full-width" style="display:none; background:rgba(0,0,0,0.3); padding:10px; border-radius:8px; border:1px dashed #555;">
+                
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:10px;">
+                    <select id="chestAction" style="background:#222; color:var(--gold); font-weight:bold; padding:10px; border:1px solid #444; border-radius:4px;">
+                        <option value="Sprzedam">📦 Sprzedam</option>
+                        <option value="Kupię">💰 Kupię</option>
+                    </select>
+                    <input type="text" id="chestPrice" placeholder="Cena (np. 100m, 20 PLN)" 
+                           oninput="validatePriceInput(this)" 
+                           style="border:1px solid #444;">
+                </div>
+
                 <div id="chestRowsArea"></div>
                 <button onclick="addChestRow()" class="small-btn" style="width:100%; margin-top:5px; border-style:dashed;">+ Dodaj kolejny rodzaj skrzyni</button>
             </div>
@@ -3059,7 +3070,7 @@ window.renderOffers = () => {
         let finalName = document.getElementById('itemName').value;
         let finalImg = document.getElementById('itemImg').value;
         let finalSource = sel.value;
-        // Pobieramy obrazek potwora, ale zaraz go nadpiszemy jeśli to oferta specjalna
+        // Pobieramy obrazek potwora, ale zaraz go nadpiszemy dla ofert specjalnych
         let finalSourceImg = sel.options[sel.selectedIndex]?.dataset.img || ''; 
         let finalBonding = document.getElementById('itemBonding').value;
 
@@ -3072,7 +3083,6 @@ window.renderOffers = () => {
             }
             finalPrice = inp.value.trim().toLowerCase();
             if (!sel.value) return alert("Wybierz potwora z listy!");
-            // Tutaj finalSourceImg zostaje takie jak wybrano (Heros/E2)
         }
 
         // 2. Logika dla "KUPIĘ"
@@ -3105,7 +3115,7 @@ window.renderOffers = () => {
             finalName = `${action} Złoto`; 
             finalPrice = amount;           
             finalSource = "Kantor";
-            finalSourceImg = ""; // <--- NAPRAWA: Usuwamy obrazek herosa/potwora
+            finalSourceImg = ""; 
             finalBonding = "bound";
         }
 
@@ -3113,7 +3123,7 @@ window.renderOffers = () => {
         else if (type === 'exp') {
             finalPrice = "Do dogadania";
             finalSource = "Usługa";
-            finalSourceImg = ""; // <--- NAPRAWA
+            finalSourceImg = ""; 
             finalBonding = "bound";
         }
 
@@ -3121,29 +3131,39 @@ window.renderOffers = () => {
         else if (type === 'other') {
             finalPrice = "Inne";
             finalSource = "Ogłoszenie";
-            finalSourceImg = ""; // <--- NAPRAWA
+            finalSourceImg = ""; 
             finalBonding = "bound";
         }
 
-        // 7. Logika dla "SKRZYNKI"
+        // 7. Logika dla "SKRZYNKI" (ZAKTUALIZOWANA)
         else if (type === 'chest') {
             const rows = document.querySelectorAll('.chest-row');
-            if (rows.length === 0) return alert("Dodaj skrzynki!");
+            if (rows.length === 0) return alert("Dodaj przynajmniej jedną skrzynkę!");
+            
+            const chestAction = document.getElementById('chestAction').value; // Sprzedam / Kupię
+            const chestPriceVal = document.getElementById('chestPrice').value.trim();
+
             let chestSummary = [];
             let imagesArray = [];
+            
             for (let row of rows) {
                 const select = row.querySelector('.chest-select');
                 const qty = row.querySelector('.chest-qty').value;
-                if (!select.value || qty < 1) return alert("Uzupełnij skrzynki!");
+                
+                if (!select.value || qty < 1) return alert("Uzupełnij wszystkie pola skrzynek!");
+                
+                // Tworzymy ładny opis: "5x Skrzynia..." -> "5x Mrocznego Patryka"
                 chestSummary.push(`${qty}x ${select.value.replace('Skrzynia ', '')}`);
+                
                 const u = select.options[select.selectedIndex].dataset.img;
                 if(u) imagesArray.push(u);
             }
-            finalName = "Zestaw: " + chestSummary.join(', ');
+
+            finalName = `${chestAction}: ` + chestSummary.join(', '); // np. "Kupię: 5x Patryka, 2x Złodzieja"
             finalImg = imagesArray.join('|');
-            finalPrice = "Zestaw"; 
+            finalPrice = chestPriceVal || "Do dogadania"; 
             finalSource = "Skrzynki Herosów";
-            finalSourceImg = ""; // <--- NAPRAWA
+            finalSourceImg = ""; 
             finalBonding = "bound";
         }
 
@@ -3157,7 +3177,7 @@ window.renderOffers = () => {
             name: finalName,
             price: finalPrice, 
             source: finalSource, 
-            sourceImg: finalSourceImg, // Teraz będzie puste dla złota
+            sourceImg: finalSourceImg,
             desc: document.getElementById('itemDesc').value,
             img: finalImg,
             date: new Date().toISOString(), 
@@ -3167,13 +3187,17 @@ window.renderOffers = () => {
         window.playSound('coin');
         window.alert("Dodano ofertę! ✅");
         
-        // Reset
+        // Reset formularza
         document.getElementById('addOfferPanel').style.display = 'none';
         document.getElementById('toggleAddBtn').innerText = '+ WYSTAW ARTEFAKT';
         
-        // Resetujemy formularz do stanu początkowego
+        // Reset do stanu początkowego
         document.getElementById('offerType').value = 'sprzedam';
-        window.toggleSpecialFields(); 
+        window.toggleSpecialFields();
+        
+        // Czyścimy inputy skrzynek
+        document.getElementById('chestRowsArea').innerHTML = "";
+        document.getElementById('chestPrice').value = "";
     };
     
     window.reserveOffer = async (id) => { if(!currentNick) return alert("Zaloguj się!"); await updateDoc(doc(db, "oferty", id), { reservedBy: currentNick }); window.playSound('click'); };
@@ -3959,6 +3983,7 @@ function startSplitHistory() {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
