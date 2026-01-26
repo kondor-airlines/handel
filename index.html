@@ -4682,7 +4682,7 @@ window.joinJackpot = async () => {
                 timeOffset = docSnap.readTime.toMillis() - new Date().getTime(); 
             }
 
-            // Aktualizujemy UI tylko jeśli użytkownik nadal patrzy na ten pokój
+            // Aktualizuj UI tylko jeśli nadal tu jesteśmy
             if (currentTier === listeningTier) {
                 renderJackpotUI(data);
             }
@@ -4691,11 +4691,10 @@ window.joinJackpot = async () => {
             let startMillis = 0;
 
             if (data.startTime) {
-                 // Obsługa różnych formatów czasu Firebase
                  startMillis = (data.startTime.toMillis ? data.startTime.toMillis() : (data.startTime.seconds ? data.startTime.seconds*1000 : new Date(data.startTime).getTime()));
             }
 
-            // Obsługa Timera (pokazywanie/ukrywanie)
+            // --- Obsługa Timera ---
             if(data.status === 'open' && startMillis > 0) {
                 jackpotEndTime = startMillis + (JP_GAME_TIME * 1000);
                 if(currentTier === listeningTier) timerEl.style.display = 'block';
@@ -4704,25 +4703,24 @@ window.joinJackpot = async () => {
                 if(currentTier === listeningTier) timerEl.style.display = 'none';
             }
 
-            // Start Animacji (Spinning)
+            // --- Obsługa Kręcenia ---
             if(data.status === 'spinning') {
                 if(currentTier === listeningTier) timerEl.style.display = 'none';
 
                 const roundId = startMillis.toString();
-                // Sprawdzamy czy już nie kręciliśmy tej rundy w tej sesji
                 if (processedSpins[listeningTier] !== roundId) {
                     processedSpins[listeningTier] = roundId;
+                    // Tu też upewniamy się, że przekazujemy listeningTier
                     spinTheWheel(data.winner, data.entries, listeningTier, data.winnerTotal);
                 }
             }
             
-            // Reset wizualny po zakończeniu (Open)
             if(data.status === 'open' && currentTier === listeningTier && document.getElementById('jackpotStrip').classList.contains('spun')) {
                  resetJackpotVisuals();
             }
         });
         
-        // PĘTLA ODLICZAJĄCA CZAS
+        // --- PĘTLA ODLICZAJĄCA CZAS ---
         if(jpTimerInterval) clearInterval(jpTimerInterval);
         
         jpTimerInterval = setInterval(() => {
@@ -4733,7 +4731,6 @@ window.joinJackpot = async () => {
              const timerEl = document.getElementById('jackpotTimer');
 
              if (diff > 0) {
-                 // Aktualizuj licznik tylko jak patrzymy na właściwy pokój
                  if(currentTier === listeningTier) {
                      let seconds = diff / 1000;
                      if (seconds > JP_GAME_TIME) seconds = JP_GAME_TIME;
@@ -4744,16 +4741,20 @@ window.joinJackpot = async () => {
                  
                  // Trigger losowania (tylko raz, gdy czas minie)
                  if (diff > -2000 && diff < 0) {
-                     // Pobieramy dane DLA ZAPAMIĘTANEGO POKOJU (listeningTier)
                      const activeConf = TIER_CONFIG[listeningTier];
                      
                      getDoc(doc(db, activeConf.db, "current")).then(snap => {
+                         // --- 🛑 NOWE ZABEZPIECZENIE (TO NAPRAWIA BŁĄD 400) 🛑 ---
+                         // Jeśli w międzyczasie zmieniłeś zakładkę, ignorujemy tę odpowiedź!
+                         if (currentTier !== listeningTier) return;
+                         // ---------------------------------------------------------
+
                          const d = snap.data();
-                         // Sprawdzamy czy nadal trzeba losować
                          if(d && d.status === 'open' && !d.winnerProcessing) {
-                             // KLUCZOWA ZMIANA: Przekazujemy listeningTier!
                              finalizeJackpot(listeningTier); 
                          }
+                     }).catch(err => {
+                         console.log("Ignoruję błąd timera w tle:", err);
                      });
                  }
              }
@@ -5173,5 +5174,6 @@ window.switchJackpotTier = (tier) => {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
