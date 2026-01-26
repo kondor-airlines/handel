@@ -204,13 +204,53 @@
             color: #fff !important;
         }
         
- 		@media (max-width: 768px) {
-            /* 1. Filtry na całą szerokość (Twój kod) */
+/* --- RWD: WYGLĄD NA TELEFONACH (POPRAWIONY) --- */
+        @media (max-width: 768px) {
+            /* 1. Filtry na całą szerokość */
             .filter-group {
                 border-radius: 12px; 
                 width: 100%;
             }
-		}
+
+            /* 2. Nagłówek - układ pionowy */
+            header { 
+                flex-wrap: wrap; 
+                justify-content: center; 
+                gap: 10px;
+            }
+            
+            h1 { 
+                white-space: normal; 
+                text-align: center; 
+                font-size: 1.8em;        
+                width: 100%; 
+            }
+            
+            /* 3. NAPRAWA PANELU UŻYTKOWNIKA */
+            .user-profile { 
+                margin-left: 0; 
+                width: 100%;             /* Panel na całą szerokość */
+                justify-content: center; /* Wyśrodkowanie elementów */
+                flex-wrap: wrap;         /* KLUCZOWE: Pozwala ikonkom spaść do nowej linii */
+                height: auto;            /* Panel rośnie w pionie, żeby pomieścić ikonki */
+                gap: 8px;                /* Odstępy między elementami */
+                padding: 10px;           /* Trochę więcej miejsca w środku */
+                margin-top: 10px;
+            }
+
+            /* Opcjonalnie: Nick i Wyloguj w osobnej linii na samym dole dla porządku */
+            .user-profile > div:last-child {
+                flex-basis: 100%;        /* Zajmuje całą szerokość */
+                text-align: center;      /* Wyśrodkowany tekst */
+                margin-top: 5px;
+                padding-top: 5px;
+                border-top: 1px solid rgba(255,255,255,0.1); /* Delikatna linia oddzielająca */
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                gap: 10px;
+            }
+        }
 
         .advanced-filters { display: flex; justify-content: center; gap: 15px; margin-bottom: 30px; flex-wrap: wrap; background: rgba(255, 255, 255, 0.02); padding: 10px; border-radius: 8px; border: 1px solid #333; align-items: center; }
         .filter-select { background: #0a0a0a; border: 1px solid #444; color: var(--gold); padding: 8px; border-radius: 5px; cursor: pointer; font-family: 'Montserrat', sans-serif; }
@@ -4008,6 +4048,7 @@ function startSplitHistory() {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
