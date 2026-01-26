@@ -1636,7 +1636,8 @@
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
     import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
-	import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, deleteDoc, doc, getDoc, setDoc, getDocs, updateDoc, where, limit, serverTimestamp, runTransaction } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";      apiKey: "AIzaSyApFYFkAghXreeX_xptg-PTCSxtPdiXYdA",
+	import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, deleteDoc, doc, getDoc, setDoc, getDocs, updateDoc, where, limit, serverTimestamp, runTransaction } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+	  apiKey: "AIzaSyApFYFkAghXreeX_xptg-PTCSxtPdiXYdA",
       authDomain: "targowisko-klanu.firebaseapp.com",
       projectId: "targowisko-klanu",
       storageBucket: "targowisko-klanu.firebasestorage.app",
@@ -4707,14 +4708,11 @@ function startSplitHistory() {
                 const data = sfDoc.data();
 
                 // PANCERNE SPRAWDZENIE:
-                // Jeśli status nie jest 'open' ALBO ktoś już przetwarza (winnerProcessing)
-                // to natychmiast przerywamy.
                 if (data.status !== 'open' || data.winnerProcessing) {
                     throw "Już wylosowano!"; // To przerywa transakcję
                 }
 
-                // --- LOSOWANIE ---
-                // Oznaczamy, że MY przetwarzamy (blokada dla innych)
+                // Oznaczamy, że MY przetwarzamy
                 transaction.update(jpRef, { winnerProcessing: true });
 
                 let total = 0;
@@ -4732,18 +4730,16 @@ function startSplitHistory() {
                     }
                 }
 
-                // Zapisujemy wynik w tej samej atomowej transakcji
+                // Zapisujemy wynik - UPEWNIJ SIĘ ŻE TU SĄ KLAMRY { }
                 transaction.update(jpRef, {
                     status: 'spinning',
                     winner: winner,
                     winnerTotal: total 
                 });
             });
-            console.log("Pomyślnie przeprowadzono losowanie (Transakcja).");
+            console.log("Pomyślnie przeprowadzono losowanie.");
         } catch (e) {
-            // Jeśli transakcja została odrzucona (bo ktoś był szybszy), to tutaj trafi
-            // To normalne, po prostu ignorujemy, bo to znaczy że gra już się toczy
-            console.log("Losowanie anulowane (ktoś był szybszy): ", e);
+            console.log("Losowanie anulowane (ktoś był szybszy lub błąd): ", e);
         }
     }
 
@@ -4985,6 +4981,7 @@ function startSplitHistory() {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
