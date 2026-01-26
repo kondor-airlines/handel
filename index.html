@@ -4362,6 +4362,7 @@ function startSplitHistory() {
     };
 
     // 1. Dołączanie do gry
+// 1. Dołączanie do gry (ZABEZPIECZENIE PRZED ZACIĘCIEM)
     window.joinJackpot = async () => {
         if(!currentUser) return alert("Zaloguj się!");
         const input = document.getElementById('jackpotBetAmount');
@@ -4369,36 +4370,68 @@ function startSplitHistory() {
 
         if(amount < 100000) return alert("Minimum 100k wpisowego!");
 
-        // Pobieramy aktualny stan gry
         const jpRef = doc(db, "jackpot", "current");
         const snap = await getDoc(jpRef);
         
         let data = { status: 'open', entries: [], endTime: null };
         if(snap.exists()) data = snap.data();
 
-        if(data.status !== 'open') return alert("Runda trwa lub się zakończyła! Poczekaj.");
+        // --- FIX: SAMONAPRAWA ---
+        // Sprawdzamy, czy gra się nie zacięła (np. minęło 20 sek od końca czasu, a status nadal nie jest 'open')
+        const now = new Date().getTime();
+        let isStuck = false;
+        
+        if (data.endTime) {
+            const timePassedSinceEnd = now - new Date(data.endTime).getTime();
+            // Jeśli minęło 20 sekund od końca odliczania, a gra nadal wisi -> RESET
+            if (timePassedSinceEnd > 20000) {
+                isStuck = true;
+                console.log("Wykryto zacięty Jackpot - resetuję automatycznie.");
+            }
+        }
 
-        // Dodajemy wpis
+        // Jeśli gra nie jest 'open' I NIE JEST zacięta -> Blokuj
+        if(data.status !== 'open' && !isStuck) {
+            return alert("Runda trwa lub trwa losowanie! Poczekaj chwilę.");
+        }
+
+        // Jeśli była zacięta, czyścimy dane przed dodaniem gracza
+        if (isStuck) {
+            data.entries = [];
+            data.endTime = null;
+            data.status = 'open';
+        }
+        // ------------------------
+
         const newEntry = {
             uid: currentUser.uid,
             nick: currentNick,
             avatar: currentUser.photoURL,
             amount: amount,
-            color: getRandomColor() // Przypisujemy kolor graczowi
+            color: getRandomColor()
         };
 
         const newEntries = [...(data.entries || []), newEntry];
         
-        let updateData = { entries: newEntries };
+        // Budujemy obiekt do aktualizacji
+        let updateData = { 
+            entries: newEntries,
+            status: 'open',         // Wymuszamy open w razie zacięcia
+            winnerProcessing: false // Resetujemy blokady
+        };
 
-        // LOGIKA CZASU: Jeśli to drugi gracz, uruchom licznik
-        // Liczymy unikalnych graczy
+        // LOGIKA CZASU: Startuje tylko, gdy jest min. 2 graczy i czas nie był ustawiony
         const uniquePlayers = new Set(newEntries.map(e => e.uid)).size;
         
         if (uniquePlayers >= 2 && !data.endTime) {
             const end = new Date();
             end.setSeconds(end.getSeconds() + JP_GAME_TIME);
             updateData.endTime = end.toISOString();
+        } 
+        // Jeśli był zacięty, musimy wyczyścić stary czas (chyba że właśnie wbił 2 gracz)
+        else if (isStuck && uniquePlayers < 2) {
+            updateData.endTime = null;
+            updateData.winner = null;
         }
 
         await setDoc(jpRef, updateData, { merge: true });
@@ -4632,4 +4665,5 @@ function startSplitHistory() {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
