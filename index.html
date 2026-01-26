@@ -1588,20 +1588,20 @@
                 </div>
             </div>
 
-            <div style="display:flex; flex-direction:column; gap:10px; height:100%;">
+            <div style="display:flex; flex-direction:column; gap:10px; height:100%; overflow:hidden;">
                 
-                <div style="background:rgba(0,0,0,0.3); border:1px solid #333; border-radius:8px; display:flex; flex-direction:column; flex:1; overflow:hidden;">
-                    <div style="padding:8px; border-bottom:1px solid #333; font-weight:bold; color:#aaa; font-size:0.7em; background:rgba(0,0,0,0.2);">
+                <div style="background:rgba(0,0,0,0.3); border:1px solid #333; border-radius:8px; display:flex; flex-direction:column; flex:1; min-height: 0; overflow:hidden;">
+                    <div style="padding:8px; border-bottom:1px solid #333; font-weight:bold; color:#aaa; font-size:0.7em; background:rgba(0,0,0,0.2); flex-shrink: 0;">
                         OBECNA RUNDA
                     </div>
-                    <div id="jackpotPlayersList" style="overflow-y:auto; padding:5px;"></div>
+                    <div id="jackpotPlayersList" style="overflow-y:auto; padding:5px; flex-grow: 1;"></div>
                 </div>
 
-                <div style="background:rgba(0,0,0,0.3); border:1px solid #333; border-radius:8px; display:flex; flex-direction:column; flex:1; overflow:hidden;">
-                    <div style="padding:8px; border-bottom:1px solid #333; font-weight:bold; color:#aaa; font-size:0.7em; background:rgba(0,0,0,0.2);">
+                <div style="background:rgba(0,0,0,0.3); border:1px solid #333; border-radius:8px; display:flex; flex-direction:column; flex:1; min-height: 0; overflow:hidden;">
+                    <div style="padding:8px; border-bottom:1px solid #333; font-weight:bold; color:#aaa; font-size:0.7em; background:rgba(0,0,0,0.2); flex-shrink: 0;">
                         OSTATNI ZWYCIĘZCY
                     </div>
-                    <div id="jackpotHistoryList" style="overflow-y:auto; padding:5px;">
+                    <div id="jackpotHistoryList" style="overflow-y:auto; padding:5px; flex-grow: 1;">
                         <div style="text-align:center; color:#555; padding:10px; font-size:0.8em;">Ładowanie...</div>
                     </div>
                 </div>
@@ -4762,48 +4762,25 @@ function startSplitHistory() {
     }
 
 		function showWinnerScreen(winner) {
-        // --- KONFIGURACJA PODATKU ---
-        const TAX_PERCENT = 0.05; // 0.05 to 5%, 0.10 to 10% (Zmień tutaj wedle uznania)
-        // -----------------------------
-
-        // Efekty wizualne
+        // Efekty wizualne (konfetti)
         for(let i=0; i<20; i++) createEmber(); 
         
         document.getElementById('jackpotWinnerDisplay').style.display = 'block';
         document.getElementById('winnerNick').innerText = winner.nick;
         
-        // Pobieramy tekst puli (np. "1.5m") i zamieniamy na liczbę
+        // Pobieramy tekst puli (np. "1.5m")
         const totalStr = document.getElementById('jackpotTotalPool').innerText;
-        const totalVal = parseGold(totalStr);
-
-        // Matematyka
-        const taxVal = Math.floor(totalVal * TAX_PERCENT); // Kwota do oddania
-        const netVal = totalVal - taxVal; // Kwota na rękę
-
-        // Wyświetlanie w okienku (Używamy innerHTML dla kolorów)
-        document.getElementById('winAmount').innerHTML = `
-            <div style="font-size:0.9em; color:#aaa; margin-bottom:5px;">Pula całkowita: <span style="color:var(--gold)">${totalStr}</span></div>
-            
-            <div style="border-top:1px dashed #444; border-bottom:1px dashed #444; padding:10px 0; margin:10px 0;">
-                <div style="color:#ff6666; font-size:1.1em; font-weight:bold;">
-                    DO ODDANIA (${TAX_PERCENT*100}%):<br>
-                    💸 ${s_formatGold(taxVal)}
-                </div>
-            </div>
-
-            <div style="color:var(--green); font-size:0.9em;">
-                Na czysto dla Ciebie:<br>
-                <b>${s_formatGold(netVal)}</b>
-            </div>
-        `;
+        
+        // Wyświetlamy prosty komunikat
+        document.getElementById('winAmount').innerText = `Zgarnia: ${totalStr}`;
         
         // Tylko Zwycięzca wykonuje zapis (żeby uniknąć duplikatów)
         if(currentUser && currentUser.uid === winner.uid) { 
              
-             // 1. Wiadomość na czat (z informacją o podatku)
+             // 1. Wiadomość na czat (bez wzmianki o podatku)
              addDoc(collection(db, "chat"), {
                 nick: "System Jackpot",
-                text: `🎰 ${winner.nick} zgarnia pulę ${totalStr}! (Do oddania: ${s_formatGold(taxVal)})`,
+                text: `🎰 ${winner.nick} wygrywa pulę ${totalStr}!`,
                 type: 'roll',
                 date: new Date().toISOString()
             });
@@ -4892,6 +4869,7 @@ function startSplitHistory() {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
