@@ -4887,7 +4887,7 @@ async function finalizeJackpot() {
             ${debtorsListHtml}
         `;
         
-        // Zapis do bazy (Zwycięzca)
+        // Zapis do bazy (Tylko zwycięzca wykonuje operacje)
         if(currentUser && currentUser.uid === winner.uid) { 
              
              // 1. Czat
@@ -4898,7 +4898,7 @@ async function finalizeJackpot() {
                 date: new Date().toISOString()
             });
 
-            // 2. Historia (POPRAWIONE: Zapisujemy tylko raz do właściwego pokoju)
+            // 2. Historia
             const conf = TIER_CONFIG[currentTier]; 
             const debtsToSave = debts || {}; 
 
@@ -5055,6 +5055,7 @@ async function finalizeJackpot() {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
