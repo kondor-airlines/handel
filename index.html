@@ -1607,89 +1607,71 @@
         <div style="background: linear-gradient(90deg, #222, #000); padding: 10px 15px; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #333;">
             <div style="display:flex; align-items:center; gap:10px;">
                 <span style="font-size:1.5em;">🎰</span>
-                <div>
-                    <h3 style="color:var(--gold); margin:0; font-family:'MedievalSharp'; line-height:1;">Klanowy JACKPOT</h3>
-                </div>
+                <h3 style="color:var(--gold); margin:0; font-family:'MedievalSharp';">Klanowy JACKPOT</h3>
             </div>
             <div id="jackpotTimer" style="font-family:'MedievalSharp'; font-size:1.5em; color:#fff; text-shadow:0 0 10px red; display:none;">60.00</div>
             <button onclick="document.getElementById('jackpotModal').style.display='none'" style="background:none; border:none; color:#888; font-size:1.5em; cursor:pointer;">✕</button>
         </div>
 
         <div class="jp-tabs">
-            <div class="jp-tab active-low" onclick="switchJackpotTier('low')" id="tab-low">🟢 LOW (1m-100m)</div>
-            <div class="jp-tab" onclick="switchJackpotTier('medium')" id="tab-medium">🟡 MEDIUM (1m-500m)</div>
-            <div class="jp-tab" onclick="switchJackpotTier('high')" id="tab-high">🔴 NO LIMIT (max 10g)</div>
+            <div class="jp-tab active-low" onclick="switchJackpotTier('low')" id="tab-low">🟢 LOW</div>
+            <div class="jp-tab" onclick="switchJackpotTier('medium')" id="tab-medium">🟡 MEDIUM</div>
+            <div class="jp-tab" onclick="switchJackpotTier('high')" id="tab-high">🔴 NO LIMIT</div>
         </div>
 
         <div class="jackpot-rail">
             <div class="jackpot-pointer">▼</div>
-            <div class="jackpot-strip" id="jackpotStrip"></div>
+            <div id="jackpotStrip" class="jackpot-strip"></div>
         </div>
 
         <div class="jp-grid-container">
-            
-            <div>
-                <div style="background:rgba(255,255,255,0.05); padding:15px; border-radius:8px; margin-bottom:15px; text-align:center;">
+            <div style="display:flex; flex-direction:column; gap:10px;">
+                <div style="background:rgba(255,255,255,0.05); padding:15px; border-radius:8px; text-align:center;">
                     <div style="color:#aaa; font-size:0.8em; text-transform:uppercase;">Aktualna Pula (<span id="poolLabel">LOW</span>)</div>
-                    <div id="jackpotTotalPool" style="font-size:1.8em; color:var(--green); font-weight:bold; text-shadow:0 0 15px rgba(46, 204, 113, 0.4);">0</div>
+                    <div id="jackpotTotalPool" style="font-size:1.8em; color:var(--green); font-weight:bold;">0</div>
                 </div>
 
                 <div id="jackpotControls">
                     <label style="color:#888; font-size:0.8em;" id="limitLabel">Limit wpłaty: 1m - 100m</label>
                     <div style="display:flex; gap:5px; margin-top:5px;">
-                        <input type="text" id="jackpotBetAmount" placeholder="np. 50m" style="flex:1;">
-                        <button id="joinBtn" onclick="joinJackpot()" class="action-btn" style="flex:1; background:linear-gradient(to bottom, #ffd700, #b8860b); color:black; font-size:0.9em;">WCHODZĘ! 💰</button>
+                        <input type="text" id="jackpotBetAmount" placeholder="np. 50m">
+                        <button id="joinBtn" onclick="joinJackpot()" class="action-btn" style="background:var(--gold); color:black;">WCHODZĘ!</button>
                     </div>
                 </div>
-                
-                <div id="jackpotWinnerDisplay" style="display:none; text-align:center; padding:20px;">
-                    <h2 style="color:var(--gold); margin:0;">WYGRYWA:</h2>
-                    <div id="winnerNick" style="font-size:1.5em; font-weight:bold; color:#fff;">...</div>
-                    <div id="winAmount" style="color:var(--green);">...</div>
+
+                <div id="jackpotWinnerDisplay" style="display:none; text-align:center; padding:10px; background:rgba(255,215,0,0.05); border-radius:8px;">
+                    <h4 style="color:var(--gold); margin:0;">ZWYCIĘZCA:</h4>
+                    <div id="winnerNick" style="font-size:1.4em; font-weight:bold; color:#fff;">...</div>
+                    <div id="winAmount" style="color:var(--green); font-size:0.9em;">...</div>
                 </div>
             </div>
 
-            <div style="display:flex; flex-direction:column; gap:10px; height:100%; overflow:hidden;">
-                
-                <div class="jp-inner-box" style="background:rgba(0,0,0,0.3); border:1px solid #333; border-radius:8px; display:flex; flex-direction:column; flex:1; min-height:0; overflow:hidden;">
-                    <div style="padding:8px; border-bottom:1px solid #333; font-weight:bold; color:#aaa; font-size:0.7em; background:rgba(0,0,0,0.2); flex-shrink: 0;">
-                        OBECNA RUNDA
-                    </div>
-                    <div id="jackpotPlayersList" style="overflow-y:auto; padding:5px; flex-grow: 1;"></div>
+            <div style="display:flex; flex-direction:column; gap:10px; overflow:hidden;">
+                <div class="jp-inner-box" style="flex:1; overflow:hidden; display:flex; flex-direction:column; background:rgba(0,0,0,0.2); border-radius:8px;">
+                    <div style="padding:5px 10px; font-size:0.7em; color:#666; border-bottom:1px solid #222;">OBECNA RUNDA</div>
+                    <div id="jackpotPlayersList" style="flex:1; overflow-y:auto;"></div>
                 </div>
-
-                <div class="jp-inner-box" style="background:rgba(0,0,0,0.3); border:1px solid #333; border-radius:8px; display:flex; flex-direction:column; flex:1; min-height:0; overflow:hidden;">
-                    <div style="padding:8px; border-bottom:1px solid #333; font-weight:bold; color:#aaa; font-size:0.7em; background:rgba(0,0,0,0.2); flex-shrink: 0;">
-                        OSTATNI ZWYCIĘZCY
-                    </div>
-                    <div id="jackpotHistoryList" style="overflow-y:auto; padding:5px; flex-grow: 1;">
-                        <div style="text-align:center; color:#555; padding:10px; font-size:0.8em;">Ładowanie...</div>
-                    </div>
+                <div class="jp-inner-box" style="flex:1; overflow:hidden; display:flex; flex-direction:column; background:rgba(0,0,0,0.2); border-radius:8px;">
+                    <div style="padding:5px 10px; font-size:0.7em; color:#666; border-bottom:1px solid #222;">OSTATNI ZWYCIĘZCY</div>
+                    <div id="jackpotHistoryList" style="flex:1; overflow-y:auto;"></div>
                 </div>
-
-
+            </div>
         </div>
     </div>
 </div>
 
-						<div id="historyDetailsModal" style="display: none; position: fixed; z-index: 10070; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.95); align-items: center; justify-content: center; backdrop-filter: blur(5px);">
-    				<div style="background: #111; border: 2px solid #444; border-radius: 12px; width: 90%; max-width: 400px; padding: 20px; text-align: center; position: relative; box-shadow: 0 0 30px rgba(0,0,0,0.8);">
-        			<button onclick="document.getElementById('historyDetailsModal').style.display='none'" style="position: absolute; top: 10px; right: 15px; background: none; border: none; color: #888; font-size: 1.5em; cursor: pointer;">✕</button>
-
-        			<img id="histDetAvatar" src="" style="width: 80px; height: 80px; border-radius: 50%; border: 3px solid var(--gold); margin-bottom: 10px; object-fit: cover;">
-        
-        			<h3 id="histDetNick" style="color: var(--gold); margin: 5px 0; font-family: 'MedievalSharp';">Nick</h3>
-        			<div style="color: #666; font-size: 0.9em; margin-bottom: 15px;">Wygrał: <span id="histDetAmount" style="color: var(--green); font-weight: bold;">0</span></div>
-
-        			<div style="text-align: left; border-top: 1px dashed #333; padding-top: 10px; margin-top: 10px;">
-            		<div style="color: #aaa; font-size: 0.8em; margin-bottom: 5px; text-transform: uppercase;">Rozliczenie (Dłużnicy):</div>
-            		<div id="histDetList" style="max-height: 200px; overflow-y: auto; display: flex; flex-direction: column; gap: 5px; padding-right: 5px;">
-                </div>
+<div id="historyDetailsModal" style="display: none; position: fixed; z-index: 10070; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.95); align-items: center; justify-content: center; backdrop-filter: blur(5px);">
+    <div style="background: #111; border: 2px solid #444; border-radius: 12px; width: 90%; max-width: 400px; padding: 20px; text-align: center; position: relative;">
+        <button onclick="document.getElementById('historyDetailsModal').style.display='none'" style="position: absolute; top: 10px; right: 15px; background: none; border: none; color: #888; font-size: 1.5em; cursor: pointer;">✕</button>
+        <img id="histDetAvatar" src="" style="width: 70px; height: 70px; border-radius: 50%; border: 2px solid var(--gold); margin-bottom: 10px; object-fit: cover;">
+        <h3 id="histDetNick" style="color: var(--gold); margin: 5px 0;">Nick</h3>
+        <div style="color: #666; font-size: 0.9em; margin-bottom: 15px;">Wygrał: <span id="histDetAmount" style="color: var(--green); font-weight: bold;">0</span></div>
+        <div style="text-align: left; border-top: 1px solid #222; padding-top: 10px;">
+            <div style="color: #555; font-size: 0.75em; margin-bottom: 5px; text-transform: uppercase;">Szczegóły rozliczenia:</div>
+            <div id="histDetList" style="max-height: 180px; overflow-y: auto;"></div>
         </div>
-        
     </div>
-				
-            </div>
+</div>
 	
 <script type="module">
 	// --- SYSTEM JACKPOT (WERSJA PANCERNA) ---
@@ -4558,14 +4540,6 @@ function startSplitHistory() {
         });
     }
 
-    
-    // Konfiguracja limitów dla każdego pokoju
-    const TIER_CONFIG = {
-        low:    { min: 1000000, max: 100000000,  label: "LOW (1m - 100m)", db: "jackpot_low", hist: "history_low" },
-        medium: { min: 1000000, max: 500000000,  label: "MEDIUM (1m - 500m)", db: "jackpot_medium", hist: "history_medium" },
-        high:   { min: 1000000, max: 10000000000, label: "NON-LIMIT (Max 10g)", db: "jackpot_high", hist: "history_high" }
-    };
-
 		window.openJackpot = () => {
         document.getElementById('jackpotModal').style.display = 'flex';
         // Zawsze otwieraj na Low przy starcie, albo zapamiętaj ostatni
@@ -4658,78 +4632,6 @@ if ((myTotalInRound + amount) > conf.max) {
             }, 1000);
         }
     };
-
-function startJackpotListener() {
-        if(jackpotUnsub) jackpotUnsub();
-        
-        const listeningTier = currentTier; 
-        const conf = TIER_CONFIG[listeningTier];
-        
-        jackpotUnsub = onSnapshot(doc(db, conf.db, "current"), (docSnap) => {
-            if(!docSnap.exists()) return;
-            const data = docSnap.data();
-            
-            if(docSnap.readTime) timeOffset = docSnap.readTime.toMillis() - new Date().getTime(); 
-
-            if (currentTier === listeningTier) renderJackpotUI(data);
-
-            let startMillis = data.startTime ? (data.startTime.toMillis ? data.startTime.toMillis() : data.startTime.seconds * 1000) : 0;
-
-            // 1. Logika odliczania
-            if(data.status === 'open' && startMillis > 0) {
-                jackpotEndTime = startMillis + (JP_GAME_TIME * 1000);
-            } else {
-                jackpotEndTime = 0;
-            }
-
-            // 2. Logika kręcenia
-            if(data.status === 'spinning') {
-                const roundId = startMillis.toString();
-                if (processedSpins[listeningTier] !== roundId) {
-                    processedSpins[listeningTier] = roundId;
-                    spinTheWheel(data.winner, data.entries, listeningTier, data.winnerTotal);
-                }
-            }
-            
-            // 3. Logika resetu wizualnego
-            if(data.status === 'open' && currentTier === listeningTier) {
-                if (document.getElementById('jackpotStrip').classList.contains('spun')) {
-                    resetJackpotVisuals();
-                }
-            }
-
-            // --- AUTO-TRIGGER (Zamiast getDoc w setInterval) ---
-            // Jeśli czas minął, a status to nadal 'open', wyślij prośbę o losowanie
-            const nowSynced = new Date().getTime() + timeOffset;
-            if (data.status === 'open' && startMillis > 0 && nowSynced > (startMillis + (JP_GAME_TIME * 1000))) {
-                if (!isFinalizing[listeningTier] && !data.winnerProcessing) {
-                    isFinalizing[listeningTier] = true;
-                    finalizeJackpot(listeningTier).finally(() => {
-                        // Odblokuj po 5s, żeby nie zapętlić
-                        setTimeout(() => { isFinalizing[listeningTier] = false; }, 5000);
-                    });
-                }
-            }
-        });
-        
-        // PĘTLA TYLKO DO WYŚWIETLANIA CZASU (Brak zapytań do bazy!)
-        if(jpTimerInterval) clearInterval(jpTimerInterval);
-        jpTimerInterval = setInterval(() => {
-             const timerEl = document.getElementById('jackpotTimer');
-             if (!jackpotEndTime || currentTier !== listeningTier) {
-                 if(currentTier === listeningTier) timerEl.style.display = 'none';
-                 return;
-             }
-             
-             const diff = jackpotEndTime - (new Date().getTime() + timeOffset);
-             if (diff > 0) {
-                 timerEl.style.display = 'block';
-                 timerEl.innerText = (diff / 1000).toFixed(2) + "s";
-             } else {
-                 timerEl.innerText = "LOSOWANIE...";
-             }
-        }, 50);
-    }
 	
     function renderJackpotUI(data) {
         const list = document.getElementById('jackpotPlayersList');
@@ -4803,161 +4705,6 @@ async function finalizeJackpot(tier) {
             });
         } catch (e) { console.error("Błąd transakcji:", e); }
     }
-
-   function spinTheWheel(winner, entries, tier, poolAmount) {
-        const strip = document.getElementById('jackpotStrip');
-        const rail = document.querySelector('.jackpot-rail');
-
-        // TYLKO JEŚLI PATRZYMY NA TEN POKÓJ
-        if (currentTier === tier) {
-            strip.classList.remove('spun');
-            strip.classList.add('spinning');
-            strip.style.transition = "none";
-            strip.style.transform = "translateX(0px)";
-
-            const WINNER_INDEX = 75;
-            let cardsHtml = "";
-            for(let i=0; i < 100; i++) {
-                let entry = (i === WINNER_INDEX) ? winner : (entries[Math.floor(Math.random() * entries.length)] || {avatar:'', color:'#333'});
-                if (!entry) entry = { avatar: '', color: '#333' };
-                cardsHtml += `<div class="jp-card" style="width:80px; height:80px; margin:0 2px; flex-shrink:0; border-bottom: 4px solid ${entry.color}; background:#222; border:2px solid #444; display:flex; align-items:center; justify-content:center;"><img src="${entry.avatar}" style="width:100%; height:100%; object-fit:cover;" onerror="this.style.opacity='0'"></div>`;
-            }
-            strip.innerHTML = cardsHtml;
-            document.getElementById('jackpotControls').style.display = 'none';
-
-            setTimeout(() => {
-                if (currentTier !== tier) return; // Przerwano, bo zmieniono zakładkę
-                const FULL_CARD = 84;
-                const centerPosition = - (WINNER_INDEX * FULL_CARD) + (rail.offsetWidth / 2) - (FULL_CARD / 2);
-                strip.style.transition = "transform 8s cubic-bezier(0.15, 0, 0.10, 1)";
-                strip.style.transform = `translateX(${centerPosition + (Math.random()*40-20)}px)`;
-                window.playSound('coin');
-            }, 100);
-        }
-
-        // LOGIKA KOŃCOWA (Zawsze działa w tle)
-        setTimeout(async () => {
-            showWinnerScreen(winner, entries, tier, poolAmount);
-
-            // Reset stołu (tylko zwycięzca lub admin)
-            if (winner && currentUser && (currentUser.uid === winner.uid || currentNick === ADMIN_NICK)) {
-                setTimeout(async () => {
-                    const activeConf = TIER_CONFIG[tier];
-                    await setDoc(doc(db, activeConf.db, "current"), {
-                        status: 'open', entries: [], startTime: null, winner: null, winnerProcessing: false
-                    });
-                }, 5000);
-            }
-        }, 8500);
-    }
-
-function showWinnerScreen(winner, entries, tier, poolAmount) {
-        if (!winner || !poolAmount) return;
-        const totalStr = s_formatGold(poolAmount);
-        const conf = TIER_CONFIG[tier];
-
-        // --- 1. LOGIKA BAZODANOWA (Zawsze wykonuje Zwycięzca, nawet w tle) ---
-        if (currentUser && currentUser.uid === winner.uid) {
-            console.log(`Zapisuję wygraną w tle dla pokoju: ${tier}`);
-            
-            // Dodanie do czatu
-            addDoc(collection(db, "chat"), {
-                nick: "System Jackpot",
-                text: `🎰 ${winner.nick} rozbił bank na stole ${tier.toUpperCase()}! Zgarnia: ${totalStr}!`,
-                type: 'roll',
-                date: new Date().toISOString()
-            });
-
-            // Obliczanie dłużników
-            let debtsToSave = {};
-            if (entries) {
-                entries.forEach(e => {
-                    if (e.uid !== winner.uid) {
-                        if (!debtsToSave[e.nick]) debtsToSave[e.nick] = 0;
-                        debtsToSave[e.nick] += e.amount;
-                    }
-                });
-            }
-
-            // Zapis do właściwej historii
-            addDoc(collection(db, conf.hist), {
-                nick: winner.nick,
-                amount: totalStr,
-                avatar: winner.avatar,
-                date: new Date().toISOString(),
-                debts: debtsToSave
-            });
-        }
-
-        // --- 2. LOGIKA WIZUALNA (Tylko jeśli użytkownik patrzy na ten stół) ---
-        if (currentTier === tier) {
-            const winnerDisplay = document.getElementById('jackpotWinnerDisplay');
-            if (winnerDisplay) {
-                winnerDisplay.style.display = 'block';
-                document.getElementById('winnerNick').innerText = winner.nick;
-                
-                // Ponowne przeliczenie długów tylko dla wyświetlenia listy
-                let debts = {};
-                entries.forEach(e => {
-                    if (e.uid !== winner.uid) {
-                        if (!debts[e.nick]) debts[e.nick] = 0;
-                        debts[e.nick] += e.amount;
-                    }
-                });
-
-                let debtorsListHtml = "";
-                const sorted = Object.keys(debts).sort((a,b) => debts[b] - debts[a]);
-                if (sorted.length > 0) {
-                    debtorsListHtml += `<div style="margin-top:15px; border-top:1px dashed #555; padding-top:10px;"><div style="max-height: 150px; overflow-y: auto; padding-right:5px;">`;
-                    sorted.forEach(nick => {
-                        debtorsListHtml += `<div style="display:flex; justify-content:space-between; padding:4px 0;"><span style="color:#fff;">${nick}</span><span style="color:#ff6666; font-weight:bold;">${s_formatGold(debts[nick])}</span></div>`;
-                    });
-                    debtorsListHtml += `</div></div>`;
-                } else {
-                    debtorsListHtml = `<div style="color:#666; font-size:0.8em; margin-top:10px;">(Wygrałeś własne wpłaty)</div>`;
-                }
-                document.getElementById('winAmount').innerHTML = `<div style="font-size:1.2em; color:var(--green); margin-bottom:10px;">Wygrywa pulę: <b>${totalStr}</b></div>${debtorsListHtml}`;
-                for(let i=0; i<20; i++) createEmber(); 
-            }
-        }
-    }
-
-        // --- ZAPIS DO BAZY (Działa w tle, nawet jak zmienisz zakładkę) ---
-        if(currentUser && currentUser.uid === winner.uid) { 
-             
-             // 1. Czat
-             addDoc(collection(db, "chat"), {
-                nick: "System Jackpot",
-                text: `🎰 ${winner.nick} rozbił bank na stole ${tier.toUpperCase()}! Zgarnia: ${totalStr}!`,
-                type: 'roll',
-                date: new Date().toISOString()
-            });
-
-            // 2. Historia - używamy "tier" z argumentu, a nie currentTier!
-            const conf = TIER_CONFIG[tier]; 
-            
-            // Ponowne obliczenie długów dla zapisu (bo blok wyżej mógł się nie wykonać)
-            let debtsToSave = {};
-            if (entries && entries.length > 0) {
-                entries.forEach(e => {
-                    if (e.uid !== winner.uid) {
-                        if (!debtsToSave[e.nick]) debtsToSave[e.nick] = 0;
-                        debtsToSave[e.nick] += e.amount;
-                    }
-                });
-            }
-
-            addDoc(collection(db, conf.hist), {
-                nick: winner.nick,
-                amount: totalStr,
-                avatar: winner.avatar,
-                date: new Date().toISOString(),
-                debts: debtsToSave
-            });
-        }
-    
-			
-        
     
     function resetJackpotVisuals() {
         document.getElementById('jackpotStrip').style.transition = 'none';
@@ -5064,50 +4811,164 @@ function showWinnerScreen(winner, entries, tier, poolAmount) {
         window.playSound('click');
     };
 
+	    const TIER_CONFIG = {
+        low:    { min: 1000000, max: 100000000,  label: "LOW (1m - 100m)", db: "jackpot_low", hist: "history_low" },
+        medium: { min: 1000000, max: 500000000,  label: "MEDIUM (1m - 500m)", db: "jackpot_medium", hist: "history_medium" },
+        high:   { min: 1000000, max: 10000000000, label: "NON-LIMIT (Max 10g)", db: "jackpot_high", hist: "history_high" }
+    };
+	
 window.switchJackpotTier = (tier) => {
-        // 🛑 ZABIJAMY STARY TIMER NATYCHMIAST 🛑
-        if(jpTimerInterval) {
-            clearInterval(jpTimerInterval);
-            jpTimerInterval = null;
-        }
-        
+        if(jpTimerInterval) clearInterval(jpTimerInterval);
         currentTier = tier;
-        
-        // 1. Zmiana wyglądu zakładek
         document.querySelectorAll('.jp-tab').forEach(t => t.className = 'jp-tab');
         let activeClass = (tier === 'low') ? 'active-low' : (tier === 'medium') ? 'active-mid' : 'active-high';
         document.getElementById(`tab-${tier}`).classList.add(activeClass);
 
-        // 2. Aktualizacja napisów limitów
         const conf = TIER_CONFIG[tier];
         document.getElementById('poolLabel').innerText = tier.toUpperCase();
         document.getElementById('limitLabel').innerText = `Limit: ${s_formatGold(conf.min)} - ${s_formatGold(conf.max)}`;
 
-        // 3. Reset widoku
         resetJackpotVisuals();
-        document.getElementById('jackpotTotalPool').innerText = "0";
-        document.getElementById('jackpotPlayersList').innerHTML = "<div style='padding:10px;text-align:center;color:#666'>Wczytywanie pokoju...</div>";
-
-        // 4. Przełączenie nasłuchiwania bazy
         startJackpotListener(); 
         startJackpotHistoryListener();
-    };	
+    };
+
+	function startJackpotListener() {
+        if(jackpotUnsub) jackpotUnsub();
+        
+        const listeningTier = currentTier; 
+        const conf = TIER_CONFIG[listeningTier];
+        
+        jackpotUnsub = onSnapshot(doc(db, conf.db, "current"), (docSnap) => {
+            if(!docSnap.exists()) return;
+            const data = docSnap.data();
+            
+            if(docSnap.readTime) timeOffset = docSnap.readTime.toMillis() - new Date().getTime(); 
+
+            if (currentTier === listeningTier) renderJackpotUI(data);
+
+            let startMillis = data.startTime ? (data.startTime.toMillis ? data.startTime.toMillis() : data.startTime.seconds * 1000) : 0;
+
+            // 1. Logika odliczania
+            if(data.status === 'open' && startMillis > 0) {
+                jackpotEndTime = startMillis + (JP_GAME_TIME * 1000);
+            } else {
+                jackpotEndTime = 0;
+            }
+
+            // 2. Logika kręcenia
+            if(data.status === 'spinning') {
+                const roundId = startMillis.toString();
+                if (processedSpins[listeningTier] !== roundId) {
+                    processedSpins[listeningTier] = roundId;
+                    spinTheWheel(data.winner, data.entries, listeningTier, data.winnerTotal);
+                }
+            }
+            
+            // 3. Logika resetu wizualnego
+            if(data.status === 'open' && currentTier === listeningTier) {
+                if (document.getElementById('jackpotStrip').classList.contains('spun')) {
+                    resetJackpotVisuals();
+                }
+            }
+
+            // --- AUTO-TRIGGER (Zamiast getDoc w setInterval) ---
+            // Jeśli czas minął, a status to nadal 'open', wyślij prośbę o losowanie
+            const nowSynced = new Date().getTime() + timeOffset;
+            if (data.status === 'open' && startMillis > 0 && nowSynced > (startMillis + (JP_GAME_TIME * 1000))) {
+                if (!isFinalizing[listeningTier] && !data.winnerProcessing) {
+                    isFinalizing[listeningTier] = true;
+                    finalizeJackpot(listeningTier).finally(() => {
+                        // Odblokuj po 5s, żeby nie zapętlić
+                        setTimeout(() => { isFinalizing[listeningTier] = false; }, 5000);
+                    });
+                }
+            }
+        });
+        
+        // PĘTLA TYLKO DO WYŚWIETLANIA CZASU (Brak zapytań do bazy!)
+        if(jpTimerInterval) clearInterval(jpTimerInterval);
+        jpTimerInterval = setInterval(() => {
+             const timerEl = document.getElementById('jackpotTimer');
+             if (!jackpotEndTime || currentTier !== listeningTier) {
+                 if(currentTier === listeningTier) timerEl.style.display = 'none';
+                 return;
+             }
+             
+             const diff = jackpotEndTime - (new Date().getTime() + timeOffset);
+             if (diff > 0) {
+                 timerEl.style.display = 'block';
+                 timerEl.innerText = (diff / 1000).toFixed(2) + "s";
+             } else {
+                 timerEl.innerText = "LOSOWANIE...";
+             }
+        }, 50);
+    }
+
+	function spinTheWheel(winner, entries, tier, poolAmount) {
+        const strip = document.getElementById('jackpotStrip');
+        if (currentTier === tier) {
+            strip.classList.remove('spun'); strip.classList.add('spinning');
+            strip.style.transition = "none"; strip.style.transform = "translateX(0px)";
+            const WINNER_INDEX = 75;
+            let cardsHtml = "";
+            for(let i=0; i < 100; i++) {
+                let entry = (i === WINNER_INDEX) ? winner : (entries[Math.floor(Math.random() * entries.length)] || {avatar:'', color:'#333'});
+                cardsHtml += `<div class="jp-card" style="width:80px; height:80px; margin:0 2px; flex-shrink:0; border-bottom: 4px solid ${entry?.color || '#333'}; background:#222; border:2px solid #444; display:flex; align-items:center; justify-content:center;"><img src="${entry?.avatar || ''}" style="width:100%; height:100%; object-fit:cover;" onerror="this.style.opacity='0'"></div>`;
+            }
+            strip.innerHTML = cardsHtml;
+            document.getElementById('jackpotControls').style.display = 'none';
+            setTimeout(() => {
+                if (currentTier !== tier) return;
+                const FULL_CARD = 84;
+                const centerPosition = - (WINNER_INDEX * FULL_CARD) + (document.querySelector('.jackpot-rail').offsetWidth / 2) - (FULL_CARD / 2);
+                strip.style.transition = "transform 8s cubic-bezier(0.15, 0, 0.10, 1)";
+                strip.style.transform = `translateX(${centerPosition + (Math.random()*40-20)}px)`;
+                window.playSound('coin');
+            }, 100);
+        }
+
+        setTimeout(async () => {
+            showWinnerScreen(winner, entries, tier, poolAmount);
+            if (winner && currentUser && (currentUser.uid === winner.uid || currentNick === ADMIN_NICK)) {
+                setTimeout(async () => {
+                    await setDoc(doc(db, TIER_CONFIG[tier].db, "current"), { status: 'open', entries: [], startTime: null, winner: null, winnerProcessing: false });
+                }, 5000);
+            }
+        }, 8500);
+    }
+
+	function showWinnerScreen(winner, entries, tier, poolAmount) {
+        if (!winner || !poolAmount) return;
+        const totalStr = s_formatGold(poolAmount);
+        const conf = TIER_CONFIG[tier];
+
+        if (currentUser && currentUser.uid === winner.uid) {
+            addDoc(collection(db, "chat"), { nick: "System Jackpot", text: `🎰 ${winner.nick} rozbił bank na stole ${tier.toUpperCase()}! Zgarnia: ${totalStr}!`, type: 'roll', date: new Date().toISOString() });
+            let debtsToSave = {};
+            entries.forEach(e => { if (e.uid !== winner.uid) { if (!debtsToSave[e.nick]) debtsToSave[e.nick] = 0; debtsToSave[e.nick] += e.amount; } });
+            addDoc(collection(db, conf.hist), { nick: winner.nick, amount: totalStr, avatar: winner.avatar, date: new Date().toISOString(), debts: debtsToSave });
+        }
+
+        if (currentTier === tier) {
+            document.getElementById('jackpotWinnerDisplay').style.display = 'block';
+            document.getElementById('winnerNick').innerText = winner.nick;
+            let debts = {};
+            entries.forEach(e => { if (e.uid !== winner.uid) { if (!debts[e.nick]) debts[e.nick] = 0; debts[e.nick] += e.amount; } });
+            let listHtml = "";
+            const sorted = Object.keys(debts).sort((a,b) => debts[b] - debts[a]);
+            if (sorted.length > 0) {
+                listHtml += `<div style="margin-top:15px; border-top:1px dashed #555; padding-top:10px;"><div style="max-height: 150px; overflow-y: auto;">`;
+                sorted.forEach(n => { listHtml += `<div style="display:flex; justify-content:space-between; padding:4px 0;"><span style="color:#fff;">${n}</span><span style="color:#ff6666; font-weight:bold;">${s_formatGold(debts[n])}</span></div>`; });
+                listHtml += `</div></div>`;
+            } else { listHtml = `<div style="color:#666; font-size:0.8em; margin-top:10px;">(Wygrałeś własne wpłaty)</div>`; }
+            document.getElementById('winAmount').innerHTML = `<div style="font-size:1.1em; color:var(--green); margin-bottom:10px;">Pula: <b>${totalStr}</b></div>${listHtml}`;
+            for(let i=0; i<15; i++) createEmber(); 
+        }
+    }
 	
 </script>
 
 <div id="toast-container"></div>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
