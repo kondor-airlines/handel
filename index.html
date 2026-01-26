@@ -4355,10 +4355,14 @@ function startSplitHistory() {
         });
     }
 
-	// --- SYSTEM JACKPOT ---
+// --- SYSTEM JACKPOT ---
     let jackpotUnsub = null;
     let jpTimerInterval = null;
-    const JP_GAME_TIME = 60; // Czas w sekundach (60s)
+    const JP_GAME_TIME = 60; // Czas gry w sekundach
+
+    // ZMIENNE DO SYNCHRONIZACJI CZASU (To są te nowe, poprawne)
+    let jackpotEndTime = 0;
+    let timeOffset = 0;
 
     window.openJackpot = () => {
         document.getElementById('jackpotModal').style.display = 'flex';
@@ -4439,9 +4443,6 @@ window.joinJackpot = async () => {
         window.playSound('coin');
     };
 
-let currentJackpotEndTime = null; 
-    let serverTimeOffset = 0; // Różnica między Twoim PC a serwerem Google
-
     function startJackpotListener() {
         if(jackpotUnsub) jackpotUnsub();
         
@@ -4449,31 +4450,43 @@ let currentJackpotEndTime = null;
             if(!docSnap.exists()) return; 
             const data = docSnap.data();
             
-            // 1. OBLICZANIE PRZESUNIĘCIA CZASU (Synchronizacja)
-            // Snapshot ma metadane z czasem serwera (readTime)
+            // 1. OBLICZANIE RÓŻNICY CZASU (SYNCHRONIZACJA Z GOOGLE)
+            // Używamy readTime, który pochodzi prosto z serwera
             if(docSnap.readTime) {
-                const serverNow = docSnap.readTime.toMillis();
-                const localNow = new Date().getTime();
-                serverTimeOffset = serverNow - localNow; // Np. +7000ms jeśli Twój zegar się spóźnia
+                const serverTime = docSnap.readTime.toMillis();
+                const localTime = new Date().getTime();
+                timeOffset = serverTime - localTime; 
+                // np. jeśli Twój zegar spóźnia się o 5s, timeOffset wyniesie +5000
             }
 
             renderJackpotUI(data);
 
-            // 2. USTAWIANIE LICZNIKA
+            const timerEl = document.getElementById('jackpotTimer');
+
+            // 2. OBSŁUGA LICZNIKA (Z ignorowaniem lokalnych danych tymczasowych)
             if(data.status === 'open' && data.startTime) {
-                if(data.startTime) {
-                    const startMillis = data.startTime.toMillis ? data.startTime.toMillis() : new Date(data.startTime).getTime();
-                    currentJackpotEndTime = startMillis + (JP_GAME_TIME * 1000);
-                    document.getElementById('jackpotTimer').style.display = 'block';
+                
+                // Jeśli masz "pending writes", to znaczy, że Ty wysłałeś dane, 
+                // ale serwer jeszcze nie odesłał timestampa. Czekamy.
+                if(docSnap.metadata.hasPendingWrites) {
+                    timerEl.style.display = 'block';
+                    timerEl.innerText = "START...";
+                    jackpotEndTime = 0; // Blokujemy timer
+                } 
+                else {
+                    // Mamy potwierdzony czas z serwera
+                    const startMillis = data.startTime.toMillis();
+                    jackpotEndTime = startMillis + (JP_GAME_TIME * 1000);
+                    timerEl.style.display = 'block';
                 }
             } else {
-                currentJackpotEndTime = null;
-                document.getElementById('jackpotTimer').style.display = 'none';
+                jackpotEndTime = 0;
+                timerEl.style.display = 'none';
             }
 
             // 3. START RULETKI
             if(data.status === 'spinning' && !document.getElementById('jackpotStrip').classList.contains('spinning')) {
-                document.getElementById('jackpotTimer').style.display = 'none';
+                timerEl.style.display = 'none';
                 spinTheWheel(data.winner, data.entries);
             }
             
@@ -4483,32 +4496,35 @@ let currentJackpotEndTime = null;
             }
         });
         
-        // INTERWAŁ ODLICZANIA (Z uwzględnieniem korekty)
+        // INTERWAŁ ODLICZANIA (50ms)
         if(jpTimerInterval) clearInterval(jpTimerInterval);
         
         jpTimerInterval = setInterval(() => {
-             if (!currentJackpotEndTime) return;
-
-             // Tu używamy magicznej korekty: (TwójCzas + Różnica) = CzasSerwera
-             const nowSynced = new Date().getTime() + serverTimeOffset;
-             let diff = currentJackpotEndTime - nowSynced; 
+             // Jeśli nie ma ustalonego końca, nic nie rób
+             if (!jackpotEndTime) return;
 
              const timerEl = document.getElementById('jackpotTimer');
+             
+             // MAGICZNA LINIJKA: Twój czas + Różnica = Czas Google
+             const nowSynced = new Date().getTime() + timeOffset;
+             
+             const diff = jackpotEndTime - nowSynced; 
 
              if (diff > 0) {
                  let seconds = diff / 1000;
-                 // Kaganiec wizualny, żeby nie pokazywało 90s przy lagach
-                 if(seconds > JP_GAME_TIME + 2) seconds = JP_GAME_TIME; 
+                 // Kaganiec wizualny: nie pokazuj więcej niż np. 60.5s
+                 if (seconds > JP_GAME_TIME + 1) seconds = JP_GAME_TIME;
+                 
                  timerEl.innerText = seconds.toFixed(2) + "s";
              } else {
                  timerEl.innerText = "LOSOWANIE...";
                  
-                 // Próbujemy wylosować, jeśli czas minął (nawet jeśli minął dawno temu)
-                 // Warunek: status wciąż 'open'
-                 if (diff < 0) { 
-                     // Pobieramy raz jeszcze, żeby nie spamować bazy
+                 // Wyzwalacz losowania (tylko raz, gdy czas minął)
+                 if (diff > -2000 && diff < 0) {
                      getDoc(doc(db, "jackpot", "current")).then(snap => {
                          const d = snap.data();
+                         // Sprawdzamy czy to my mamy prawo wylosować (żeby nie było duplikatów)
+                         // Warunek: status wciąż 'open' i brak blokady
                          if(d && d.status === 'open' && !d.winnerProcessing) {
                              finalizeJackpot(d);
                          }
@@ -4703,6 +4719,7 @@ let currentJackpotEndTime = null;
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
