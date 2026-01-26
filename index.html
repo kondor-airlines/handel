@@ -4355,12 +4355,12 @@ function startSplitHistory() {
         });
     }
 
-// --- SYSTEM JACKPOT (WERSJA FIXED 3.0) ---
+// --- SYSTEM JACKPOT (WERSJA PANCERNA) ---
     let jackpotUnsub = null;
     let jpTimerInterval = null;
-    const JP_GAME_TIME = 60; // Czas gry w sekundach
+    const JP_GAME_TIME = 60; 
 
-    // Zmienne globalne
+    // Zmienne globalne (muszą być tutaj)
     let jackpotEndTime = 0;
     let timeOffset = 0;
 
@@ -4369,7 +4369,6 @@ function startSplitHistory() {
         startJackpotListener();
     };
 
-    // 1. Dołączanie do gry
     window.joinJackpot = async () => {
         if(!currentUser) return alert("Zaloguj się!");
         const input = document.getElementById('jackpotBetAmount');
@@ -4378,34 +4377,30 @@ function startSplitHistory() {
         if(amount < 100000) return alert("Minimum 100k wpisowego!");
 
         const jpRef = doc(db, "jackpot", "current");
-        
-        // Pobieramy świeże dane z serwera (ignorujemy cache)
-        const snap = await getDoc(jpRef); 
+        const snap = await getDoc(jpRef);
         
         let data = { status: 'open', entries: [], startTime: null };
         if(snap.exists()) data = snap.data();
 
-        // --- ZABEZPIECZENIE PRZED ZACIĘCIEM ---
+        // 1. Zabezpieczenie przed zacięciem
         const now = new Date().getTime();
         let isStuck = false;
         
         if (data.startTime) {
-            // Konwersja czasu
-            const startMillis = data.startTime.toMillis ? data.startTime.toMillis() : new Date(data.startTime).getTime();
-            const timePassed = now - startMillis;
-            
-            // Jeśli minęło ponad 90 sekund od startu, a gra wisi -> Uznaj za zaciętą
-            if (timePassed > 90000) {
+            // Próba odczytu czasu na różne sposoby
+            let startMillis = 0;
+            if (data.startTime.toMillis) startMillis = data.startTime.toMillis();
+            else if (data.startTime.seconds) startMillis = data.startTime.seconds * 1000;
+            else startMillis = new Date(data.startTime).getTime();
+
+            if ((now - startMillis) > 90000) { // 90 sekund bez rozstrzygnięcia
                 isStuck = true;
-                console.warn("Wykryto zacięty Jackpot - resetuję przy dołączeniu.");
+                console.warn("Reset zaciętej gry.");
             }
         }
 
-        if(data.status !== 'open' && !isStuck) {
-            return alert("Runda trwa lub trwa losowanie! Poczekaj.");
-        }
+        if(data.status !== 'open' && !isStuck) return alert("Runda trwa! Poczekaj.");
 
-        // Jeśli zacięta, resetujemy lokalnie obiekt przed wysłaniem
         if (isStuck) {
             data.entries = [];
             data.startTime = null;
@@ -4422,31 +4417,28 @@ function startSplitHistory() {
 
         const newEntries = [...(data.entries || []), newEntry];
         
-        let updateData = { 
-            entries: newEntries,
-            status: 'open',
-            winnerProcessing: false
-        };
-
-        // START GRY (Gdy jest 2 graczy i nie ma czasu)
+        // 2. Start gry (serverTimestamp)
         const uniquePlayers = new Set(newEntries.map(e => e.uid)).size;
-        
+        let newStartTime = data.startTime;
+
         if (uniquePlayers >= 2 && !data.startTime) {
-            // KLUCZOWE: Używamy czasu serwera
-            updateData.startTime = serverTimestamp(); 
-            console.log("Startuję zegar (serverTimestamp wysłany)");
+            newStartTime = serverTimestamp(); 
         } 
         else if (isStuck && uniquePlayers < 2) {
-            updateData.startTime = null;
-            updateData.winner = null;
+            newStartTime = null;
         }
 
-        await setDoc(jpRef, updateData, { merge: true });
+        await setDoc(jpRef, { 
+            entries: newEntries,
+            status: 'open',
+            winnerProcessing: false,
+            startTime: newStartTime
+        }, { merge: true });
+
         input.value = "";
         window.playSound('coin');
     };
 
-    // 2. Nasłuch (Serce systemu)
     function startJackpotListener() {
         if(jackpotUnsub) jackpotUnsub();
         
@@ -4454,61 +4446,65 @@ function startSplitHistory() {
             if(!docSnap.exists()) return; 
             const data = docSnap.data();
             
-            // DIAGNOSTYKA CZASU (Wciśnij F12 żeby zobaczyć)
+            // 1. Synchronizacja czasu (Obliczanie Offsetu)
             if(docSnap.readTime) {
                 const serverTime = docSnap.readTime.toMillis();
                 const localTime = new Date().getTime();
                 timeOffset = serverTime - localTime; 
-                // Jeśli masz ujemny offset, Twój zegar się spieszy. Dodatni - spóźnia.
-                console.log(`Synchronizacja: Server ${serverTime} vs Local ${localTime}. Offset: ${timeOffset}ms`);
             }
 
             renderJackpotUI(data);
 
             const timerEl = document.getElementById('jackpotTimer');
 
-            // --- OBSŁUGA CZASU STARTU ---
+            // 2. Obsługa Czasu (PANCERNA LOGIKA)
             if(data.status === 'open' && data.startTime) {
-                
-                // Jeśli timestamp jest null (bo dopiero się zapisuje), czekamy
-                if(!data.startTime) {
+                let startMillis = 0;
+
+                // Firebase czasem zwraca Timestamp, czasem obiekt {seconds, nanoseconds}, a czasem Date
+                if (typeof data.startTime.toMillis === 'function') {
+                    startMillis = data.startTime.toMillis();
+                } 
+                else if (data.startTime.seconds) {
+                    startMillis = data.startTime.seconds * 1000;
+                }
+                else {
+                    startMillis = new Date(data.startTime).getTime();
+                }
+
+                // Jeśli startMillis jest poprawny (nie 0 i nie NaN)
+                if (startMillis > 0) {
+                    jackpotEndTime = startMillis + (JP_GAME_TIME * 1000);
+                    timerEl.style.display = 'block';
+                } else {
+                    // Czekamy na serwer (sytuacja "Start...")
                     timerEl.style.display = 'block';
                     timerEl.innerText = "START...";
                     jackpotEndTime = 0;
-                } 
-                else {
-                    // Mamy twardy czas z serwera
-                    // Obsługa formatu: Firebase Timestamp vs zwykła data
-                    const startMillis = data.startTime.toMillis ? data.startTime.toMillis() : new Date(data.startTime).getTime();
-                    
-                    // Czas końca = Czas Startu + 60s
-                    jackpotEndTime = startMillis + (JP_GAME_TIME * 1000);
-                    timerEl.style.display = 'block';
                 }
             } else {
                 jackpotEndTime = 0;
                 timerEl.style.display = 'none';
             }
 
-            // START RULETKI
+            // 3. Obsługa Stanów Gry
             if(data.status === 'spinning' && !document.getElementById('jackpotStrip').classList.contains('spinning')) {
                 timerEl.style.display = 'none';
                 spinTheWheel(data.winner, data.entries);
             }
             
-            // RESET WIDOKU
             if(data.status === 'open' && document.getElementById('jackpotStrip').classList.contains('spun')) {
                  resetJackpotVisuals();
             }
         });
         
-        // 3. Osobny Interwał do odświeżania licznika (niezależny od bazy)
+        // 4. Interwał odświeżania (niezależny od bazy)
         if(jpTimerInterval) clearInterval(jpTimerInterval);
         
         jpTimerInterval = setInterval(() => {
              if (!jackpotEndTime) return;
 
-             // Obliczamy "Teraz" z uwzględnieniem różnicy czasu serwera
+             // Obliczamy czas z uwzględnieniem różnicy zegarów (Offset)
              const nowSynced = new Date().getTime() + timeOffset;
              const diff = jackpotEndTime - nowSynced; 
 
@@ -4516,21 +4512,15 @@ function startSplitHistory() {
 
              if (diff > 0) {
                  let seconds = diff / 1000;
-                 
-                 // ZABEZPIECZENIE WIZUALNE:
-                 // Jeśli przez lag pokazuje > 60s (np. 62s), ucinamy do 60.00
-                 if (seconds > JP_GAME_TIME) seconds = JP_GAME_TIME;
-                 
+                 if (seconds > JP_GAME_TIME) seconds = JP_GAME_TIME; // Wizualna korekta
                  timerEl.innerText = seconds.toFixed(2) + "s";
              } else {
                  timerEl.innerText = "LOSOWANIE...";
                  
-                 // Wyzwalacz losowania (tylko raz, gdy czas minie)
-                 // Sprawdzamy czy diff jest "świeżo" po czasie (max 2 sekundy po)
+                 // Trigger losowania (tylko raz, gdy czas minie)
                  if (diff > -2000 && diff < 0) {
                      getDoc(doc(db, "jackpot", "current")).then(snap => {
                          const d = snap.data();
-                         // Tylko jeśli runda wciąż otwarta
                          if(d && d.status === 'open' && !d.winnerProcessing) {
                              finalizeJackpot(d);
                          }
@@ -4549,7 +4539,6 @@ function startSplitHistory() {
         poolEl.innerText = s_formatGold(total);
 
         list.innerHTML = "";
-        
         if(!data.entries) return;
 
         let players = {};
@@ -4578,7 +4567,6 @@ function startSplitHistory() {
     async function finalizeJackpot(data) {
         await updateDoc(doc(db, "jackpot", "current"), { winnerProcessing: true });
 
-        // Losowanie ważone
         let total = 0;
         data.entries.forEach(e => total += e.amount);
         let randomPoint = Math.random() * total;
@@ -4606,10 +4594,9 @@ function startSplitHistory() {
         const rail = document.querySelector('.jackpot-rail');
         strip.classList.add('spinning');
         
-        // --- MATEMATYKA KART ---
         const CARD_WIDTH = 80; 
         const MARGIN = 4;      
-        const FULL_CARD = CARD_WIDTH + MARGIN; // 84px
+        const FULL_CARD = CARD_WIDTH + MARGIN; 
         const WINNER_INDEX = 75; 
         
         strip.innerHTML = "";
@@ -4620,12 +4607,11 @@ function startSplitHistory() {
         for(let i=0; i < 100; i++) {
             let entry;
             if(i === WINNER_INDEX) {
-                entry = winner; // ZWYCIĘZCA ZAWSZE TUTAJ
+                entry = winner; 
             } else {
                 entry = entries.length > 0 ? entries[Math.floor(Math.random() * entries.length)] : {avatar:'', color:'#333'};
             }
             
-            // Wymuszamy styl width:80px tutaj, na wypadek gdyby CSS nie zadziałał
             cardsHtml += `
                 <div class="jp-card" style="width:80px; height:80px; margin:0 2px; flex-shrink:0; border-bottom: 4px solid ${entry.color || '#333'}; background:#222; border:2px solid #444; display:flex; align-items:center; justify-content:center;">
                     <img src="${entry.avatar}" style="width:100%; height:100%; object-fit:cover;" onerror="this.style.display='none'">
@@ -4638,17 +4624,12 @@ function startSplitHistory() {
 
         setTimeout(() => {
             const containerWidth = rail.offsetWidth;
-            
-            // Obliczamy środek
             const centerPosition = - (WINNER_INDEX * FULL_CARD) + (containerWidth / 2) - (FULL_CARD / 2);
-            
-            // Lekki rozrzut (żeby nie stawało zawsze idealnie co do piksela)
             const jitter = Math.floor(Math.random() * 50) - 25; 
             const finalPosition = centerPosition + jitter;
 
             strip.style.transition = "transform 8s cubic-bezier(0.15, 0, 0.10, 1)"; 
             strip.style.transform = `translateX(${finalPosition}px)`;
-            
             window.playSound('coin'); 
         }, 100);
 
@@ -4656,7 +4637,6 @@ function startSplitHistory() {
             strip.classList.add('spun');
             showWinnerScreen(winner);
             
-            // Auto-reset po 15s
             if (currentUser && (currentUser.uid === winner.uid || currentNick === ADMIN_NICK)) {
                 setTimeout(async () => {
                     await setDoc(doc(db, "jackpot", "current"), {
@@ -4707,6 +4687,7 @@ function startSplitHistory() {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
