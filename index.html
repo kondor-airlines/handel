@@ -2272,86 +2272,86 @@ const lootTable = {
     };
 
 window.toggleSpecialFields = () => {
-        const typeEl = document.getElementById('offerType');
-        if (!typeEl) return;
-        const type = typeEl.value;
+    const typeEl = document.getElementById('offerType');
+    if (!typeEl) return;
+    const type = typeEl.value;
 
-        // Resetowanie widoczności sekcji
-        document.getElementById('field-sell').style.display = 'none';
-        document.getElementById('field-buy').style.display = 'none';
-        document.getElementById('field-trade').style.display = 'none';
-        document.getElementById('field-gold').style.display = 'none';
-        document.getElementById('chestBundleContainer').style.display = 'none';
+    // Resetowanie widoczności sekcji
+    document.getElementById('field-sell').style.display = 'none';
+    document.getElementById('field-buy').style.display = 'none';
+    document.getElementById('field-trade').style.display = 'none';
+    document.getElementById('field-gold').style.display = 'none';
+    document.getElementById('chestBundleContainer').style.display = 'none';
 
-        // Logika sekcji
-        if (type === 'sprzedam') document.getElementById('field-sell').style.display = 'block';
-        else if (type === 'kupie') document.getElementById('field-buy').style.display = 'block';
-        else if (type === 'zamienie') document.getElementById('field-trade').style.display = 'block';
-        else if (type === 'gold') document.getElementById('field-gold').style.display = 'grid';
-        else if (type === 'chest') {
-            document.getElementById('chestBundleContainer').style.display = 'block';
-            if(document.getElementById('chestRowsArea').innerHTML === "") window.addChestRow();
-        }
+    // Logika sekcji
+    if (type === 'sprzedam') document.getElementById('field-sell').style.display = 'block';
+    else if (type === 'kupie') document.getElementById('field-buy').style.display = 'block';
+    else if (type === 'zamienie') document.getElementById('field-trade').style.display = 'block';
+    else if (type === 'gold') document.getElementById('field-gold').style.display = 'grid';
+    else if (type === 'chest') {
+        document.getElementById('chestBundleContainer').style.display = 'block';
+        if(document.getElementById('chestRowsArea').innerHTML === "") window.addChestRow();
+    }
 
-        // --- Obsługa pól standardowych ---
-        const hideSource = ['gold', 'exp', 'other', 'chest'].includes(type);
-        const displayStyle = hideSource ? 'none' : 'block';
+    // --- Obsługa pól standardowych ---
+    const hideSource = ['gold', 'exp', 'other', 'chest'].includes(type);
+    const displayStyle = hideSource ? 'none' : 'block';
 
-        ['sourceCategory', 'itemSource', 'itemSelect', 'sourceSearch', 'itemSearch', 'itemBonding'].forEach(id => {
-            const el = document.getElementById(id);
-            if(el) el.style.display = displayStyle;
-        });
+    ['sourceCategory', 'itemSource', 'itemSelect', 'sourceSearch', 'itemSearch', 'itemBonding'].forEach(id => {
+        const el = document.getElementById(id);
+        if(el) el.style.display = displayStyle;
+    });
 
-        // --- NOWOŚĆ: Obsługa opcji "Obojętne" w kłódce ---
-        const bondingSel = document.getElementById('itemBonding');
-        const anyOption = bondingSel.querySelector('option[value="any"]');
-        
-        if (type === 'kupie') {
-            // Przy kupnie pokazujemy opcję "Obojętne"
-            anyOption.style.display = 'block'; 
-        } else {
-            // W każdym innym przypadku (np. Sprzedam) ukrywamy ją i resetujemy jeśli była wybrana
-            anyOption.style.display = 'none';
-            if (bondingSel.value === 'any') bondingSel.value = 'bound';
-        }
-        // --------------------------------------------------
+    // --- NOWOŚĆ: Obsługa opcji "Obojętne" w kłódce (TEGO BRAKOWAŁO) ---
+    const bondingSel = document.getElementById('itemBonding');
+    const anyOption = bondingSel.querySelector('option[value="any"]');
+    
+    if (type === 'kupie') {
+        // Przy kupnie pokazujemy opcję "Obojętne"
+        anyOption.style.display = 'block'; 
+    } else {
+        // W każdym innym przypadku (np. Sprzedam) ukrywamy ją i resetujemy jeśli była wybrana
+        anyOption.style.display = 'none';
+        if (bondingSel.value === 'any') bondingSel.value = 'bound';
+    }
+    // --------------------------------------------------
 
-        // Autouzupełnianie ikon i nazw
-        const nameInput = document.getElementById('itemName');
-        const imgInput = document.getElementById('itemImg');
-        const preview = document.getElementById('livePreview');
+    // Autouzupełnianie ikon i nazw
+    const nameInput = document.getElementById('itemName');
+    const imgInput = document.getElementById('itemImg');
+    const preview = document.getElementById('livePreview');
 
-        const specialMap = {
-            gold: { name: "Złoto", img: "https://micc.garmory-cdn.cloud/obrazki/itemy/zlo/zloto8.gif" },
-            exp:  { name: "Pomoc / Expienie", img: "https://micc.garmory-cdn.cloud/obrazki/npc/kob/tunia.gif" },
-            other: { name: "Inne", img: "https://micc.garmory-cdn.cloud/obrazki/itemy/neu/pyl-sakryfikacji.gif" }
-        };
-
-        if (type === 'chest') {
-            nameInput.disabled = true;
-            nameInput.placeholder = "Zestaw skrzyń...";
-            nameInput.value = "";
-            imgInput.style.display = 'none';
-            preview.style.display = 'none';
-        } 
-        else if (specialMap[type]) {
-            nameInput.disabled = false;
-            nameInput.value = (type === 'gold') ? "" : specialMap[type].name; 
-            imgInput.style.display = 'block';
-            imgInput.value = specialMap[type].img;
-            preview.style.display = 'flex';
-            document.getElementById('previewIcon').src = specialMap[type].img;
-            document.getElementById('previewName').innerText = nameInput.value || "Handel Złotem";
-        } 
-        else {
-            nameInput.disabled = false;
-            nameInput.placeholder = "Nazwa przedmiotu";
-            const autoNames = Object.values(specialMap).map(m => m.name);
-            if(autoNames.includes(nameInput.value)) nameInput.value = "";
-            imgInput.style.display = 'block';
-            preview.style.display = 'none';
-        }
+    const specialMap = {
+        gold: { name: "Złoto", img: "https://micc.garmory-cdn.cloud/obrazki/itemy/zlo/zloto8.gif" },
+        exp:  { name: "Pomoc / Expienie", img: "https://micc.garmory-cdn.cloud/obrazki/npc/kob/tunia.gif" },
+        other: { name: "Inne", img: "https://micc.garmory-cdn.cloud/obrazki/itemy/neu/pyl-sakryfikacji.gif" }
     };
+
+    if (type === 'chest') {
+        nameInput.disabled = true;
+        nameInput.placeholder = "Zestaw skrzyń...";
+        nameInput.value = "";
+        imgInput.style.display = 'none';
+        preview.style.display = 'none';
+    } 
+    else if (specialMap[type]) {
+        nameInput.disabled = false;
+        nameInput.value = (type === 'gold') ? "" : specialMap[type].name; 
+        imgInput.style.display = 'block';
+        imgInput.value = specialMap[type].img;
+        preview.style.display = 'flex';
+        document.getElementById('previewIcon').src = specialMap[type].img;
+        document.getElementById('previewName').innerText = nameInput.value || "Handel Złotem";
+    } 
+    else {
+        nameInput.disabled = false;
+        nameInput.placeholder = "Nazwa przedmiotu";
+        const autoNames = Object.values(specialMap).map(m => m.name);
+        if(autoNames.includes(nameInput.value)) nameInput.value = "";
+        imgInput.style.display = 'block';
+        preview.style.display = 'none';
+    }
+};
 
 	window.addChestRow = () => {
         const area = document.getElementById('chestRowsArea');
@@ -3783,6 +3783,7 @@ function startSplitHistory() {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
