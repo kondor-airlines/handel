@@ -1469,7 +1469,7 @@
                 </div>
         </div>
 
-        <div style="padding: 20px; display:grid; grid-template-columns: 1fr 1fr; gap:20px;">
+<div style="padding: 20px; display:grid; grid-template-columns: 1fr 1fr; gap:20px; height: 350px;">
             
             <div>
                 <div style="background:rgba(255,255,255,0.05); padding:15px; border-radius:8px; margin-bottom:15px; text-align:center;">
@@ -1478,9 +1478,9 @@
                 </div>
 
                 <div id="jackpotControls">
-                    <label style="color:#888; font-size:0.8em;">Twoja stawka (min. 100k):</label>
+                    <label style="color:#888; font-size:0.8em;">Stawka (1m - 10g):</label>
                     <div style="display:flex; gap:5px; margin-top:5px;">
-                        <input type="text" id="jackpotBetAmount" placeholder="np. 50m, 1g" style="flex:1;">
+                        <input type="text" id="jackpotBetAmount" placeholder="np. 50m, 1.2g" style="flex:1;">
                         <button onclick="joinJackpot()" class="action-btn" style="flex:1; background:linear-gradient(to bottom, #ffd700, #b8860b); color:black; font-size:0.9em;">WCHODZĘ! 💰</button>
                     </div>
                 </div>
@@ -1491,16 +1491,26 @@
                 </div>
             </div>
 
-            <div style="background:rgba(0,0,0,0.3); border:1px solid #333; border-radius:8px; display:flex; flex-direction:column;">
-                <div style="padding:10px; border-bottom:1px solid #333; font-weight:bold; color:#aaa; font-size:0.8em; display:flex; justify-content:space-between;">
-                    <span>GRACZ</span>
-                    <span>SZANSA</span>
-                </div>
-                <div id="jackpotPlayersList" style="overflow-y:auto; max-height:200px; padding:5px;">
+            <div style="display:flex; flex-direction:column; gap:10px; height:100%;">
+                
+                <div style="background:rgba(0,0,0,0.3); border:1px solid #333; border-radius:8px; display:flex; flex-direction:column; flex:1; overflow:hidden;">
+                    <div style="padding:8px; border-bottom:1px solid #333; font-weight:bold; color:#aaa; font-size:0.7em; background:rgba(0,0,0,0.2);">
+                        OBECNA RUNDA
                     </div>
+                    <div id="jackpotPlayersList" style="overflow-y:auto; padding:5px;"></div>
+                </div>
+
+                <div style="background:rgba(0,0,0,0.3); border:1px solid #333; border-radius:8px; display:flex; flex-direction:column; flex:1; overflow:hidden;">
+                    <div style="padding:8px; border-bottom:1px solid #333; font-weight:bold; color:#aaa; font-size:0.7em; background:rgba(0,0,0,0.2);">
+                        OSTATNI ZWYCIĘZCY
+                    </div>
+                    <div id="jackpotHistoryList" style="overflow-y:auto; padding:5px;">
+                        <div style="text-align:center; color:#555; padding:10px; font-size:0.8em;">Ładowanie...</div>
+                    </div>
+                </div>
+
             </div>
         </div>
-    </div>
 </div>
 
 <button class="jackpot-btn-toggle" onclick="openJackpot()" title="Otwórz Jackpot">🎰</button>
@@ -4364,19 +4374,24 @@ function startSplitHistory() {
     let jackpotEndTime = 0;
     let timeOffset = 0;
 
-    window.openJackpot = () => {
+		window.openJackpot = () => {
         document.getElementById('jackpotModal').style.display = 'flex';
         startJackpotListener();
+        startJackpotHistoryListener(); // <--- Nowa funkcja
     };
 
-    window.joinJackpot = async () => {
+		window.joinJackpot = async () => {
         if(!currentUser) return alert("Zaloguj się!");
         const input = document.getElementById('jackpotBetAmount');
         const amount = parseGold(input.value);
 
-        if(amount < 100000) return alert("Minimum 100k wpisowego!");
+        // --- LIMITY ---
+        if(amount < 1000000) return alert("Minimum 1m (1 000 000)!");
+        if(amount > 10000000000) return alert("Maksimum 10g (10 000 000 000)!");
+        // --------------
 
         const jpRef = doc(db, "jackpot", "current");
+        // ... (reszta kodu bez zmian)
         const snap = await getDoc(jpRef);
         
         let data = { status: 'open', entries: [], startTime: null };
@@ -4651,18 +4666,29 @@ function startSplitHistory() {
         }, 8500);
     }
 
-    function showWinnerScreen(winner) {
+		function showWinnerScreen(winner) {
         for(let i=0; i<20; i++) createEmber(); 
         document.getElementById('jackpotWinnerDisplay').style.display = 'block';
         document.getElementById('winnerNick').innerText = winner.nick;
-        const total = document.getElementById('jackpotTotalPool').innerText;
-        document.getElementById('winAmount').innerText = `Zgarnia: ${total}`;
+        const totalStr = document.getElementById('jackpotTotalPool').innerText;
+        document.getElementById('winAmount').innerText = `Zgarnia: ${totalStr}`;
         
-        if(currentUser.uid === winner.uid) { 
+        // Tylko Zwycięzca wykonuje zapis do historii (żeby uniknąć duplikatów)
+        if(currentUser && currentUser.uid === winner.uid) { 
+             
+             // 1. Wiadomość na czat
              addDoc(collection(db, "chat"), {
                 nick: "System Jackpot",
-                text: `🎰 ${winner.nick} wygrywa pulę ${total}!`,
+                text: `🎰 ${winner.nick} wygrywa pulę ${totalStr}!`,
                 type: 'roll',
+                date: new Date().toISOString()
+            });
+
+            // 2. Zapis do Historii (NOWOŚĆ)
+            addDoc(collection(db, "jackpot_history"), {
+                nick: winner.nick,
+                amount: totalStr,
+                avatar: winner.avatar,
                 date: new Date().toISOString()
             });
         }
@@ -4681,12 +4707,49 @@ function startSplitHistory() {
         const colors = ['#e74c3c', '#3498db', '#2ecc71', '#9b59b6', '#f1c40f', '#e67e22'];
         return colors[Math.floor(Math.random() * colors.length)];
     }
+
+	let historyUnsub = null;
+    function startJackpotHistoryListener() {
+        if(historyUnsub) historyUnsub();
+        
+        // Pobieramy 10 ostatnich zwycięzców
+        const q = query(collection(db, "jackpot_history"), orderBy("date", "desc"), limit(10));
+        
+        historyUnsub = onSnapshot(q, (snap) => {
+            const div = document.getElementById('jackpotHistoryList');
+            div.innerHTML = "";
+            
+            if(snap.empty) {
+                div.innerHTML = "<div style='text-align:center; color:#444; padding:10px; font-size:0.8em;'>Brak historii.</div>";
+                return;
+            }
+
+            snap.forEach(d => {
+                const h = d.data();
+                const date = new Date(h.date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                
+                div.innerHTML += `
+                    <div style="display:flex; justify-content:space-between; align-items:center; padding:6px; border-bottom:1px solid rgba(255,255,255,0.05); font-size:0.8em;">
+                        <div style="display:flex; align-items:center; gap:6px;">
+                            <img src="${h.avatar}" style="width:20px; height:20px; border-radius:50%; border:1px solid #444;">
+                            <span style="color:#aaa;">${window.escapeHtml(h.nick)}</span>
+                        </div>
+                        <div style="text-align:right;">
+                            <div style="color:var(--green); font-weight:bold;">${h.amount}</div>
+                            <div style="color:#444; font-size:0.8em;">${date}</div>
+                        </div>
+                    </div>
+                `;
+            });
+        });
+    }
 	
 </script>
 
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
