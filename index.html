@@ -1503,8 +1503,7 @@
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
     import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
-	import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, deleteDoc, doc, getDoc, setDoc, getDocs, updateDoc, where, limit } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
-	const firebaseConfig = {
+	import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, deleteDoc, doc, getDoc, setDoc, getDocs, updateDoc, where, limit, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";	const firebaseConfig = {
       apiKey: "AIzaSyApFYFkAghXreeX_xptg-PTCSxtPdiXYdA",
       authDomain: "targowisko-klanu.firebaseapp.com",
       projectId: "targowisko-klanu",
@@ -4362,8 +4361,7 @@ function startSplitHistory() {
     };
 
     // 1. Dołączanie do gry
-// 1. Dołączanie do gry (ZABEZPIECZENIE PRZED ZACIĘCIEM)
-    window.joinJackpot = async () => {
+window.joinJackpot = async () => {
         if(!currentUser) return alert("Zaloguj się!");
         const input = document.getElementById('jackpotBetAmount');
         const amount = parseGold(input.value);
@@ -4373,35 +4371,35 @@ function startSplitHistory() {
         const jpRef = doc(db, "jackpot", "current");
         const snap = await getDoc(jpRef);
         
-        let data = { status: 'open', entries: [], endTime: null };
+        let data = { status: 'open', entries: [], startTime: null }; // ZMIANA: startTime zamiast endTime
         if(snap.exists()) data = snap.data();
 
-        // --- FIX: SAMONAPRAWA ---
-        // Sprawdzamy, czy gra się nie zacięła (np. minęło 20 sek od końca czasu, a status nadal nie jest 'open')
+        // --- SAMONAPRAWA (Zaktualizowana) ---
         const now = new Date().getTime();
         let isStuck = false;
         
-        if (data.endTime) {
-            const timePassedSinceEnd = now - new Date(data.endTime).getTime();
-            // Jeśli minęło 20 sekund od końca odliczania, a gra nadal wisi -> RESET
-            if (timePassedSinceEnd > 20000) {
+        // Sprawdzamy czy gra nie wisi (na podstawie startTime + 90 sekund bufora)
+        if (data.startTime) {
+            // Konwertujemy timestamp Firebase na milisekundy
+            const startMillis = data.startTime.toMillis ? data.startTime.toMillis() : new Date(data.startTime).getTime();
+            const timePassed = now - startMillis;
+            
+            // Jeśli minęło ponad 90 sekund od startu, a gra wisi -> RESET
+            if (timePassed > 90000) {
                 isStuck = true;
-                console.log("Wykryto zacięty Jackpot - resetuję automatycznie.");
+                console.log("Wykryto zacięty Jackpot - reset.");
             }
         }
 
-        // Jeśli gra nie jest 'open' I NIE JEST zacięta -> Blokuj
         if(data.status !== 'open' && !isStuck) {
-            return alert("Runda trwa lub trwa losowanie! Poczekaj chwilę.");
+            return alert("Runda trwa lub trwa losowanie!");
         }
 
-        // Jeśli była zacięta, czyścimy dane przed dodaniem gracza
         if (isStuck) {
             data.entries = [];
-            data.endTime = null;
+            data.startTime = null;
             data.status = 'open';
         }
-        // ------------------------
 
         const newEntry = {
             uid: currentUser.uid,
@@ -4413,24 +4411,21 @@ function startSplitHistory() {
 
         const newEntries = [...(data.entries || []), newEntry];
         
-        // Budujemy obiekt do aktualizacji
         let updateData = { 
             entries: newEntries,
-            status: 'open',         // Wymuszamy open w razie zacięcia
-            winnerProcessing: false // Resetujemy blokady
+            status: 'open',
+            winnerProcessing: false
         };
 
-        // LOGIKA CZASU: Startuje tylko, gdy jest min. 2 graczy i czas nie był ustawiony
+        // START GRY (2 graczy)
+        // Używamy serverTimestamp() - to jest KLUCZ do synchronizacji
         const uniquePlayers = new Set(newEntries.map(e => e.uid)).size;
         
-        if (uniquePlayers >= 2 && !data.endTime) {
-            const end = new Date();
-            end.setSeconds(end.getSeconds() + JP_GAME_TIME);
-            updateData.endTime = end.toISOString();
+        if (uniquePlayers >= 2 && !data.startTime) {
+            updateData.startTime = serverTimestamp(); // <--- TU JEST ZMIANA
         } 
-        // Jeśli był zacięty, musimy wyczyścić stary czas (chyba że właśnie wbił 2 gracz)
         else if (isStuck && uniquePlayers < 2) {
-            updateData.endTime = null;
+            updateData.startTime = null;
             updateData.winner = null;
         }
 
@@ -4439,64 +4434,67 @@ function startSplitHistory() {
         window.playSound('coin');
     };
 
-   // Zmienna pomocnicza do przechowywania czasu końca (dostępna dla interwału)
-    let currentJackpotEndTime = null; 
+let currentJackpotEndTime = null; 
 
     function startJackpotListener() {
         if(jackpotUnsub) jackpotUnsub();
         
-        // 1. NASŁUCHIWANIE DANYCH Z BAZY (Tylko pobiera dane, nie odlicza)
         jackpotUnsub = onSnapshot(doc(db, "jackpot", "current"), (docSnap) => {
             if(!docSnap.exists()) return; 
             const data = docSnap.data();
             
             renderJackpotUI(data);
 
-            // Zapisujemy czas końca do zmiennej globalnej, żeby interwał go widział
-            if(data.status === 'open' && data.endTime) {
-                currentJackpotEndTime = new Date(data.endTime).getTime();
-                document.getElementById('jackpotTimer').style.display = 'block';
+            // OBSŁUGA CZASU (NOWA LOGIKA)
+            if(data.status === 'open' && data.startTime) {
+                // Jeśli startTime jest "świeży" (null przez ułamek sekundy przy zapisie), czekamy
+                if(data.startTime) {
+                    // Konwersja Timestampa Firebase na datę JS
+                    const startMillis = data.startTime.toMillis ? data.startTime.toMillis() : new Date(data.startTime).getTime();
+                    
+                    // Czas końca = Czas startu (serwerowy) + 60 sekund
+                    currentJackpotEndTime = startMillis + (JP_GAME_TIME * 1000);
+                    
+                    document.getElementById('jackpotTimer').style.display = 'block';
+                }
             } else {
                 currentJackpotEndTime = null;
                 document.getElementById('jackpotTimer').style.display = 'none';
             }
 
-            // Obsługa kręcenia (uruchamia animację)
             if(data.status === 'spinning' && !document.getElementById('jackpotStrip').classList.contains('spinning')) {
-                document.getElementById('jackpotTimer').style.display = 'none'; // Ukryj licznik jak kręci
+                document.getElementById('jackpotTimer').style.display = 'none';
                 spinTheWheel(data.winner, data.entries);
             }
             
-            // Reset widoku po nowej rundzie
             if(data.status === 'open' && document.getElementById('jackpotStrip').classList.contains('spun')) {
                  resetJackpotVisuals();
             }
         });
         
-        // 2. ODLICZANIE CZASU (Działa niezależnie, co 50ms)
+        // INTERWAŁ ODLICZANIA
         if(jpTimerInterval) clearInterval(jpTimerInterval);
         
         jpTimerInterval = setInterval(() => {
-             // Jeśli nie ma ustawionego czasu końca, nic nie rób
              if (!currentJackpotEndTime) return;
 
              const now = new Date().getTime();
-             const diff = currentJackpotEndTime - now; // Różnica w milisekundach
+             let diff = currentJackpotEndTime - now; 
 
              const timerEl = document.getElementById('jackpotTimer');
 
              if (diff > 0) {
-                 // Wyświetlamy sekundy i setne sekundy (np. 45.32s)
-                 timerEl.innerText = (diff / 1000).toFixed(2) + "s";
+                 // ZABEZPIECZENIE WIZUALNE:
+                 // Jeśli przez różnice zegarów pokazuje np. 65s, ucinamy do 60.00s
+                 let seconds = diff / 1000;
+                 if(seconds > JP_GAME_TIME) seconds = JP_GAME_TIME;
+                 
+                 timerEl.innerText = seconds.toFixed(2) + "s";
              } else {
-                 // Czas minął
                  timerEl.innerText = "LOSOWANIE...";
                  
-                 // Zabezpieczenie: Tylko jedna osoba wywołuje losowanie (żeby nie było spamu do bazy)
-                 // Robimy to sprawdzając, czy status w bazie to wciąż 'open' (wewnątrz finalizeJackpot jest update)
-                 // Ale wywołujemy to tylko raz, gdy licznik właśnie przeszedł przez zero (np. do -1 sekundy)
+                 // Wyzwalacz losowania (tylko raz, gdy czas minął)
                  if (diff > -2000 && diff < 0) {
-                     // Pobieramy aktualny stan, żeby sprawdzić czy już nie losuje
                      getDoc(doc(db, "jackpot", "current")).then(snap => {
                          const d = snap.data();
                          if(d && d.status === 'open' && !d.winnerProcessing) {
@@ -4505,7 +4503,7 @@ function startSplitHistory() {
                      });
                  }
              }
-        }, 50); // Odświeżanie 20 razy na sekundę = super płynność
+        }, 50);
     }
 
     // 3. Renderowanie UI (Lista graczy, Pula)
@@ -4684,6 +4682,7 @@ function startSplitHistory() {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
