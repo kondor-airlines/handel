@@ -4834,76 +4834,72 @@ window.switchJackpotTier = (tier) => {
     };
 
 	function startJackpotListener() {
-        if(jackpotUnsub) jackpotUnsub();
+    if(jackpotUnsub) jackpotUnsub();
+    
+    const listeningTier = currentTier; 
+    const conf = TIER_CONFIG[listeningTier];
+    
+    // Flaga, by nie wysyłać prośby o losowanie kilka razy pod rząd
+    let localIsFinalizing = false;
+
+    jackpotUnsub = onSnapshot(doc(db, conf.db, "current"), (docSnap) => {
+        if(!docSnap.exists()) return;
+        const data = docSnap.data();
         
-        const listeningTier = currentTier; 
-        const conf = TIER_CONFIG[listeningTier];
-        
-        jackpotUnsub = onSnapshot(doc(db, conf.db, "current"), (docSnap) => {
-            if(!docSnap.exists()) return;
-            const data = docSnap.data();
-            
-            if(docSnap.readTime) timeOffset = docSnap.readTime.toMillis() - new Date().getTime(); 
+        if(docSnap.readTime) timeOffset = docSnap.readTime.toMillis() - new Date().getTime(); 
 
-            if (currentTier === listeningTier) renderJackpotUI(data);
+        if (currentTier === listeningTier) renderJackpotUI(data);
 
-            let startMillis = data.startTime ? (data.startTime.toMillis ? data.startTime.toMillis() : data.startTime.seconds * 1000) : 0;
+        let startMillis = data.startTime ? (data.startTime.toMillis ? data.startTime.toMillis() : data.startTime.seconds * 1000) : 0;
 
-            // 1. Logika odliczania
-            if(data.status === 'open' && startMillis > 0) {
-                jackpotEndTime = startMillis + (JP_GAME_TIME * 1000);
-            } else {
-                jackpotEndTime = 0;
+        if(data.status === 'open' && startMillis > 0) {
+            jackpotEndTime = startMillis + (JP_GAME_TIME * 1000);
+        } else {
+            jackpotEndTime = 0;
+        }
+
+        if(data.status === 'spinning') {
+            const roundId = startMillis.toString();
+            if (processedSpins[listeningTier] !== roundId) {
+                processedSpins[listeningTier] = roundId;
+                spinTheWheel(data.winner, data.entries, listeningTier, data.winnerTotal);
             }
+        }
 
-            // 2. Logika kręcenia
-            if(data.status === 'spinning') {
-                const roundId = startMillis.toString();
-                if (processedSpins[listeningTier] !== roundId) {
-                    processedSpins[listeningTier] = roundId;
-                    spinTheWheel(data.winner, data.entries, listeningTier, data.winnerTotal);
-                }
-            }
-            
-            // 3. Logika resetu wizualnego
-            if(data.status === 'open' && currentTier === listeningTier) {
-                if (document.getElementById('jackpotStrip').classList.contains('spun')) {
-                    resetJackpotVisuals();
-                }
-            }
+        // --- LOGIKA TRIGGERA LOSOWANIA ---
+        // Zamiast pytać bazę w pętli, sprawdzamy czas tutaj (na danych ze snapshotu)
+        const nowSynced = new Date().getTime() + timeOffset;
+        const diff = jackpotEndTime - nowSynced;
 
-            // --- AUTO-TRIGGER (Zamiast getDoc w setInterval) ---
-            // Jeśli czas minął, a status to nadal 'open', wyślij prośbę o losowanie
-            const nowSynced = new Date().getTime() + timeOffset;
-            if (data.status === 'open' && startMillis > 0 && nowSynced > (startMillis + (JP_GAME_TIME * 1000))) {
-                if (!isFinalizing[listeningTier] && !data.winnerProcessing) {
-                    isFinalizing[listeningTier] = true;
-                    finalizeJackpot(listeningTier).finally(() => {
-                        // Odblokuj po 5s, żeby nie zapętlić
-                        setTimeout(() => { isFinalizing[listeningTier] = false; }, 5000);
-                    });
-                }
+        if (data.status === 'open' && startMillis > 0 && diff <= 0) {
+            if (!localIsFinalizing && !data.winnerProcessing) {
+                localIsFinalizing = true;
+                finalizeJackpot(listeningTier).finally(() => {
+                    // Blokada na 5 sekund, by uniknąć kolizji przy resecie
+                    setTimeout(() => { localIsFinalizing = false; }, 5000);
+                });
             }
-        });
-        
-        // PĘTLA TYLKO DO WYŚWIETLANIA CZASU (Brak zapytań do bazy!)
-        if(jpTimerInterval) clearInterval(jpTimerInterval);
-        jpTimerInterval = setInterval(() => {
-             const timerEl = document.getElementById('jackpotTimer');
-             if (!jackpotEndTime || currentTier !== listeningTier) {
-                 if(currentTier === listeningTier) timerEl.style.display = 'none';
-                 return;
-             }
-             
-             const diff = jackpotEndTime - (new Date().getTime() + timeOffset);
-             if (diff > 0) {
-                 timerEl.style.display = 'block';
-                 timerEl.innerText = (diff / 1000).toFixed(2) + "s";
-             } else {
-                 timerEl.innerText = "LOSOWANIE...";
-             }
-        }, 50);
-    }
+        }
+    });
+    
+    // Pętla setInterval TERAZ TYLKO AKTUALIZUJE TEKST (0 zapytań do bazy)
+    if(jpTimerInterval) clearInterval(jpTimerInterval);
+    jpTimerInterval = setInterval(() => {
+         const timerEl = document.getElementById('jackpotTimer');
+         if (!jackpotEndTime || currentTier !== listeningTier) {
+             if(currentTier === listeningTier) timerEl.style.display = 'none';
+             return;
+         }
+         
+         const diff = jackpotEndTime - (new Date().getTime() + timeOffset);
+         if (diff > 0) {
+             timerEl.style.display = 'block';
+             timerEl.innerText = (diff / 1000).toFixed(2) + "s";
+         } else {
+             timerEl.innerText = "LOSOWANIE...";
+         }
+    }, 50);
+}
 
 	function spinTheWheel(winner, entries, tier, poolAmount) {
         const strip = document.getElementById('jackpotStrip');
@@ -4972,3 +4968,4 @@ window.switchJackpotTier = (tier) => {
 <div id="toast-container"></div>
 </body>
 </html>
+
