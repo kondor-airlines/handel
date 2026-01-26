@@ -4814,21 +4814,18 @@ async function finalizeJackpot() {
             if(i === WINNER_INDEX) {
                 entry = winner; 
             } else {
-                // Losowanie zapełniaczy tła
                 if (entries && entries.length > 0) {
                     entry = entries[Math.floor(Math.random() * entries.length)];
                 }
             }
             
-            // --- 🛑 NAPRAWA BŁĘDU (ZABEZPIECZENIE) 🛑 ---
-            // Jeśli entry jest puste (null/undefined), podstawiamy "zaślepkę"
+            // Zabezpieczenie na wypadek braku danych gracza
             if (!entry) {
                 entry = {
-                    avatar: 'https://micc.garmory-cdn.cloud/obrazki/itemy/nas/pyt.gif', // Znak zapytania
+                    avatar: 'https://micc.garmory-cdn.cloud/obrazki/itemy/nas/pyt.gif', 
                     color: '#333' 
                 };
             }
-            // ----------------------------------------------
 
             cardsHtml += `
                 <div class="jp-card" style="width:80px; height:80px; margin:0 2px; flex-shrink:0; border-bottom: 4px solid ${entry.color}; background:#222; border:2px solid #444; display:flex; align-items:center; justify-content:center;">
@@ -4854,16 +4851,23 @@ async function finalizeJackpot() {
         setTimeout(async () => {
             strip.classList.add('spun');
             
-            // Jeśli winner był null (błąd bazy), to tutaj też musimy to obsłużyć, żeby nie wywaliło ShowWinner
+            // --- GŁÓWNA ZMIANA (Obsługa błędu) ---
             if (winner) {
                 showWinnerScreen(winner, entries, tier, poolAmount);    
             } else {
                 console.error("Błąd krytyczny: Brak zwycięzcy w danych z bazy!");
-                alert("Wystąpił błąd losowania (brak danych zwycięzcy). Gra zostanie zresetowana.");
+                // Jeśli jesteś Adminem, próbujemy naprawić automatycznie
+                if (currentNick === ADMIN_NICK) {
+                    const activeConf = TIER_CONFIG[tier];
+                    await setDoc(doc(db, activeConf.db, "current"), {
+                        status: 'open', entries: [], startTime: null, winner: null, winnerProcessing: false
+                    });
+                    console.log("Awaryjny reset bazy wykonany.");
+                }
             }
             
-            // Reset bazy
-            if (currentUser && ((winner && currentUser.uid === winner.uid) || currentNick === ADMIN_NICK)) {
+            // Standardowy reset bazy po udanej grze
+            if (winner && currentUser && ((currentUser.uid === winner.uid) || currentNick === ADMIN_NICK)) {
                 setTimeout(async () => {
                     const activeConf = TIER_CONFIG[tier];
                     await setDoc(doc(db, activeConf.db, "current"), {
@@ -5099,6 +5103,7 @@ function showWinnerScreen(winner, entries, tier, poolAmount) {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
