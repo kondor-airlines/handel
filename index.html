@@ -4658,13 +4658,12 @@ if ((myTotalInRound + amount) > conf.max) {
         }
     };
 
-    function startJackpotListener() {
-        let isFinalizing = false; 
+function startJackpotListener() {
         if(jackpotUnsub) jackpotUnsub();
         
         const listeningTier = currentTier; 
         const conf = TIER_CONFIG[listeningTier];
-        
+        let isFinalizing = false; // Bezpiecznik transakcji
 
         jackpotUnsub = onSnapshot(doc(db, conf.db, "current"), (docSnap) => {
             if(!docSnap.exists()) {
@@ -4725,27 +4724,35 @@ if ((myTotalInRound + amount) > conf.max) {
                      timerEl.innerText = seconds.toFixed(2) + "s";
                  }
              } else {
+                 // CZAS MINĄŁ - Faza losowania
+                 if(currentTier === listeningTier) timerEl.innerText = "LOSOWANIE...";
+                 
                  if (diff < 0 && diff > -3000) { 
-        if (isFinalizing) return; // 🛑 TO JEST KLUCZOWE - blokuje spamowanie bazy
+                     if (isFinalizing) return; // Jeśli transakcja już trwa, nie spamuj
+                     
+                     isFinalizing = true; 
+                     const activeConf = TIER_CONFIG[listeningTier];
+                     
+                     getDoc(doc(db, activeConf.db, "current")).then(snap => {
+                         // Jeśli w międzyczasie zmieniono zakładkę, nie przerywamy losowania w bazie,
+                         // ale resetujemy flagę lokalną.
+                         if (currentTier !== listeningTier) { isFinalizing = false; return; }
 
-        isFinalizing = true; // Zaciągamy hamulec
-        const activeConf = TIER_CONFIG[listeningTier];
-        
-        getDoc(doc(db, activeConf.db, "current")).then(snap => {
-            if (currentTier !== listeningTier) {
-                isFinalizing = false;
-                return;
-            }
-            const d = snap.data();
-            if(d && d.status === 'open' && !d.winnerProcessing) {
-                finalizeJackpot(listeningTier); 
-            }
-        }).catch(err => {
-            console.log("Błąd:", err);
-            isFinalizing = false; // W razie błędu pozwól spróbować ponownie
-        });
+                         const d = snap.data();
+                         if(d && d.status === 'open' && !d.winnerProcessing) {
+                             finalizeJackpot(listeningTier).finally(() => {
+                                 isFinalizing = false; 
+                             });
+                         }
+                     }).catch(err => {
+                         console.error("Błąd odczytu bazy:", err);
+                         isFinalizing = false; 
+                     });
+                 }
+             }
+        }, 50);
     }
-}
+	
     function renderJackpotUI(data) {
         const list = document.getElementById('jackpotPlayersList');
         const poolEl = document.getElementById('jackpotTotalPool');
@@ -5156,6 +5163,7 @@ window.switchJackpotTier = (tier) => {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
