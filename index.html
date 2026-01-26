@@ -1636,13 +1636,17 @@
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
     import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
-	import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, deleteDoc, doc, getDoc, setDoc, getDocs, updateDoc, where, limit, serverTimestamp, runTransaction } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";      apiKey: "AIzaSyApFYFkAghXreeX_xptg-PTCSxtPdiXYdA",
+    import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, deleteDoc, doc, getDoc, setDoc, getDocs, updateDoc, where, limit, serverTimestamp, runTransaction } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyApFYFkAghXreeX_xptg-PTCSxtPdiXYdA",
       authDomain: "targowisko-klanu.firebaseapp.com",
       projectId: "targowisko-klanu",
       storageBucket: "targowisko-klanu.firebasestorage.app",
       messagingSenderId: "1002027435908",
       appId: "1:1002027435908:web:56419c7bc38e148cf0ffd1"
     };
+
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
@@ -1650,10 +1654,13 @@
     
     window.escapeHtml = function(text) { return text ? text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;") : ""; };
     window.isValidImageUrl = (url) => url && /^https?:\/\/[^<>"]+\.(jpeg|jpg|gif|png|webp|bmp)$/i.test(url);
+    
     const ADMIN_NICK = "Stachu Drzymała";
-	const ADMIN_UID = "9rFgcWVJwBWyykHf6nuIwyGFrPR2"; // Twoje ID Admina
+    const ADMIN_UID = "9rFgcWVJwBWyykHf6nuIwyGFrPR2"; 
+    
     let currentUser = null;
     let currentNick = null;
+    // ... dalej reszta Twojego kodu (let allOffers = []; itd.)
     let allOffers = [];
     let inboxMessages = [];
     let activeUsers = {};
@@ -4707,14 +4714,11 @@ function startSplitHistory() {
                 const data = sfDoc.data();
 
                 // PANCERNE SPRAWDZENIE:
-                // Jeśli status nie jest 'open' ALBO ktoś już przetwarza (winnerProcessing)
-                // to natychmiast przerywamy.
                 if (data.status !== 'open' || data.winnerProcessing) {
                     throw "Już wylosowano!"; // To przerywa transakcję
                 }
 
-                // --- LOSOWANIE ---
-                // Oznaczamy, że MY przetwarzamy (blokada dla innych)
+                // Oznaczamy, że MY przetwarzamy
                 transaction.update(jpRef, { winnerProcessing: true });
 
                 let total = 0;
@@ -4732,18 +4736,16 @@ function startSplitHistory() {
                     }
                 }
 
-                // Zapisujemy wynik w tej samej atomowej transakcji
+                // Zapisujemy wynik - UPEWNIJ SIĘ ŻE TU SĄ KLAMRY { }
                 transaction.update(jpRef, {
                     status: 'spinning',
                     winner: winner,
                     winnerTotal: total 
                 });
             });
-            console.log("Pomyślnie przeprowadzono losowanie (Transakcja).");
+            console.log("Pomyślnie przeprowadzono losowanie.");
         } catch (e) {
-            // Jeśli transakcja została odrzucona (bo ktoś był szybszy), to tutaj trafi
-            // To normalne, po prostu ignorujemy, bo to znaczy że gra już się toczy
-            console.log("Losowanie anulowane (ktoś był szybszy): ", e);
+            console.log("Losowanie anulowane (ktoś był szybszy lub błąd): ", e);
         }
     }
 
