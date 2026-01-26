@@ -4355,12 +4355,12 @@ function startSplitHistory() {
         });
     }
 
-// --- SYSTEM JACKPOT ---
+// --- SYSTEM JACKPOT (WERSJA FIXED 3.0) ---
     let jackpotUnsub = null;
     let jpTimerInterval = null;
     const JP_GAME_TIME = 60; // Czas gry w sekundach
 
-    // ZMIENNE DO SYNCHRONIZACJI CZASU (To są te nowe, poprawne)
+    // Zmienne globalne
     let jackpotEndTime = 0;
     let timeOffset = 0;
 
@@ -4370,7 +4370,7 @@ function startSplitHistory() {
     };
 
     // 1. Dołączanie do gry
-window.joinJackpot = async () => {
+    window.joinJackpot = async () => {
         if(!currentUser) return alert("Zaloguj się!");
         const input = document.getElementById('jackpotBetAmount');
         const amount = parseGold(input.value);
@@ -4378,32 +4378,34 @@ window.joinJackpot = async () => {
         if(amount < 100000) return alert("Minimum 100k wpisowego!");
 
         const jpRef = doc(db, "jackpot", "current");
-        const snap = await getDoc(jpRef);
         
-        let data = { status: 'open', entries: [], startTime: null }; // ZMIANA: startTime zamiast endTime
+        // Pobieramy świeże dane z serwera (ignorujemy cache)
+        const snap = await getDoc(jpRef); 
+        
+        let data = { status: 'open', entries: [], startTime: null };
         if(snap.exists()) data = snap.data();
 
-        // --- SAMONAPRAWA (Zaktualizowana) ---
+        // --- ZABEZPIECZENIE PRZED ZACIĘCIEM ---
         const now = new Date().getTime();
         let isStuck = false;
         
-        // Sprawdzamy czy gra nie wisi (na podstawie startTime + 90 sekund bufora)
         if (data.startTime) {
-            // Konwertujemy timestamp Firebase na milisekundy
+            // Konwersja czasu
             const startMillis = data.startTime.toMillis ? data.startTime.toMillis() : new Date(data.startTime).getTime();
             const timePassed = now - startMillis;
             
-            // Jeśli minęło ponad 90 sekund od startu, a gra wisi -> RESET
+            // Jeśli minęło ponad 90 sekund od startu, a gra wisi -> Uznaj za zaciętą
             if (timePassed > 90000) {
                 isStuck = true;
-                console.log("Wykryto zacięty Jackpot - reset.");
+                console.warn("Wykryto zacięty Jackpot - resetuję przy dołączeniu.");
             }
         }
 
         if(data.status !== 'open' && !isStuck) {
-            return alert("Runda trwa lub trwa losowanie!");
+            return alert("Runda trwa lub trwa losowanie! Poczekaj.");
         }
 
+        // Jeśli zacięta, resetujemy lokalnie obiekt przed wysłaniem
         if (isStuck) {
             data.entries = [];
             data.startTime = null;
@@ -4426,12 +4428,13 @@ window.joinJackpot = async () => {
             winnerProcessing: false
         };
 
-        // START GRY (2 graczy)
-        // Używamy serverTimestamp() - to jest KLUCZ do synchronizacji
+        // START GRY (Gdy jest 2 graczy i nie ma czasu)
         const uniquePlayers = new Set(newEntries.map(e => e.uid)).size;
         
         if (uniquePlayers >= 2 && !data.startTime) {
-            updateData.startTime = serverTimestamp(); // <--- TU JEST ZMIANA
+            // KLUCZOWE: Używamy czasu serwera
+            updateData.startTime = serverTimestamp(); 
+            console.log("Startuję zegar (serverTimestamp wysłany)");
         } 
         else if (isStuck && uniquePlayers < 2) {
             updateData.startTime = null;
@@ -4443,6 +4446,7 @@ window.joinJackpot = async () => {
         window.playSound('coin');
     };
 
+    // 2. Nasłuch (Serce systemu)
     function startJackpotListener() {
         if(jackpotUnsub) jackpotUnsub();
         
@@ -4450,32 +4454,34 @@ window.joinJackpot = async () => {
             if(!docSnap.exists()) return; 
             const data = docSnap.data();
             
-            // 1. OBLICZANIE RÓŻNICY CZASU (SYNCHRONIZACJA Z GOOGLE)
-            // Używamy readTime, który pochodzi prosto z serwera
+            // DIAGNOSTYKA CZASU (Wciśnij F12 żeby zobaczyć)
             if(docSnap.readTime) {
                 const serverTime = docSnap.readTime.toMillis();
                 const localTime = new Date().getTime();
                 timeOffset = serverTime - localTime; 
-                // np. jeśli Twój zegar spóźnia się o 5s, timeOffset wyniesie +5000
+                // Jeśli masz ujemny offset, Twój zegar się spieszy. Dodatni - spóźnia.
+                console.log(`Synchronizacja: Server ${serverTime} vs Local ${localTime}. Offset: ${timeOffset}ms`);
             }
 
             renderJackpotUI(data);
 
             const timerEl = document.getElementById('jackpotTimer');
 
-            // 2. OBSŁUGA LICZNIKA (Z ignorowaniem lokalnych danych tymczasowych)
+            // --- OBSŁUGA CZASU STARTU ---
             if(data.status === 'open' && data.startTime) {
                 
-                // Jeśli masz "pending writes", to znaczy, że Ty wysłałeś dane, 
-                // ale serwer jeszcze nie odesłał timestampa. Czekamy.
-                if(docSnap.metadata.hasPendingWrites) {
+                // Jeśli timestamp jest null (bo dopiero się zapisuje), czekamy
+                if(!data.startTime) {
                     timerEl.style.display = 'block';
                     timerEl.innerText = "START...";
-                    jackpotEndTime = 0; // Blokujemy timer
+                    jackpotEndTime = 0;
                 } 
                 else {
-                    // Mamy potwierdzony czas z serwera
-                    const startMillis = data.startTime.toMillis();
+                    // Mamy twardy czas z serwera
+                    // Obsługa formatu: Firebase Timestamp vs zwykła data
+                    const startMillis = data.startTime.toMillis ? data.startTime.toMillis() : new Date(data.startTime).getTime();
+                    
+                    // Czas końca = Czas Startu + 60s
                     jackpotEndTime = startMillis + (JP_GAME_TIME * 1000);
                     timerEl.style.display = 'block';
                 }
@@ -4484,47 +4490,47 @@ window.joinJackpot = async () => {
                 timerEl.style.display = 'none';
             }
 
-            // 3. START RULETKI
+            // START RULETKI
             if(data.status === 'spinning' && !document.getElementById('jackpotStrip').classList.contains('spinning')) {
                 timerEl.style.display = 'none';
                 spinTheWheel(data.winner, data.entries);
             }
             
-            // 4. RESET
+            // RESET WIDOKU
             if(data.status === 'open' && document.getElementById('jackpotStrip').classList.contains('spun')) {
                  resetJackpotVisuals();
             }
         });
         
-        // INTERWAŁ ODLICZANIA (50ms)
+        // 3. Osobny Interwał do odświeżania licznika (niezależny od bazy)
         if(jpTimerInterval) clearInterval(jpTimerInterval);
         
         jpTimerInterval = setInterval(() => {
-             // Jeśli nie ma ustalonego końca, nic nie rób
              if (!jackpotEndTime) return;
 
-             const timerEl = document.getElementById('jackpotTimer');
-             
-             // MAGICZNA LINIJKA: Twój czas + Różnica = Czas Google
+             // Obliczamy "Teraz" z uwzględnieniem różnicy czasu serwera
              const nowSynced = new Date().getTime() + timeOffset;
-             
              const diff = jackpotEndTime - nowSynced; 
+
+             const timerEl = document.getElementById('jackpotTimer');
 
              if (diff > 0) {
                  let seconds = diff / 1000;
-                 // Kaganiec wizualny: nie pokazuj więcej niż np. 60.5s
-                 if (seconds > JP_GAME_TIME + 1) seconds = JP_GAME_TIME;
+                 
+                 // ZABEZPIECZENIE WIZUALNE:
+                 // Jeśli przez lag pokazuje > 60s (np. 62s), ucinamy do 60.00
+                 if (seconds > JP_GAME_TIME) seconds = JP_GAME_TIME;
                  
                  timerEl.innerText = seconds.toFixed(2) + "s";
              } else {
                  timerEl.innerText = "LOSOWANIE...";
                  
-                 // Wyzwalacz losowania (tylko raz, gdy czas minął)
+                 // Wyzwalacz losowania (tylko raz, gdy czas minie)
+                 // Sprawdzamy czy diff jest "świeżo" po czasie (max 2 sekundy po)
                  if (diff > -2000 && diff < 0) {
                      getDoc(doc(db, "jackpot", "current")).then(snap => {
                          const d = snap.data();
-                         // Sprawdzamy czy to my mamy prawo wylosować (żeby nie było duplikatów)
-                         // Warunek: status wciąż 'open' i brak blokady
+                         // Tylko jeśli runda wciąż otwarta
                          if(d && d.status === 'open' && !d.winnerProcessing) {
                              finalizeJackpot(d);
                          }
@@ -4534,27 +4540,26 @@ window.joinJackpot = async () => {
         }, 50);
     }
 
-    // 3. Renderowanie UI (Lista graczy, Pula)
     function renderJackpotUI(data) {
         const list = document.getElementById('jackpotPlayersList');
         const poolEl = document.getElementById('jackpotTotalPool');
         
         let total = 0;
-        data.entries.forEach(e => total += e.amount);
+        if(data.entries) data.entries.forEach(e => total += e.amount);
         poolEl.innerText = s_formatGold(total);
 
         list.innerHTML = "";
         
-        // Grupujemy wpisy po użytkownikach
+        if(!data.entries) return;
+
         let players = {};
         data.entries.forEach(e => {
             if(!players[e.uid]) players[e.uid] = { nick: e.nick, amount: 0, avatar: e.avatar, color: e.color };
             players[e.uid].amount += e.amount;
         });
 
-        // Sortujemy od największej wpłaty
         Object.values(players).sort((a,b) => b.amount - a.amount).forEach(p => {
-            const percent = ((p.amount / total) * 100).toFixed(1);
+            const percent = total > 0 ? ((p.amount / total) * 100).toFixed(1) : 0;
             list.innerHTML += `
                 <div class="jp-row" style="border-left: 4px solid ${p.color}">
                     <div style="display:flex; align-items:center; gap:8px;">
@@ -4570,12 +4575,10 @@ window.joinJackpot = async () => {
         });
     }
 
-    // 4. Losowanie zwycięzcy (Wykonuje jedna osoba - ta, której timer pierwszy zejdzie do 0)
     async function finalizeJackpot(data) {
-        // Blokujemy przed podwójnym wywołaniem
         await updateDoc(doc(db, "jackpot", "current"), { winnerProcessing: true });
 
-        // Matematyka ważona (Weighted Random)
+        // Losowanie ważone
         let total = 0;
         data.entries.forEach(e => total += e.amount);
         let randomPoint = Math.random() * total;
@@ -4591,45 +4594,41 @@ window.joinJackpot = async () => {
             }
         }
 
-        // Zapisujemy wynik i zmieniamy status na 'spinning'
         await updateDoc(doc(db, "jackpot", "current"), {
             status: 'spinning',
             winner: winner,
-            winnerTotal: total // Cała pula
+            winnerTotal: total 
         });
     }
 
-    // 5. Animacja Ruletki
     function spinTheWheel(winner, entries) {
         const strip = document.getElementById('jackpotStrip');
         const rail = document.querySelector('.jackpot-rail');
         strip.classList.add('spinning');
         
-        // --- MATEMATYKA PRECYZYJNA ---
-        const CARD_WIDTH = 80; // Szerokość obrazka
-        const MARGIN = 4;      // 2px z lewej + 2px z prawej
-        const FULL_CARD = CARD_WIDTH + MARGIN; // 84px - to jest nasz krok
-        const WINNER_INDEX = 75; // Zawsze 75-ta karta to zwycięzca
+        // --- MATEMATYKA KART ---
+        const CARD_WIDTH = 80; 
+        const MARGIN = 4;      
+        const FULL_CARD = CARD_WIDTH + MARGIN; // 84px
+        const WINNER_INDEX = 75; 
         
         strip.innerHTML = "";
         strip.style.transition = "none";
         strip.style.transform = "translateX(0px)";
 
-        // Generujemy pasek (100 kart)
         let cardsHtml = "";
         for(let i=0; i < 100; i++) {
             let entry;
             if(i === WINNER_INDEX) {
-                entry = winner; // Wstawiamy zwycięzcę na sztywno pod indeks 75
+                entry = winner; // ZWYCIĘZCA ZAWSZE TUTAJ
             } else {
-                // Reszta losowa (ale nie może być pusta)
                 entry = entries.length > 0 ? entries[Math.floor(Math.random() * entries.length)] : {avatar:'', color:'#333'};
             }
             
-            // Renderujemy kartę
+            // Wymuszamy styl width:80px tutaj, na wypadek gdyby CSS nie zadziałał
             cardsHtml += `
-                <div class="jp-card" style="border-bottom: 4px solid ${entry.color || '#333'}">
-                    <img src="${entry.avatar}" onerror="this.style.display='none'">
+                <div class="jp-card" style="width:80px; height:80px; margin:0 2px; flex-shrink:0; border-bottom: 4px solid ${entry.color || '#333'}; background:#222; border:2px solid #444; display:flex; align-items:center; justify-content:center;">
+                    <img src="${entry.avatar}" style="width:100%; height:100%; object-fit:cover;" onerror="this.style.display='none'">
                 </div>
             `;
         }
@@ -4637,35 +4636,27 @@ window.joinJackpot = async () => {
 
         document.getElementById('jackpotControls').style.display = 'none';
 
-        // Opóźnienie startu animacji
         setTimeout(() => {
             const containerWidth = rail.offsetWidth;
             
-            // WZÓR NA ŚRODEK:
-            // Przesuwamy o N kart w lewo (-)
-            // Dodajemy połowę ekranu (+)
-            // Odejmujemy połowę karty (-) żeby środek karty był na środku ekranu
+            // Obliczamy środek
             const centerPosition = - (WINNER_INDEX * FULL_CARD) + (containerWidth / 2) - (FULL_CARD / 2);
             
-            // Losowość (Jitter) - żeby nie stawało zawsze idealnie centralnie
-            // Zakres: od -30px do +30px (mieści się w karcie 80px)
-            const jitter = Math.floor(Math.random() * 60) - 30; 
-            
+            // Lekki rozrzut (żeby nie stawało zawsze idealnie co do piksela)
+            const jitter = Math.floor(Math.random() * 50) - 25; 
             const finalPosition = centerPosition + jitter;
 
-            // Animacja 8 sekund, cubic-bezier dla efektu "koła fortuny" (szybko -> wolno -> stop)
             strip.style.transition = "transform 8s cubic-bezier(0.15, 0, 0.10, 1)"; 
             strip.style.transform = `translateX(${finalPosition}px)`;
             
             window.playSound('coin'); 
         }, 100);
 
-        // Koniec po 8.5s
         setTimeout(async () => {
             strip.classList.add('spun');
             showWinnerScreen(winner);
             
-            // Auto-reset po 15s (tylko zwycięzca lub admin)
+            // Auto-reset po 15s
             if (currentUser && (currentUser.uid === winner.uid || currentNick === ADMIN_NICK)) {
                 setTimeout(async () => {
                     await setDoc(doc(db, "jackpot", "current"), {
@@ -4681,19 +4672,16 @@ window.joinJackpot = async () => {
     }
 
     function showWinnerScreen(winner) {
-        // Efekt confetti (iskry)
         for(let i=0; i<20; i++) createEmber(); 
-        
         document.getElementById('jackpotWinnerDisplay').style.display = 'block';
         document.getElementById('winnerNick').innerText = winner.nick;
         const total = document.getElementById('jackpotTotalPool').innerText;
         document.getElementById('winAmount').innerText = `Zgarnia: ${total}`;
         
-        // Dodaj wpis na czat
-        if(currentUser.uid === winner.uid) { // Żeby nie spamować, tylko zwycięzca wysyła info
+        if(currentUser.uid === winner.uid) { 
              addDoc(collection(db, "chat"), {
                 nick: "System Jackpot",
-                text: `🎰 ${winner.nick} wygrywa pulę ${total} przy szansie!`,
+                text: `🎰 ${winner.nick} wygrywa pulę ${total}!`,
                 type: 'roll',
                 date: new Date().toISOString()
             });
@@ -4719,6 +4707,7 @@ window.joinJackpot = async () => {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
