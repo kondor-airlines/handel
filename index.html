@@ -1636,8 +1636,7 @@
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
     import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
-	import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, deleteDoc, doc, getDoc, setDoc, getDocs, updateDoc, where, limit, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";	const firebaseConfig = {
-      apiKey: "AIzaSyApFYFkAghXreeX_xptg-PTCSxtPdiXYdA",
+	import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, deleteDoc, doc, getDoc, setDoc, getDocs, updateDoc, where, limit, serverTimestamp, runTransaction } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";      apiKey: "AIzaSyApFYFkAghXreeX_xptg-PTCSxtPdiXYdA",
       authDomain: "targowisko-klanu.firebaseapp.com",
       projectId: "targowisko-klanu",
       storageBucket: "targowisko-klanu.firebasestorage.app",
@@ -4697,29 +4696,55 @@ function startSplitHistory() {
         });
     }
 
-    async function finalizeJackpot(data) {
-        await updateDoc(doc(db, "jackpot", "current"), { winnerProcessing: true });
+    async function finalizeJackpot() {
+        const jpRef = doc(db, "jackpot", "current");
 
-        let total = 0;
-        data.entries.forEach(e => total += e.amount);
-        let randomPoint = Math.random() * total;
-        
-        let winner = null;
-        let currentStack = 0;
-        
-        for(let e of data.entries) {
-            currentStack += e.amount;
-            if(randomPoint <= currentStack) {
-                winner = e;
-                break;
-            }
+        try {
+            await runTransaction(db, async (transaction) => {
+                const sfDoc = await transaction.get(jpRef);
+                if (!sfDoc.exists()) throw "Dokument nie istnieje!";
+
+                const data = sfDoc.data();
+
+                // PANCERNE SPRAWDZENIE:
+                // Jeśli status nie jest 'open' ALBO ktoś już przetwarza (winnerProcessing)
+                // to natychmiast przerywamy.
+                if (data.status !== 'open' || data.winnerProcessing) {
+                    throw "Już wylosowano!"; // To przerywa transakcję
+                }
+
+                // --- LOSOWANIE ---
+                // Oznaczamy, że MY przetwarzamy (blokada dla innych)
+                transaction.update(jpRef, { winnerProcessing: true });
+
+                let total = 0;
+                data.entries.forEach(e => total += e.amount);
+                let randomPoint = Math.random() * total;
+                
+                let winner = null;
+                let currentStack = 0;
+                
+                for(let e of data.entries) {
+                    currentStack += e.amount;
+                    if(randomPoint <= currentStack) {
+                        winner = e;
+                        break;
+                    }
+                }
+
+                // Zapisujemy wynik w tej samej atomowej transakcji
+                transaction.update(jpRef, {
+                    status: 'spinning',
+                    winner: winner,
+                    winnerTotal: total 
+                });
+            });
+            console.log("Pomyślnie przeprowadzono losowanie (Transakcja).");
+        } catch (e) {
+            // Jeśli transakcja została odrzucona (bo ktoś był szybszy), to tutaj trafi
+            // To normalne, po prostu ignorujemy, bo to znaczy że gra już się toczy
+            console.log("Losowanie anulowane (ktoś był szybszy): ", e);
         }
-
-        await updateDoc(doc(db, "jackpot", "current"), {
-            status: 'spinning',
-            winner: winner,
-            winnerTotal: total 
-        });
     }
 
     function spinTheWheel(winner, entries) {
@@ -4960,6 +4985,7 @@ function startSplitHistory() {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
