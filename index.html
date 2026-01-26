@@ -4745,8 +4745,8 @@ function startSplitHistory() {
 
         setTimeout(async () => {
             strip.classList.add('spun');
-            showWinnerScreen(winner);
-            
+			showWinnerScreen(winner, entries);    
+			
             if (currentUser && (currentUser.uid === winner.uid || currentNick === ADMIN_NICK)) {
                 setTimeout(async () => {
                     await setDoc(doc(db, "jackpot", "current"), {
@@ -4761,26 +4761,62 @@ function startSplitHistory() {
         }, 8500);
     }
 
-		function showWinnerScreen(winner) {
-        // Efekty wizualne (konfetti)
+		function showWinnerScreen(winner, entries) {
+        // Efekty wizualne
         for(let i=0; i<20; i++) createEmber(); 
         
         document.getElementById('jackpotWinnerDisplay').style.display = 'block';
         document.getElementById('winnerNick').innerText = winner.nick;
-        
-        // Pobieramy tekst puli (np. "1.5m")
         const totalStr = document.getElementById('jackpotTotalPool').innerText;
         
-        // Wyświetlamy prosty komunikat
-        document.getElementById('winAmount').innerText = `Zgarnia: ${totalStr}`;
+        // --- GENEROWANIE LISTY DO ODDANIA ---
+        let debts = {};
+        let debtorsListHtml = "";
+
+        // Sumujemy wpłaty przegranych (agregacja po nicku)
+        if (entries && entries.length > 0) {
+            entries.forEach(e => {
+                // Jeśli to nie jest wpłata zwycięzcy, dodajemy do długu
+                if (e.uid !== winner.uid) {
+                    if (!debts[e.nick]) debts[e.nick] = 0;
+                    debts[e.nick] += e.amount;
+                }
+            });
+
+            // Tworzymy HTML listy
+            const sortedDebtors = Object.keys(debts).sort((a,b) => debts[b] - debts[a]); // Od najwyższej
+            
+            if (sortedDebtors.length > 0) {
+                debtorsListHtml += `<div style="margin-top:15px; border-top:1px dashed #555; padding-top:10px;">`;
+                debtorsListHtml += `<div style="color:#aaa; font-size:0.8em; margin-bottom:5px; text-transform:uppercase;">Do odebrania od:</div>`;
+                
+                sortedDebtors.forEach(nick => {
+                    debtorsListHtml += `
+                        <div style="display:flex; justify-content:space-between; border-bottom:1px solid rgba(255,255,255,0.05); padding:4px 0;">
+                            <span style="color:#fff;">${nick}</span>
+                            <span style="color:#ff6666; font-weight:bold;">${s_formatGold(debts[nick])}</span>
+                        </div>
+                    `;
+                });
+                debtorsListHtml += `</div>`;
+            } else {
+                debtorsListHtml = `<div style="color:#666; font-size:0.8em; margin-top:10px;">(Wygrałeś własne wpłaty)</div>`;
+            }
+        }
+        // -------------------------------------
+
+        document.getElementById('winAmount').innerHTML = `
+            <div style="font-size:1.2em; color:var(--green); margin-bottom:10px;">Wygrywa pulę: <b>${totalStr}</b></div>
+            ${debtorsListHtml}
+        `;
         
-        // Tylko Zwycięzca wykonuje zapis (żeby uniknąć duplikatów)
+        // Zapis do bazy (tylko Zwycięzca wykonuje)
         if(currentUser && currentUser.uid === winner.uid) { 
              
-             // 1. Wiadomość na czat (bez wzmianki o podatku)
+             // 1. Wiadomość na czat
              addDoc(collection(db, "chat"), {
                 nick: "System Jackpot",
-                text: `🎰 ${winner.nick} wygrywa pulę ${totalStr}!`,
+                text: `🎰 ${winner.nick} rozbił bank! Zgarnia: ${totalStr}!`,
                 type: 'roll',
                 date: new Date().toISOString()
             });
@@ -4869,6 +4905,7 @@ function startSplitHistory() {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
