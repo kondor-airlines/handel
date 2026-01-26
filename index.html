@@ -4556,18 +4556,17 @@ function startSplitHistory() {
 window.joinJackpot = async () => {
         if(!currentUser) return alert("Zaloguj się!");
         
-        // ANTY-SPAM: Jeśli już trwa wysyłanie, zablokuj
+        // ANTY-SPAM: Blokada klikania
         if(isBettingProcessing) return; 
         
         const input = document.getElementById('jackpotBetAmount');
         const amount = parseGold(input.value);
-        const conf = TIER_CONFIG[currentTier]; // Pobierz limity aktualnego pokoju
+        const conf = TIER_CONFIG[currentTier]; // Pobieramy konfigurację pokoju
 
-        // Sprawdzenie limitów pojedynczej wpłaty
+        // 1. Szybkie sprawdzenie MINIMUM (zanim zapytamy bazę)
         if(amount < conf.min) return alert(`Za mało! W tym pokoju minimum to ${s_formatGold(conf.min)}.`);
-        if(amount > conf.max) return alert(`Za dużo! W tym pokoju maksimum to ${s_formatGold(conf.max)}.`);
 
-        // Blokujemy przycisk na chwilę
+        // Blokujemy przycisk
         isBettingProcessing = true;
         const btn = document.getElementById('joinBtn');
         const originalText = btn.innerText;
@@ -4575,23 +4574,31 @@ window.joinJackpot = async () => {
         btn.style.opacity = "0.5";
 
         try {
-            // Używamy dynamicznej nazwy kolekcji (jackpot_low, jackpot_medium itd.)
             const jpRef = doc(db, conf.db, "current"); 
             const snap = await getDoc(jpRef);
             
             let data = { status: 'open', entries: [], startTime: null };
             if(snap.exists()) data = snap.data();
 
-            // Limit łączny (zawsze 10g na osobę, dla bezpieczeństwa)
+            // 2. OBLICZANIE ILE JUŻ WPŁACIŁEŚ
             let myTotalInRound = 0;
             if (data.entries) {
                 data.entries.forEach(e => { if (e.uid === currentUser.uid) myTotalInRound += e.amount; });
             }
-            if ((myTotalInRound + amount) > 10000000000) {
-                throw "Osiągnąłeś globalny limit 10g na rundę.";
+
+            // 3. SPRAWDZENIE LIMITU ŁĄCZNEGO (POPRAWIONE)
+            // (To co już masz + to co chcesz wpłacić) vs (Limit pokoju)
+            if ((myTotalInRound + amount) > conf.max) {
+                const left = conf.max - myTotalInRound;
+                
+                if (left <= 0) {
+                    throw `Masz już maksymalną kwotę w tym pokoju (${s_formatGold(conf.max)})!`;
+                } else {
+                    throw `Limit pokoju to ${s_formatGold(conf.max)}.\nMasz już: ${s_formatGold(myTotalInRound)}.\nMożesz dołożyć maksymalnie: ${s_formatGold(left)}.`;
+                }
             }
 
-            // ... (logika czasu bez zmian, tylko skrócona dla czytelności) ...
+            // 4. Obsługa czasu i zacięć (bez zmian)
             const now = new Date().getTime();
             let isStuck = false;
             if (data.startTime) {
@@ -4628,9 +4635,9 @@ window.joinJackpot = async () => {
             window.playSound('coin');
 
         } catch (error) {
-            alert("Błąd: " + error);
+            alert("🛑 " + error);
         } finally {
-            // Odblokuj przycisk po 1 sekudzie (dodatkowe zabezpieczenie przed double-click)
+            // Odblokowanie przycisku
             setTimeout(() => {
                 isBettingProcessing = false;
                 btn.innerText = originalText;
@@ -5055,6 +5062,7 @@ async function finalizeJackpot() {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
