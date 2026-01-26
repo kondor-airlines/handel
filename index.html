@@ -589,6 +589,55 @@
             border-bottom: 1px solid #222;
             font-size: 0.9em;
         }
+
+		/* --- STYL PORADNIKA --- */
+        .help-content details {
+            background: rgba(255, 255, 255, 0.03);
+            margin-bottom: 10px;
+            border-radius: 6px;
+            border: 1px solid #333;
+            overflow: hidden;
+            transition: 0.3s;
+        }
+        .help-content details[open] {
+            border-color: var(--gold);
+            background: rgba(0, 0, 0, 0.5);
+        }
+        .help-content summary {
+            padding: 12px 15px;
+            cursor: pointer;
+            font-weight: bold;
+            color: #eee;
+            list-style: none; /* Ukrywa domyślny trójkąt */
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .help-content summary::after {
+            content: '+'; 
+            color: var(--gold); 
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+        .help-content details[open] summary::after {
+            content: '−';
+        }
+        .help-content summary:hover {
+            background: rgba(255, 215, 0, 0.1);
+        }
+        .help-content p, .help-content ul {
+            padding: 0 15px 15px 15px;
+            margin: 0;
+            color: #bbb;
+            font-size: 0.9em;
+            line-height: 1.5;
+        }
+        .help-content ul {
+            padding-left: 35px;
+        }
+        .help-content li {
+            margin-bottom: 5px;
+        }
 		
 		
         @keyframes rise {
@@ -624,6 +673,9 @@
             <span>Zaloguj przez Google</span>
         </button>
         <div id="userProfile" class="user-profile">
+			<button class="icon-btn" onclick="toggleHelp()" title="Poradnik Klanowicza">
+    		❓
+			</button>
             <button class="icon-btn" onclick="toggleMute()" title="Włącz/Wyłącz dźwięk">
                 <span id="muteIcon">🔊</span>
             </button>
@@ -887,6 +939,71 @@
         <div style="display:flex; gap:10px;">
             <button onclick="saveAnnouncement()" class="action-btn" style="background:#8B0000; color:white;">OPUBLIKUJ</button>
             <button onclick="document.getElementById('annModal').style.display='none'" style="background:#333; color:white; border:none; padding:10px; border-radius:6px; cursor:pointer;">ANULUJ</button>
+        </div>
+    </div>
+</div>
+
+<div id="helpModal" style="display: none; position: fixed; z-index: 10030; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.9); align-items: center; justify-content: center; backdrop-filter: blur(5px);">
+    <div style="background: #1a1a1a; padding: 25px; border: 2px solid var(--gold); border-radius: 12px; width: 90%; max-width: 600px; max-height: 85vh; overflow-y: auto; position: relative;">
+        
+        <button onclick="document.getElementById('helpModal').style.display='none'" style="position:absolute; top:15px; right:15px; background:none; border:none; color:#888; font-size:1.5em; cursor:pointer;">✕</button>
+        
+        <h2 style="color:var(--gold); font-family:'MedievalSharp'; margin-top:0; text-align:center; border-bottom:1px solid #333; padding-bottom:10px;">
+            📜 Przewodnik Klanowicza
+        </h2>
+
+        <div class="help-content">
+            
+            <details>
+                <summary>🗡️ Jak wystawiać i kupować?</summary>
+                <p>Kliknij <b>+ WYSTAW ARTEFAKT</b>. Formularz zmienia się zależnie od tego, co wybierzesz:</p>
+                <ul>
+                    <li><b>Sprzedam:</b> Podajesz cenę w <i>k, m, g</i> lub walucie <i>PLN/ZŁ</i>.</li>
+                    <li><b>Kupię:</b> Nie wpisujesz ceny, tylko wybierasz formę płatności (Złoto, Gotówka, Mix).</li>
+                    <li><b>Zamienię:</b> Możesz zaznaczyć opcję "Dopłacam", jeśli dorzucasz coś do wymiany.</li>
+                    <li><b>Kłódki:</b> Przy kupnie możesz zaznaczyć "Obojętne (🔓/🔒)", jeśli nie zależy Ci na statusie wiązania.</li>
+                </ul>
+            </details>
+
+            <details>
+                <summary>⚖️ Podziały Łupów (50/50)</summary>
+                <p>Kliknij ikonę wagi (⚖️) w menu górnym. Służy do rozliczania bić herosów i E2.</p>
+                <ul>
+                    <li><b>Równy podział:</b> Cała kwota dzielona jest po równo na wszystkich uczestników.</li>
+                    <li><b>Zasada Znalazcy:</b> Wybierasz jednego "Szefa" (dostaje 50%), reszta dzieli się drugą połową.</li>
+                    <li><b>Wykrywajka:</b> Dwóch VIP-ów (Szef + Wykrywacz) dzieli między siebie 50%, reszta ekipy bierze drugą połowę.</li>
+                </ul>
+                <p><small>Historia ostatnich podziałów jest widoczna dla każdego.</small></p>
+            </details>
+
+            <details>
+                <summary>🧮 Kalkulatory (Prawy pasek)</summary>
+                <p>Ikony po prawej stronie ekranu:</p>
+                <ul>
+                    <li><b style="color:#2ecc71">Zielona (Ekstrakcja):</b> Liczy koszt wyjęcia ulepszenia w złocie i SŁ (uwzględnia zwrot 75% lub 100%).</li>
+                    <li><b style="color:var(--gold)">Złota (Ulepszanie):</b> Liczy koszt wbicia przedmiotu na +1, +2 itd. (uwzględnia mnożniki).</li>
+                    <li><b style="color:#9b59b6">Fioletowa (Esencja):</b> Szybki przelicznik wartości esencjalnej przedmiotu.</li>
+                </ul>
+            </details>
+
+            <details>
+                <summary>📦 Skrzynki i Drop</summary>
+                <ul>
+                    <li><b>Sprzedaż skrzynek:</b> W formularzu wybierz typ "Sprzedaż Skrzynek". Możesz dodać kilka rodzajów skrzyń do jednego ogłoszenia (np. zestaw).</li>
+                    <li><b>(s) w nazwie:</b> Przedmioty typu "Lekka skrytka..." trafiają automatycznie do zakładki <b>Skrzynki</b>, żeby nie zaśmiecać handlu.</li>
+                    <li><b>Bestiariusz:</b> Kliknij księgę (📖) po prawej, by sprawdzić co leci z danego potwora.</li>
+                </ul>
+            </details>
+
+            <details>
+                <summary>📜 Zeszyt Dłużników</summary>
+                <p>Ikona papirusu (📜) u góry. To Twoje prywatne notatki. Zapisuj tu, komu pożyczyłeś złoto. Możesz oznaczać długi jako "Spłacone" (zielony ptaszek) lub usuwać je całkowicie.</p>
+            </details>
+
+        </div>
+        
+        <div style="text-align:center; margin-top:20px; color:#666; font-size:0.8em;">
+            <em>Kondor Airlines System v2.0</em>
         </div>
     </div>
 </div>
@@ -3777,12 +3894,19 @@ function startSplitHistory() {
         `;
         window.playSound('click');
     };
+
+	window.toggleHelp = () => {
+        const modal = document.getElementById('helpModal');
+        modal.style.display = (modal.style.display === 'flex') ? 'none' : 'flex';
+        window.playSound('click');
+    };
 	
 </script>
 
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
