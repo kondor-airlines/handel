@@ -726,6 +726,39 @@
         background-color: rgba(0,0,0,0.9);
         backdrop-filter: blur(5px);
     }
+
+		/* Przycisk Złote Usta */
+        .quotes-btn-toggle { 
+            position: fixed; bottom: 390px; right: 30px; /* Pozycja nad Ekstrakcją */
+            width: 50px; height: 50px; border-radius: 50%; 
+            background: linear-gradient(135deg, #2c3e50, #000); 
+            border: 2px solid var(--gold); color: var(--gold); 
+            font-size: 1.5em; cursor: pointer; z-index: 999; 
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5); 
+            transition: 0.3s; 
+            display: flex; align-items: center; justify-content: center;
+        }
+        .quotes-btn-toggle:hover { transform: scale(1.1); box-shadow: 0 0 20px var(--gold); }
+
+        /* Styl Kafelka Cytatu (Pergamin) */
+        .quote-card {
+            background: #e0cda7; /* Kolor starego papieru */
+            color: #3e2723;       /* Ciemnobrązowy tekst */
+            padding: 15px;
+            border-radius: 2px;
+            box-shadow: 5px 5px 10px rgba(0,0,0,0.5);
+            font-family: 'MedievalSharp', serif;
+            position: relative;
+            border: 1px solid #8d6e63;
+            transform: rotate(-1deg); /* Lekki obrót dla naturalności */
+            transition: 0.3s;
+        }
+        .quote-card:hover { transform: scale(1.02) rotate(0deg); z-index: 5; }
+        .quote-text { font-size: 1.1em; font-style: italic; margin-bottom: 10px; line-height: 1.3; }
+        .quote-author { text-align: right; font-weight: bold; font-size: 0.9em; border-top: 1px solid #8d6e63; padding-top: 5px; }
+        .quote-date { font-size: 0.7em; opacity: 0.7; text-align: right; }
+        .del-quote-btn { position: absolute; top: 5px; right: 5px; cursor: pointer; color: #8d6e63; font-weight: bold; font-family: sans-serif; opacity: 0.5; }
+        .del-quote-btn:hover { opacity: 1; color: red; }
 		
 		
         @keyframes rise {
@@ -976,7 +1009,8 @@
         <button onclick="toggleKarczma()" style="background:none; border:none; color:white; font-size:1.5em; cursor:pointer;">✕</button>
     </div>
     <div id="chatMessages" class="chat-messages"></div>
-    <div class="chat-input-area">
+<div class="chat-input-area">
+        <button onclick="rollDice()" class="small-btn" style="background:#222; border:1px solid #444; width:40px; margin-right:5px;" title="Rzuć kością (1-100)">🎲</button>
         <input type="text" id="chatInput" placeholder="Napisz coś... (Enter wysyła)" style="flex-grow:1;">
         <button onclick="sendChatMessage()" class="small-btn" style="background:var(--gold); color:black;">➤</button>
     </div>
@@ -1134,6 +1168,7 @@
 </button>
 
 <button class="encyclo-btn-toggle" onclick="toggleEncyclopedia()" title="Encyklopedia Dropu">📖</button>
+	<button class="quotes-btn-toggle" onclick="toggleQuotes()" title="Złote Usta (Cytaty)">🏆</button>
 
 
 <div id="extractModal" style="display: none; position: fixed; z-index: 10009; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.85); align-items: center; justify-content: center; backdrop-filter: blur(3px);">
@@ -1253,6 +1288,25 @@
 
         <button onclick="calculateLoot()" class="action-btn" style="background:var(--green);">OBLICZ PODZIAŁ</button>
         <div id="calcOutput" class="calc-result" style="display:none;">Wynik...</div>
+    </div>
+</div>
+
+	<div id="quotesModal" style="display: none; position: fixed; z-index: 10040; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.9); align-items: center; justify-content: center; backdrop-filter: blur(5px);">
+    <div style="background: #1a1a1a; padding: 20px; border: 2px solid var(--gold); border-radius: 15px; width: 95%; max-width: 600px; height: 80vh; display:flex; flex-direction:column;">
+        
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; border-bottom:1px solid #333; padding-bottom:10px;">
+            <h3 style="color:var(--gold); font-family:'MedievalSharp'; margin:0; font-size:1.6em;">🏆 Złote Usta Klanu</h3>
+            <button onclick="document.getElementById('quotesModal').style.display='none'" style="background:none; border:none; color:#888; font-size:1.5em; cursor:pointer;">✕</button>
+        </div>
+
+        <div style="background:rgba(255,255,255,0.05); padding:10px; border-radius:8px; margin-bottom:15px; display:flex; gap:5px;">
+            <input type="text" id="quoteContent" placeholder="Cytat (np. 'Leczę to!' - Zdzichu, gdy padł)" style="flex:3;">
+            <input type="text" id="quoteAuthor" placeholder="Kto to powiedział?" style="flex:1;">
+            <button onclick="addQuote()" class="small-btn" style="flex:0.5; background:var(--gold); color:black;">➕</button>
+        </div>
+
+        <div id="quotesList" style="flex-grow:1; overflow-y:auto; display:grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap:15px; padding-right:5px;">
+            </div>
     </div>
 </div>
 
@@ -2391,10 +2445,12 @@ const lootTable = {
     }
 
     // --- KARCZMA (CZAT) ---
+// --- KARCZMA (CZAT + KOŚCI) ---
     window.toggleKarczma = () => {
         const p = document.getElementById('karczmaPanel');
         p.classList.toggle('open');
     };
+
     window.sendChatMessage = async () => {
         const inp = document.getElementById('chatInput');
         const txt = inp.value.trim();
@@ -2403,32 +2459,55 @@ const lootTable = {
         await addDoc(collection(db, "chat"), {
             nick: currentNick,
             text: window.escapeHtml(txt),
+            type: 'msg', // Zwykła wiadomość
             date: new Date().toISOString()
         });
         inp.value = "";
     };
+
+    // NOWOŚĆ: Funkcja rzutu kością
+    window.rollDice = async () => {
+        if (!currentUser) return alert("Zaloguj się!");
+        const result = Math.floor(Math.random() * 100) + 1; // Losuje 1-100
+        
+        await addDoc(collection(db, "chat"), {
+            nick: currentNick,
+            text: `🎲 rzucił(a) kośćmi i uzyskał(a) wynik: ${result}/100`,
+            type: 'roll', // Specjalny typ wiadomości
+            date: new Date().toISOString()
+        });
+        window.playSound('coin'); // Dźwięk monet przy rzucie
+    };
     
-    // NASŁUCH ENTER W CZACIE (NAPRAWIONE)
+    // NASŁUCH ENTER W CZACIE
     document.getElementById('chatInput').addEventListener('keypress', function (e) {
-        if (e.key === 'Enter') {
-            sendChatMessage();
-        }
+        if (e.key === 'Enter') sendChatMessage();
     });
 
+// ZAKTUALIZOWANE RENDEROWANIE (Obsługa kolorów dla rzutów)
     onSnapshot(query(collection(db, "chat"), orderBy("date", "asc"), limit(50)), (snap) => {
         const div = document.getElementById('chatMessages');
         div.innerHTML = "";
         snap.docs.forEach(d => {
             const m = d.data();
             const time = new Date(m.date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-            // POPRAWIONE WYŚWIETLANIE WIADOMOŚCI
+            
+            // Styl dla rzutu kością (Złoty tekst, kursywa)
+            let msgStyle = "color: #eee;";
+            let containerStyle = "";
+            
+            if (m.type === 'roll') {
+                msgStyle = "color: var(--gold); font-weight: bold; font-style: italic;";
+                containerStyle = "border-left: 3px solid var(--gold); background: rgba(255, 215, 0, 0.05);";
+            }
+
             div.innerHTML += `
-                <div class="chat-msg">
+                <div class="chat-msg" style="${containerStyle}">
                     <div class="chat-top-row">
                         <span class="chat-nick">${window.escapeHtml(m.nick)}</span>
                         <span class="chat-time">${time}</span>
                     </div>
-                    <div class="chat-text">${m.text}</div>
+                    <div class="chat-text" style="${msgStyle}">${m.text}</div>
                 </div>`;
         });
         div.scrollTop = div.scrollHeight;
@@ -4078,29 +4157,75 @@ function startSplitHistory() {
         modal.style.display = (modal.style.display === 'flex') ? 'none' : 'flex';
         window.playSound('click');
     };
+
+	// --- SYSTEM ZŁOTE USTA ---
+    let quotesUnsub = null;
+
+    window.toggleQuotes = () => {
+        const modal = document.getElementById('quotesModal');
+        modal.style.display = (modal.style.display === 'flex') ? 'none' : 'flex';
+        if(modal.style.display === 'flex') startQuotesListener();
+    };
+
+    window.addQuote = async () => {
+        if(!currentUser) return alert("Zaloguj się!");
+        const content = document.getElementById('quoteContent').value.trim();
+        const author = document.getElementById('quoteAuthor').value.trim();
+
+        if(!content || !author) return alert("Wpisz cytat i autora!");
+
+        await addDoc(collection(db, "cytaty"), {
+            text: content,
+            author: author,
+            addedBy: currentNick,
+            addedById: currentUser.uid,
+            date: new Date().toISOString()
+        });
+
+        document.getElementById('quoteContent').value = "";
+        document.getElementById('quoteAuthor').value = "";
+        window.playSound('coin');
+    };
+
+    window.deleteQuote = async (id) => {
+        if(confirm("Usunąć ten cytat?")) await deleteDoc(doc(db, "cytaty", id));
+    };
+
+    function startQuotesListener() {
+        if(quotesUnsub) quotesUnsub();
+        
+        quotesUnsub = onSnapshot(query(collection(db, "cytaty"), orderBy("date", "desc")), (snap) => {
+            const list = document.getElementById('quotesList');
+            list.innerHTML = "";
+            
+            if(snap.empty) {
+                list.innerHTML = "<div style='color:#666; text-align:center; width:100%; grid-column:1/-1;'>Księga jest pusta. Dodaj pierwszy wpis!</div>";
+                return;
+            }
+
+            snap.docs.forEach(d => {
+                const data = d.data();
+                // Usuwać może admin lub ten kto dodał
+                const canDel = (currentUser && (currentUser.uid === ADMIN_UID || currentUser.uid === data.addedById));
+                const delBtn = canDel ? `<span class="del-quote-btn" onclick="deleteQuote('${d.id}')">✕</span>` : '';
+                
+                // Losowy lekki obrót dla realizmu
+                const rot = (Math.random() * 2 - 1).toFixed(1); 
+
+                list.innerHTML += `
+                    <div class="quote-card" style="transform: rotate(${rot}deg);">
+                        ${delBtn}
+                        <div class="quote-text">„${window.escapeHtml(data.text)}”</div>
+                        <div class="quote-author">— ${window.escapeHtml(data.author)}</div>
+                        <div class="quote-date">Dodano: ${new Date(data.date).toLocaleDateString()}</div>
+                    </div>
+                `;
+            });
+        });
+    }
 	
 </script>
 
 <div id="toast-container"></div>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
