@@ -1692,6 +1692,16 @@
             </div>
 	
 <script type="module">
+	// --- SYSTEM JACKPOT (WERSJA PANCERNA) ---
+    let jackpotUnsub = null;
+	let historyUnsub = null;
+    let jpTimerInterval = null;
+	let currentTier = 'low'; // Domyślny pokój
+	let processedSpins = { low: null, medium: null, high: null };
+    const JP_GAME_TIME = 60; 
+    let jackpotEndTime = 0;
+    let timeOffset = 0;
+    let isBettingProcessing = false; // Blokada spamu
 	let isFinalizing = { low: false, medium: false, high: false };
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
     import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
@@ -4548,19 +4558,6 @@ function startSplitHistory() {
         });
     }
 
-// --- SYSTEM JACKPOT (WERSJA PANCERNA) ---
-    let jackpotUnsub = null;
-	let historyUnsub = null;
-    let jpTimerInterval = null;
-	let currentTier = 'low'; // Domyślny pokój
-	let processedSpins = { low: null, medium: null, high: null };
-    const JP_GAME_TIME = 60; 
-
-    // Zmienne globalne (muszą być tutaj)
-    let jackpotEndTime = 0;
-    let timeOffset = 0;
-	// Mapa zapamiętująca ostatnio rozegrane gry w każdym pokoju, żeby ich nie powtarzać
-    let isBettingProcessing = false; // Blokada spamu
     
     // Konfiguracja limitów dla każdego pokoju
     const TIER_CONFIG = {
@@ -4667,73 +4664,69 @@ function startJackpotListener() {
         
         const listeningTier = currentTier; 
         const conf = TIER_CONFIG[listeningTier];
-        let isLocalFinalizing = false; // Lokalna flaga dla tego konkretnego listenera
-
+        
         jackpotUnsub = onSnapshot(doc(db, conf.db, "current"), (docSnap) => {
             if(!docSnap.exists()) return;
             const data = docSnap.data();
             
             if(docSnap.readTime) timeOffset = docSnap.readTime.toMillis() - new Date().getTime(); 
 
-            // Aktualizuj listę graczy i pulę tylko jeśli patrzymy na ten stół
             if (currentTier === listeningTier) renderJackpotUI(data);
 
-            const timerEl = document.getElementById('jackpotTimer');
             let startMillis = data.startTime ? (data.startTime.toMillis ? data.startTime.toMillis() : data.startTime.seconds * 1000) : 0;
 
-            // 1. Obsługa Timera
+            // 1. Logika odliczania
             if(data.status === 'open' && startMillis > 0) {
                 jackpotEndTime = startMillis + (JP_GAME_TIME * 1000);
-                if(currentTier === listeningTier) timerEl.style.display = 'block';
             } else {
                 jackpotEndTime = 0;
-                if(currentTier === listeningTier) timerEl.style.display = 'none';
             }
 
-            // 2. Obsługa Kręcenia (Spinning)
+            // 2. Logika kręcenia
             if(data.status === 'spinning') {
-                if(currentTier === listeningTier) timerEl.style.display = 'none';
                 const roundId = startMillis.toString();
-                
-                // Animujemy tylko jeśli jeszcze tego nie robiliśmy LUB jeśli wróciliśmy do zakładki, która kręci
-                const strip = document.getElementById('jackpotStrip');
-                if (processedSpins[listeningTier] !== roundId || (currentTier === listeningTier && !strip.classList.contains('spinning'))) {
+                if (processedSpins[listeningTier] !== roundId) {
                     processedSpins[listeningTier] = roundId;
                     spinTheWheel(data.winner, data.entries, listeningTier, data.winnerTotal);
                 }
             }
             
-            // 3. Obsługa zakończenia i czyszczenia (Open)
+            // 3. Logika resetu wizualnego
             if(data.status === 'open' && currentTier === listeningTier) {
-                const strip = document.getElementById('jackpotStrip');
-                if (strip.classList.contains('spun')) {
+                if (document.getElementById('jackpotStrip').classList.contains('spun')) {
                     resetJackpotVisuals();
+                }
+            }
+
+            // --- AUTO-TRIGGER (Zamiast getDoc w setInterval) ---
+            // Jeśli czas minął, a status to nadal 'open', wyślij prośbę o losowanie
+            const nowSynced = new Date().getTime() + timeOffset;
+            if (data.status === 'open' && startMillis > 0 && nowSynced > (startMillis + (JP_GAME_TIME * 1000))) {
+                if (!isFinalizing[listeningTier] && !data.winnerProcessing) {
+                    isFinalizing[listeningTier] = true;
+                    finalizeJackpot(listeningTier).finally(() => {
+                        // Odblokuj po 5s, żeby nie zapętlić
+                        setTimeout(() => { isFinalizing[listeningTier] = false; }, 5000);
+                    });
                 }
             }
         });
         
-        // Pętla odliczająca (tylko do wizualizacji czasu, nie pobiera danych!)
+        // PĘTLA TYLKO DO WYŚWIETLANIA CZASU (Brak zapytań do bazy!)
         if(jpTimerInterval) clearInterval(jpTimerInterval);
         jpTimerInterval = setInterval(() => {
-             if (!jackpotEndTime) return;
-             const diff = jackpotEndTime - (new Date().getTime() + timeOffset);
              const timerEl = document.getElementById('jackpotTimer');
-
+             if (!jackpotEndTime || currentTier !== listeningTier) {
+                 if(currentTier === listeningTier) timerEl.style.display = 'none';
+                 return;
+             }
+             
+             const diff = jackpotEndTime - (new Date().getTime() + timeOffset);
              if (diff > 0) {
-                 if(currentTier === listeningTier) timerEl.innerText = (diff / 1000).toFixed(2) + "s";
+                 timerEl.style.display = 'block';
+                 timerEl.innerText = (diff / 1000).toFixed(2) + "s";
              } else {
-                 if(currentTier === listeningTier) timerEl.innerText = "LOSOWANIE...";
-                 
-                 // TRIGGER LOSOWANIA (Tylko raz!)
-                 // Nie robimy tu getDoc! Jeśli onSnapshot pokazał nam, że status to 'open' 
-                 // i czas minął, wywołujemy finalizeJackpot.
-                 if (diff < 0 && diff > -2000 && !isLocalFinalizing) {
-                     isLocalFinalizing = true;
-                     finalizeJackpot(listeningTier).finally(() => {
-                         // Resetujemy flagę po dłuższym czasie, żeby nie odpalić ponownie tej samej rundy
-                         setTimeout(() => { isLocalFinalizing = false; }, 5000);
-                     });
-                 }
+                 timerEl.innerText = "LOSOWANIE...";
              }
         }, 50);
     }
@@ -4774,49 +4767,48 @@ function startJackpotListener() {
 
 // Dodajemy argument 'tier', żeby funkcja wiedziała który stół zamknąć
 async function finalizeJackpot(tier) {
-    const targetTier = tier || currentTier;
-    const conf = TIER_CONFIG[targetTier];
-    if (!conf) return;
-    const jpRef = doc(db, conf.db, "current");
+        const conf = TIER_CONFIG[tier];
+        if (!conf) return;
+        const jpRef = doc(db, conf.db, "current");
 
-    try {
-        await runTransaction(db, async (transaction) => {
-            const sfDoc = await transaction.get(jpRef);
-            if (!sfDoc.exists()) return;
-            const data = sfDoc.data();
+        try {
+            await runTransaction(db, async (transaction) => {
+                const sfDoc = await transaction.get(jpRef);
+                if (!sfDoc.exists()) return;
+                const data = sfDoc.data();
 
-            if (data.status !== 'open' || data.winnerProcessing) return;
-            if (!data.entries || data.entries.length < 2) {
-                transaction.update(jpRef, { startTime: null, winnerProcessing: false });
-                return;
-            }
+                // Sprawdzamy czy losowanie jest zasadne
+                if (data.status !== 'open' || data.winnerProcessing || !data.entries || data.entries.length < 2) {
+                    return; 
+                }
 
-            transaction.update(jpRef, { winnerProcessing: true });
-            let total = 0;
-            data.entries.forEach(e => total += e.amount);
-            let randomPoint = Math.random() * total;
-            let winner = null;
-            let currentStack = 0;
-            for(let e of data.entries) {
-                currentStack += e.amount;
-                if(randomPoint <= currentStack) { winner = e; break; }
-            }
+                transaction.update(jpRef, { winnerProcessing: true });
 
-            transaction.update(jpRef, {
-                status: 'spinning',
-                winner: winner,
-                winnerTotal: total,
-                winnerProcessing: false // Ważne!
+                let total = 0;
+                data.entries.forEach(e => total += e.amount);
+                let randomPoint = Math.random() * total;
+                let winner = null;
+                let currentStack = 0;
+                for(let e of data.entries) {
+                    currentStack += e.amount;
+                    if(randomPoint <= currentStack) { winner = e; break; }
+                }
+
+                transaction.update(jpRef, {
+                    status: 'spinning',
+                    winner: winner,
+                    winnerTotal: total,
+                    winnerProcessing: false 
+                });
             });
-        });
-    } catch (e) { console.error("Błąd transakcji:", e); }
-}
+        } catch (e) { console.error("Błąd transakcji:", e); }
+    }
 
-    function spinTheWheel(winner, entries, tier, poolAmount) {
+   function spinTheWheel(winner, entries, tier, poolAmount) {
         const strip = document.getElementById('jackpotStrip');
         const rail = document.querySelector('.jackpot-rail');
 
-        // Sprawdzamy, czy to aktywny pokój przed dotknięciem HTML
+        // TYLKO JEŚLI PATRZYMY NA TEN POKÓJ
         if (currentTier === tier) {
             strip.classList.remove('spun');
             strip.classList.add('spinning');
@@ -4834,29 +4826,27 @@ async function finalizeJackpot(tier) {
             document.getElementById('jackpotControls').style.display = 'none';
 
             setTimeout(() => {
-                // Jeśli w ciągu tych 100ms user uciekł z zakładki - nie przesuwaj
-                if (currentTier !== tier) return;
+                if (currentTier !== tier) return; // Przerwano, bo zmieniono zakładkę
                 const FULL_CARD = 84;
-                const containerWidth = rail.offsetWidth;
-                const centerPosition = - (WINNER_INDEX * FULL_CARD) + (containerWidth / 2) - (FULL_CARD / 2);
+                const centerPosition = - (WINNER_INDEX * FULL_CARD) + (rail.offsetWidth / 2) - (FULL_CARD / 2);
                 strip.style.transition = "transform 8s cubic-bezier(0.15, 0, 0.10, 1)";
                 strip.style.transform = `translateX(${centerPosition + (Math.random()*40-20)}px)`;
                 window.playSound('coin');
             }, 100);
         }
 
-        // LOGIKA ZAPISU (Zawsze po 8.5s)
+        // LOGIKA KOŃCOWA (Zawsze działa w tle)
         setTimeout(async () => {
-            // Zapisz do bazy i pokaż modal (showWinnerScreen sama wie, kiedy wyświetlić grafikę)
             showWinnerScreen(winner, entries, tier, poolAmount);
 
             // Reset stołu (tylko zwycięzca lub admin)
-            const isWinner = currentUser && winner && currentUser.uid === winner.uid;
-            if (isWinner || currentNick === ADMIN_NICK) {
-                const activeConf = TIER_CONFIG[tier];
-                await setDoc(doc(db, activeConf.db, "current"), {
-                    status: 'open', entries: [], startTime: null, winner: null, winnerProcessing: false
-                });
+            if (winner && currentUser && (currentUser.uid === winner.uid || currentNick === ADMIN_NICK)) {
+                setTimeout(async () => {
+                    const activeConf = TIER_CONFIG[tier];
+                    await setDoc(doc(db, activeConf.db, "current"), {
+                        status: 'open', entries: [], startTime: null, winner: null, winnerProcessing: false
+                    });
+                }, 5000);
             }
         }, 8500);
     }
@@ -5108,6 +5098,7 @@ window.switchJackpotTier = (tier) => {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
