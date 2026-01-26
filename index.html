@@ -23,34 +23,43 @@
 
         /* UI COMPONENTS */
         .container { max-width: 1200px; margin: 0 auto; margin-top: 40px; }
+		
 		header { 
             display: flex; 
             justify-content: space-between; 
             align-items: center; 
             border-bottom: 2px solid var(--border); 
-            padding-bottom: 20px; 
+            padding-bottom: 15px; 
             margin-bottom: 30px; 
-            flex-wrap: wrap; 
-            gap: 15px; /* Odstęp między tytułem a panelem */
+            flex-wrap: nowrap; /* Wymusza jedną linię na komputerze */
+            gap: 10px; 
         }
-        h1 { font-family: 'MedievalSharp', cursive; margin: 0; font-size: 2.5em; letter-spacing: 2px; background: linear-gradient(to bottom, #ffd700 20%, #b8860b 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 0 15px rgba(255, 215, 0, 0.3)); }
 
+		h1 { 
+            font-family: 'MedievalSharp', cursive; 
+            margin: 0; 
+            font-size: 1.6em; 
+            letter-spacing: 1px; 
+            background: linear-gradient(to bottom, #ffd700 20%, #b8860b 100%); 
+            -webkit-background-clip: text; 
+            -webkit-text-fill-color: transparent; 
+            filter: drop-shadow(0 0 15px rgba(255, 215, 0, 0.3));
+            white-space: nowrap; /* Zapobiega łamaniu tytułu */
+        }
+		
         .login-btn { background: rgba(255, 255, 255, 0.05); color: #fff; border: 1px solid var(--gold); padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 12px; transition: all 0.3s ease; text-transform: uppercase; font-size: 0.85em; z-index: 99; position: relative; }
         .login-btn:hover { background: var(--gold); color: #000; box-shadow: 0 0 20px rgba(255, 215, 0, 0.4); transform: translateY(-2px); }
 
 		.user-profile { 
-            display: none; /* Domyślnie ukryte, JS to zmienia na flex */
+            display: none; 
             align-items: center; 
-            gap: 8px; /* Zmniejszyłem z 12px na 8px, żeby było ciaśniej */
+            gap: 5px; /* Jeszcze mniejszy odstęp między ikonkami */
             background: rgba(255,255,255,0.05); 
-            padding: 5px 15px; 
+            padding: 4px 10px; /* Mniejsze marginesy wewnątrz paska */
             border-radius: 50px; 
             border: 1px solid var(--border);
-            
-            /* TO JEST KLUCZ DO NAPRAWY: */
-            margin-left: auto; /* Jeśli spadnie do nowej linii, pcha się na prawo */
-            flex-wrap: wrap;   /* Pozwala ikonkom się ułożyć ładnie na małych ekranach */
-            justify-content: center;
+            margin-left: auto; /* Dopycha do prawej strony */
+            flex-shrink: 0; /* Zapobiega zgniataniu paska profilu */
         }
         .user-avatar { width: 35px; height: 35px; border-radius: 50%; border: 2px solid var(--gold); position: relative; }
         .logout-link { color: #ff6666; font-size: 0.75em; text-decoration: none; cursor: pointer; text-transform: uppercase; font-weight: bold; }
@@ -195,13 +204,12 @@
             color: #fff !important;
         }
         
-        /* Na telefonach grupy mogą być węższe */
-        @media (max-width: 768px) {
+ 		@media (max-width: 768px) {
+            /* 1. Filtry na całą szerokość (Twój kod) */
             .filter-group {
-                border-radius: 12px; /* Mniej zaokrąglone na telefonie */
+                border-radius: 12px; 
                 width: 100%;
             }
-        }
 
         .advanced-filters { display: flex; justify-content: center; gap: 15px; margin-bottom: 30px; flex-wrap: wrap; background: rgba(255, 255, 255, 0.02); padding: 10px; border-radius: 8px; border: 1px solid #333; align-items: center; }
         .filter-select { background: #0a0a0a; border: 1px solid #444; color: var(--gold); padding: 8px; border-radius: 5px; cursor: pointer; font-family: 'Montserrat', sans-serif; }
@@ -3945,6 +3953,7 @@ function startSplitHistory() {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
