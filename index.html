@@ -1546,6 +1546,29 @@
 </div>
 
 	<div id="jackpotModal" style="display: none; position: fixed; z-index: 10060; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.95); align-items: center; justify-content: center; backdrop-filter: blur(5px);">
+
+		<div id="historyDetailsModal" style="display: none; position: fixed; z-index: 10070; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.9); align-items: center; justify-content: center; backdrop-filter: blur(3px);">
+    <div style="background: #1a1a1a; padding: 25px; border: 2px solid var(--gold); border-radius: 12px; width: 90%; max-width: 400px; position:relative; display:flex; flex-direction:column; gap:15px;">
+        <button onclick="document.getElementById('historyDetailsModal').style.display='none'" style="position:absolute; top:10px; right:15px; background:none; border:none; color:#888; font-size:1.5em; cursor:pointer;">✕</button>
+        
+        <h3 style="color:var(--gold); font-family:'MedievalSharp'; margin:0; text-align:center;">Podsumowanie Rundy</h3>
+        
+        <div style="text-align:center;">
+            <div style="font-size:0.9em; color:#aaa;">Zwycięzca:</div>
+            <div style="display:flex; align-items:center; justify-content:center; gap:10px; margin-top:5px;">
+                <img id="histDetAvatar" src="" style="width:40px; height:40px; border-radius:50%; border:2px solid var(--gold);">
+                <span id="histDetNick" style="font-weight:bold; font-size:1.2em; color:#fff;">...</span>
+            </div>
+            <div id="histDetAmount" style="font-size:1.5em; color:var(--green); font-weight:bold; margin-top:5px;">...</div>
+        </div>
+
+        <div style="border-top:1px dashed #444; padding-top:10px;">
+            <div style="color:#ff6666; font-size:0.8em; text-transform:uppercase; margin-bottom:10px; text-align:center;">Lista do oddania:</div>
+            <div id="histDetList" style="max-height:200px; overflow-y:auto; display:flex; flex-direction:column; gap:5px;"></div>
+        </div>
+    </div>
+</div>
+		
     <div style="background: #111; border: 2px solid var(--gold); border-radius: 12px; width: 95%; max-width: 700px; display:flex; flex-direction:column; overflow:hidden; box-shadow: 0 0 50px rgba(255, 215, 0, 0.2);">
         
         <div style="background: linear-gradient(90deg, #222, #000); padding: 15px; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #333;">
@@ -4762,58 +4785,50 @@ function startSplitHistory() {
     }
 
 		function showWinnerScreen(winner, entries) {
-        // Efekty wizualne
         for(let i=0; i<20; i++) createEmber(); 
         
         document.getElementById('jackpotWinnerDisplay').style.display = 'block';
         document.getElementById('winnerNick').innerText = winner.nick;
         const totalStr = document.getElementById('jackpotTotalPool').innerText;
         
-        // --- GENEROWANIE LISTY DO ODDANIA ---
+        // --- OBLICZANIE DŁUGÓW ---
         let debts = {};
-        let debtorsListHtml = "";
-
-        // Sumujemy wpłaty przegranych (agregacja po nicku)
         if (entries && entries.length > 0) {
             entries.forEach(e => {
-                // Jeśli to nie jest wpłata zwycięzcy, dodajemy do długu
                 if (e.uid !== winner.uid) {
                     if (!debts[e.nick]) debts[e.nick] = 0;
                     debts[e.nick] += e.amount;
                 }
             });
-
-            // Tworzymy HTML listy
-            const sortedDebtors = Object.keys(debts).sort((a,b) => debts[b] - debts[a]); // Od najwyższej
-            
-            if (sortedDebtors.length > 0) {
-                debtorsListHtml += `<div style="margin-top:15px; border-top:1px dashed #555; padding-top:10px;">`;
-                debtorsListHtml += `<div style="color:#aaa; font-size:0.8em; margin-bottom:5px; text-transform:uppercase;">Do odebrania od:</div>`;
-                
-                sortedDebtors.forEach(nick => {
-                    debtorsListHtml += `
-                        <div style="display:flex; justify-content:space-between; border-bottom:1px solid rgba(255,255,255,0.05); padding:4px 0;">
-                            <span style="color:#fff;">${nick}</span>
-                            <span style="color:#ff6666; font-weight:bold;">${s_formatGold(debts[nick])}</span>
-                        </div>
-                    `;
-                });
-                debtorsListHtml += `</div>`;
-            } else {
-                debtorsListHtml = `<div style="color:#666; font-size:0.8em; margin-top:10px;">(Wygrałeś własne wpłaty)</div>`;
-            }
         }
-        // -------------------------------------
+        // -------------------------
+
+        // Renderowanie listy dla "Tu i Teraz"
+        let debtorsListHtml = "";
+        const sortedDebtors = Object.keys(debts).sort((a,b) => debts[b] - debts[a]);
+        
+        if (sortedDebtors.length > 0) {
+            debtorsListHtml += `<div style="margin-top:15px; border-top:1px dashed #555; padding-top:10px;">`;
+            debtorsListHtml += `<div style="color:#aaa; font-size:0.8em; margin-bottom:5px; text-transform:uppercase;">Do odebrania od:</div>`;
+            sortedDebtors.forEach(nick => {
+                debtorsListHtml += `
+                    <div style="display:flex; justify-content:space-between; border-bottom:1px solid rgba(255,255,255,0.05); padding:4px 0;">
+                        <span style="color:#fff;">${nick}</span>
+                        <span style="color:#ff6666; font-weight:bold;">${s_formatGold(debts[nick])}</span>
+                    </div>`;
+            });
+            debtorsListHtml += `</div>`;
+        } else {
+            debtorsListHtml = `<div style="color:#666; font-size:0.8em; margin-top:10px;">(Wygrałeś własne wpłaty)</div>`;
+        }
 
         document.getElementById('winAmount').innerHTML = `
             <div style="font-size:1.2em; color:var(--green); margin-bottom:10px;">Wygrywa pulę: <b>${totalStr}</b></div>
             ${debtorsListHtml}
         `;
         
-        // Zapis do bazy (tylko Zwycięzca wykonuje)
+        // Zapis do bazy (Zwycięzca)
         if(currentUser && currentUser.uid === winner.uid) { 
-             
-             // 1. Wiadomość na czat
              addDoc(collection(db, "chat"), {
                 nick: "System Jackpot",
                 text: `🎰 ${winner.nick} rozbił bank! Zgarnia: ${totalStr}!`,
@@ -4821,12 +4836,13 @@ function startSplitHistory() {
                 date: new Date().toISOString()
             });
 
-            // 2. Zapis do Historii
+            // NOWOŚĆ: Zapisujemy obiekt 'debts' do historii!
             addDoc(collection(db, "jackpot_history"), {
                 nick: winner.nick,
                 amount: totalStr,
                 avatar: winner.avatar,
-                date: new Date().toISOString()
+                date: new Date().toISOString(),
+                debts: debts // <-- TO JEST KLUCZOWE
             });
         }
     }
@@ -4846,41 +4862,80 @@ function startSplitHistory() {
     }
 
 	let historyUnsub = null;
+    window.jackpotHistoryData = []; // Magazyn na dane
+
     function startJackpotHistoryListener() {
         if(historyUnsub) historyUnsub();
         
-        // Pobieramy 10 ostatnich zwycięzców
         const q = query(collection(db, "jackpot_history"), orderBy("date", "desc"), limit(10));
         
         historyUnsub = onSnapshot(q, (snap) => {
             const div = document.getElementById('jackpotHistoryList');
             div.innerHTML = "";
+            window.jackpotHistoryData = []; // Reset magazynu
             
             if(snap.empty) {
                 div.innerHTML = "<div style='text-align:center; color:#444; padding:10px; font-size:0.8em;'>Brak historii.</div>";
                 return;
             }
 
+            let index = 0;
             snap.forEach(d => {
                 const h = d.data();
+                window.jackpotHistoryData.push(h); // Zapisujemy dane do tablicy
+                
                 const date = new Date(h.date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
                 
+                // Dodajemy onclick z indeksem
                 div.innerHTML += `
-                    <div style="display:flex; justify-content:space-between; align-items:center; padding:6px; border-bottom:1px solid rgba(255,255,255,0.05); font-size:0.8em;">
-                        <div style="display:flex; align-items:center; gap:6px;">
-                            <img src="${h.avatar}" style="width:20px; height:20px; border-radius:50%; border:1px solid #444;">
-                            <span style="color:#aaa;">${window.escapeHtml(h.nick)}</span>
+                    <div onclick="openHistoryDetails(${index})" style="cursor:pointer; display:flex; justify-content:space-between; align-items:center; padding:8px; border-bottom:1px solid rgba(255,255,255,0.05); font-size:0.85em; transition:0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.05)'" onmouseout="this.style.background='transparent'">
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <img src="${h.avatar}" style="width:24px; height:24px; border-radius:50%; border:1px solid #444;">
+                            <span style="color:#aaa; font-weight:bold;">${window.escapeHtml(h.nick)}</span>
                         </div>
                         <div style="text-align:right;">
                             <div style="color:var(--green); font-weight:bold;">${h.amount}</div>
-                            <div style="color:#444; font-size:0.8em;">${date}</div>
+                            <div style="color:#555; font-size:0.8em;">${date}</div>
                         </div>
                     </div>
                 `;
+                index++;
             });
         });
     }
 
+	window.openHistoryDetails = (index) => {
+        const data = window.jackpotHistoryData[index];
+        if(!data) return;
+
+        // Wypełniamy Modal
+        document.getElementById('histDetNick').innerText = data.nick;
+        document.getElementById('histDetAmount').innerText = data.amount;
+        document.getElementById('histDetAvatar').src = data.avatar;
+
+        const listDiv = document.getElementById('histDetList');
+        listDiv.innerHTML = "";
+
+        // Sprawdzamy czy są zapisane długi (stare wpisy ich nie mają)
+        if (data.debts && Object.keys(data.debts).length > 0) {
+            const sorted = Object.keys(data.debts).sort((a,b) => data.debts[b] - data.debts[a]);
+            sorted.forEach(nick => {
+                listDiv.innerHTML += `
+                    <div style="display:flex; justify-content:space-between; border-bottom:1px solid #333; padding:5px;">
+                        <span style="color:#ccc;">${window.escapeHtml(nick)}</span>
+                        <span style="color:#ff6666;">${s_formatGold(data.debts[nick])}</span>
+                    </div>
+                `;
+            });
+        } else {
+            listDiv.innerHTML = "<div style='text-align:center; color:#555; font-style:italic;'>Brak danych o dłużnikach (stary wpis lub wygrana własna).</div>";
+        }
+
+        // Pokazujemy okno
+        document.getElementById('historyDetailsModal').style.display = 'flex';
+        window.playSound('click');
+    };
+	
 	window.toggleSidebar = () => {
         const sidebar = document.getElementById('rightSidebar');
         const btn = document.querySelector('.sidebar-toggle-main');
@@ -4905,6 +4960,7 @@ function startSplitHistory() {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
