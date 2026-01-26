@@ -4650,12 +4650,13 @@ window.joinJackpot = async () => {
     function startJackpotListener() {
         if(jackpotUnsub) jackpotUnsub();
         
+        // Zapamiętujemy, dla którego pokoju tworzymy ten nasłuch
         const listeningTier = currentTier; 
         const conf = TIER_CONFIG[listeningTier];
         
         jackpotUnsub = onSnapshot(doc(db, conf.db, "current"), (docSnap) => {
             if(!docSnap.exists()) {
-                renderJackpotUI({entries: []});
+                if (currentTier === listeningTier) renderJackpotUI({entries: []});
                 return;
             }
             const data = docSnap.data();
@@ -4664,6 +4665,7 @@ window.joinJackpot = async () => {
                 timeOffset = docSnap.readTime.toMillis() - new Date().getTime(); 
             }
 
+            // Aktualizujemy UI tylko jeśli użytkownik nadal patrzy na ten pokój
             if (currentTier === listeningTier) {
                 renderJackpotUI(data);
             }
@@ -4672,10 +4674,11 @@ window.joinJackpot = async () => {
             let startMillis = 0;
 
             if (data.startTime) {
-                startMillis = (data.startTime.toMillis ? data.startTime.toMillis() : (data.startTime.seconds ? data.startTime.seconds*1000 : new Date(data.startTime).getTime()));
+                 // Obsługa różnych formatów czasu Firebase
+                 startMillis = (data.startTime.toMillis ? data.startTime.toMillis() : (data.startTime.seconds ? data.startTime.seconds*1000 : new Date(data.startTime).getTime()));
             }
 
-            // Obsługa stanu OPEN (odliczanie)
+            // Obsługa Timera (pokazywanie/ukrywanie)
             if(data.status === 'open' && startMillis > 0) {
                 jackpotEndTime = startMillis + (JP_GAME_TIME * 1000);
                 if(currentTier === listeningTier) timerEl.style.display = 'block';
@@ -4684,39 +4687,36 @@ window.joinJackpot = async () => {
                 if(currentTier === listeningTier) timerEl.style.display = 'none';
             }
 
-            // --- POPRAWKA: Obsługa stanu SPINNING ---
+            // Start Animacji (Spinning)
             if(data.status === 'spinning') {
                 if(currentTier === listeningTier) timerEl.style.display = 'none';
 
-                // SPRAWDZAMY, CZY JUŻ TEGO NIE KRĘCILIŚMY
-                // Używamy startMillis jako unikalnego ID rundy
                 const roundId = startMillis.toString();
-
+                // Sprawdzamy czy już nie kręciliśmy tej rundy w tej sesji
                 if (processedSpins[listeningTier] !== roundId) {
-                    // Jeśli to nowa runda, której jeszcze nie obsługiwaliśmy:
-                    processedSpins[listeningTier] = roundId; // Oznaczamy jako obsłużoną
+                    processedSpins[listeningTier] = roundId;
                     spinTheWheel(data.winner, data.entries, listeningTier, data.winnerTotal);
-                } else {
-                    // Jeśli już to kręcimy, nie rób nic (nawet jak user wrócił na zakładkę)
-                    console.log(`Pominięto duplikat kręcenia dla ${listeningTier}`);
                 }
             }
             
-            // Reset wizualny po zakończeniu
+            // Reset wizualny po zakończeniu (Open)
             if(data.status === 'open' && currentTier === listeningTier && document.getElementById('jackpotStrip').classList.contains('spun')) {
                  resetJackpotVisuals();
             }
         });
         
-        // Timer (pozostał bez zmian)
+        // PĘTLA ODLICZAJĄCA CZAS
         if(jpTimerInterval) clearInterval(jpTimerInterval);
+        
         jpTimerInterval = setInterval(() => {
              if (!jackpotEndTime) return;
+             
              const nowSynced = new Date().getTime() + timeOffset;
              const diff = jackpotEndTime - nowSynced; 
              const timerEl = document.getElementById('jackpotTimer');
 
              if (diff > 0) {
+                 // Aktualizuj licznik tylko jak patrzymy na właściwy pokój
                  if(currentTier === listeningTier) {
                      let seconds = diff / 1000;
                      if (seconds > JP_GAME_TIME) seconds = JP_GAME_TIME;
@@ -4725,11 +4725,18 @@ window.joinJackpot = async () => {
              } else {
                  if(currentTier === listeningTier) timerEl.innerText = "LOSOWANIE...";
                  
+                 // Trigger losowania (tylko raz, gdy czas minie)
                  if (diff > -2000 && diff < 0) {
+                     // Pobieramy dane DLA ZAPAMIĘTANEGO POKOJU (listeningTier)
                      const activeConf = TIER_CONFIG[listeningTier];
+                     
                      getDoc(doc(db, activeConf.db, "current")).then(snap => {
                          const d = snap.data();
-                         if(d && d.status === 'open' && !d.winnerProcessing) finalizeJackpot();
+                         // Sprawdzamy czy nadal trzeba losować
+                         if(d && d.status === 'open' && !d.winnerProcessing) {
+                             // KLUCZOWA ZMIANA: Przekazujemy listeningTier!
+                             finalizeJackpot(listeningTier); 
+                         }
                      });
                  }
              }
@@ -4769,9 +4776,13 @@ window.joinJackpot = async () => {
         });
     }
 
-async function finalizeJackpot() {
-        const conf = TIER_CONFIG[currentTier];
-        const jpRef = doc(db, conf.db, "current"); // Dynamiczna ścieżka
+// Dodajemy argument 'tier', żeby funkcja wiedziała który stół zamknąć
+    async function finalizeJackpot(tier) {
+        // ZABEZPIECZENIE: Jeśli tier nie został podany, użyj obecnego, ale to ostateczność
+        const targetTier = tier || currentTier;
+        const conf = TIER_CONFIG[targetTier];
+        
+        const jpRef = doc(db, conf.db, "current");
 
         try {
             await runTransaction(db, async (transaction) => {
@@ -4779,6 +4790,7 @@ async function finalizeJackpot() {
                 if (!sfDoc.exists()) throw "Dokument nie istnieje!";
                 const data = sfDoc.data();
 
+                // Sprawdzamy status. Jeśli już nie jest 'open', to znaczy że ktoś nas ubiegł.
                 if (data.status !== 'open' || data.winnerProcessing) throw "Już wylosowano!";
 
                 transaction.update(jpRef, { winnerProcessing: true });
@@ -4800,7 +4812,10 @@ async function finalizeJackpot() {
                     winnerTotal: total 
                 });
             });
-        } catch (e) { console.log(e); }
+            console.log(`✅ Pomyślnie wylosowano zwycięzcę dla stołu: ${targetTier}`);
+        } catch (e) { 
+            console.log(`Info (${targetTier}):`, e); 
+        }
     }
 
     function spinTheWheel(winner, entries, tier, poolAmount) {
@@ -5133,6 +5148,7 @@ function showWinnerScreen(winner, entries, tier, poolAmount) {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
