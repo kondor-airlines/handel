@@ -2589,7 +2589,7 @@ window.toggleSpecialFields = () => {
 	
 	window.addChestRow = () => {
         const area = document.getElementById('chestRowsArea');
-        const rowId = Date.now(); // Unikalne ID
+        const rowId = Date.now(); 
         
         let optionsHtml = `<option value="">-- Wybierz skrzynię --</option>`;
         chestList.forEach(c => {
@@ -2599,9 +2599,12 @@ window.toggleSpecialFields = () => {
         const div = document.createElement('div');
         div.className = 'chest-row';
         div.id = `row-${rowId}`;
+        
+        // Zmieniony HTML wiersza: Select | Ilość | Cena | X
         div.innerHTML = `
-            <select class="chest-select">${optionsHtml}</select>
-            <input type="number" class="chest-qty" placeholder="Ilość" min="1" value="1">
+            <select class="chest-select" style="flex:3;">${optionsHtml}</select>
+            <input type="number" class="chest-qty" placeholder="Ile" min="1" value="1" style="flex:0.8; text-align:center;">
+            <input type="text" class="chest-row-price" placeholder="Cena (np. 10m)" style="flex:1.2; text-align:center;">
             <button class="remove-chest-btn" onclick="removeChestRow('${rowId}')">✕</button>
         `;
         area.appendChild(div);
@@ -3195,12 +3198,14 @@ window.renderOffers = () => {
 
         // 7. Logika dla "SKRZYNKI" (ZAKTUALIZOWANA)
         // 7. Logika dla "SKRZYNKI" (POPRAWIONA)
+        // 7. Logika dla "SKRZYNKI" (Z CENAMI CZĄSTKOWYMI)
         else if (type === 'chest') {
             const rows = document.querySelectorAll('.chest-row');
             if (rows.length === 0) return alert("Dodaj przynajmniej jedną skrzynkę!");
             
             const chestAction = document.getElementById('chestAction').value; // Sprzedam / Kupię
-            const chestPriceVal = document.getElementById('chestPrice').value.trim();
+            const chestTotalInput = document.getElementById('chestPrice');
+            const chestTotalPrice = chestTotalInput ? chestTotalInput.value.trim() : "";
 
             let chestSummary = [];
             let imagesArray = [];
@@ -3208,10 +3213,17 @@ window.renderOffers = () => {
             for (let row of rows) {
                 const select = row.querySelector('.chest-select');
                 const qty = row.querySelector('.chest-qty').value;
+                const singlePrice = row.querySelector('.chest-row-price').value.trim(); // Cena za ten konkretny rodzaj
                 
-                if (!select.value || qty < 1) return alert("Uzupełnij wszystkie pola skrzynek!");
+                if (!select.value || qty < 1) return alert("Uzupełnij nazwy i ilość skrzynek!");
                 
-                chestSummary.push(`${qty}x ${select.value.replace('Skrzynia ', '')}`);
+                // Budujemy opis: "5x Patryk (50m)"
+                let rowText = `${qty}x ${select.value.replace('Skrzynia ', '')}`;
+                if (singlePrice) {
+                    rowText += ` (${singlePrice})`;
+                }
+                
+                chestSummary.push(rowText);
                 
                 const u = select.options[select.selectedIndex].dataset.img;
                 if(u) imagesArray.push(u);
@@ -3220,11 +3232,12 @@ window.renderOffers = () => {
             finalName = `${chestAction}: ` + chestSummary.join(', ');
             finalImg = imagesArray.join('|');
             
-            // JEŚLI KUPIĘ -> Cena to "Do dogadania", JEŚLI SPRZEDAM -> Cena z inputa
+            // Logika ceny głównej (Sumy)
             if (chestAction === 'Kupię') {
                 finalPrice = "Do dogadania";
             } else {
-                finalPrice = chestPriceVal || "Do dogadania";
+                // Jeśli wpisałeś cenę ogólną, użyj jej. Jeśli nie, napisz "Patrz opis"
+                finalPrice = chestTotalPrice || "Patrz opis"; 
             }
 
             finalSource = "Skrzynki Herosów";
@@ -4057,6 +4070,7 @@ function startSplitHistory() {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
