@@ -4599,22 +4599,16 @@ window.joinJackpot = async () => {
             if(snap.exists()) data = snap.data();
 
             // 2. OBLICZANIE ILE JUŻ WPŁACIŁEŚ
-            let myTotalInRound = 0;
-            if (data.entries) {
-                data.entries.forEach(e => { if (e.uid === currentUser.uid) myTotalInRound += e.amount; });
-            }
+let myTotalInRound = 0;
+if (data.entries) {
+    data.entries.forEach(e => { if (e.uid === currentUser.uid) myTotalInRound += e.amount; });
+}
 
-            // 3. SPRAWDZENIE LIMITU ŁĄCZNEGO (POPRAWIONE)
-            // (To co już masz + to co chcesz wpłacić) vs (Limit pokoju)
-            if ((myTotalInRound + amount) > conf.max) {
-                const left = conf.max - myTotalInRound;
-                
-                if (left <= 0) {
-                    throw `Masz już maksymalną kwotę w tym pokoju (${s_formatGold(conf.max)})!`;
-                } else {
-                    throw `Limit pokoju to ${s_formatGold(conf.max)}.\nMasz już: ${s_formatGold(myTotalInRound)}.\nMożesz dołożyć maksymalnie: ${s_formatGold(left)}.`;
-                }
-            }
+// Sprawdzenie czy nowa wpłata + stare nie przekraczają limitu pokoju (np. 100m)
+if ((myTotalInRound + amount) > conf.max) {
+    const left = conf.max - myTotalInRound;
+    throw `Przekroczysz limit pokoju (${s_formatGold(conf.max)})! Możesz dołożyć jeszcze tylko: ${s_formatGold(left)}`;
+}
 
             // 4. Obsługa czasu i zacięć (bez zmian)
             const now = new Date().getTime();
@@ -5162,6 +5156,7 @@ window.switchJackpotTier = (tier) => {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
