@@ -4807,50 +4807,50 @@ async function finalizeJackpot() {
         const strip = document.getElementById('jackpotStrip');
         const rail = document.querySelector('.jackpot-rail');
         
-        // 1. Jeśli użytkownik zdążył zmienić zakładkę ZANIM funkcja ruszyła - przerwij rysowanie
-        if (currentTier !== tier) return;
-
-        strip.classList.add('spinning');
-        
-        const CARD_WIDTH = 80; 
-        const MARGIN = 4;      
-        const FULL_CARD = CARD_WIDTH + MARGIN; 
-        const WINNER_INDEX = 75; 
-        
-        strip.innerHTML = "";
-        strip.style.transition = "none";
-        strip.style.transform = "translateX(0px)";
-
-        let cardsHtml = "";
-        for(let i=0; i < 100; i++) {
-            let entry = null;
-            if(i === WINNER_INDEX) {
-                entry = winner; 
-            } else {
-                if (entries && entries.length > 0) entry = entries[Math.floor(Math.random() * entries.length)];
-            }
+        // 1. GENEROWANIE KART (Tylko jeśli jesteśmy w dobrej zakładce)
+        if (currentTier === tier) {
+            strip.classList.add('spinning');
             
-            if (!entry) entry = { avatar: 'https://micc.garmory-cdn.cloud/obrazki/itemy/nas/pyt.gif', color: '#333' };
+            const CARD_WIDTH = 80; 
+            const MARGIN = 4;      
+            const FULL_CARD = CARD_WIDTH + MARGIN; 
+            const WINNER_INDEX = 75; 
+            
+            strip.innerHTML = "";
+            strip.style.transition = "none";
+            strip.style.transform = "translateX(0px)";
 
-            cardsHtml += `
-                <div class="jp-card" style="width:80px; height:80px; margin:0 2px; flex-shrink:0; border-bottom: 4px solid ${entry.color}; background:#222; border:2px solid #444; display:flex; align-items:center; justify-content:center;">
-                    <img src="${entry.avatar}" style="width:100%; height:100%; object-fit:cover;" onerror="this.style.display='none'">
-                </div>
-            `;
-        }
-        strip.innerHTML = cardsHtml;
-        document.getElementById('jackpotControls').style.display = 'none';
+            let cardsHtml = "";
+            for(let i=0; i < 100; i++) {
+                let entry = null;
+                if(i === WINNER_INDEX) {
+                    entry = winner; 
+                } else {
+                    if (entries && entries.length > 0) entry = entries[Math.floor(Math.random() * entries.length)];
+                }
+                
+                // Zabezpieczenie przed brakiem gracza (Duch)
+                if (!entry) entry = { avatar: 'https://micc.garmory-cdn.cloud/obrazki/itemy/nas/pyt.gif', color: '#333' };
 
-        // Start animacji (100ms opóźnienia)
-        setTimeout(() => {
-            // --- 🛑 POPRAWKA: Blokada animacji po zmianie karty 🛑 ---
-            // Jeśli w ciągu tych 100ms zmieniłeś zakładkę, nie uruchamiaj przesuwu!
-            if (currentTier !== tier) {
-                strip.innerHTML = ""; // Czyścimy pasek, żeby nie wisiał
-                return; 
+                cardsHtml += `
+                    <div class="jp-card" style="width:80px; height:80px; margin:0 2px; flex-shrink:0; border-bottom: 4px solid ${entry.color}; background:#222; border:2px solid #444; display:flex; align-items:center; justify-content:center;">
+                        <img src="${entry.avatar}" style="width:100%; height:100%; object-fit:cover;" onerror="this.style.display='none'">
+                    </div>
+                `;
             }
-            // ---------------------------------------------------------
+            // Wstawiamy karty TYLKO jeśli nadal jesteśmy w tym samym pokoju
+            if (currentTier === tier) {
+                strip.innerHTML = cardsHtml;
+                document.getElementById('jackpotControls').style.display = 'none';
+            }
+        }
 
+        // 2. START ANIMACJI (100ms później)
+        setTimeout(() => {
+            // Jeśli użytkownik zmienił zakładkę - PRZERYWAMY RYSOWANIE
+            if (currentTier !== tier) return;
+
+            const CARD_WIDTH = 80; const MARGIN = 4; const FULL_CARD = CARD_WIDTH + MARGIN; const WINNER_INDEX = 75;
             const containerWidth = rail.offsetWidth;
             const centerPosition = - (WINNER_INDEX * FULL_CARD) + (containerWidth / 2) - (FULL_CARD / 2);
             const jitter = Math.floor(Math.random() * 50) - 25; 
@@ -4861,35 +4861,50 @@ async function finalizeJackpot() {
             window.playSound('coin'); 
         }, 100);
 
-        // Finał po 8.5s (niezależnie od tego czy patrzymy na zakładkę - to logika bazy)
+        // 3. FINAŁ I LOGIKA BAZY (8.5s później)
         setTimeout(async () => {
-            // UI aktualizujemy TYLKO jeśli nadal tu jesteśmy
+            // A) WIZUALIZACJA (Tylko jeśli patrzymy na ten pokój)
             if (currentTier === tier) {
                 strip.classList.add('spun');
-            }
-            
-            if (winner) {
-                // To wywoła zapis do bazy (działa w tle)
-                showWinnerScreen(winner, entries, tier, poolAmount);    
+                if (winner) {
+                    showWinnerScreen(winner, entries, tier, poolAmount);    
+                } else {
+                    console.error("Błąd: Brak zwycięzcy.");
+                }
             } else {
-                console.error("Błąd: Brak zwycięzcy.");
-                if (currentNick === ADMIN_NICK) {
-                    const activeConf = TIER_CONFIG[tier];
-                    await setDoc(doc(db, activeConf.db, "current"), {
-                        status: 'open', entries: [], startTime: null, winner: null, winnerProcessing: false
-                    });
+                // Jeśli jesteśmy w innej zakładce, tylko logujemy w konsoli
+                console.log(`Zakończono grę w tle dla pokoju: ${tier}`);
+                // Mimo że nie widzimy ekranu, MUSIMY zapisać historię (dla spójności danych)
+                if (winner && currentUser && currentUser.uid === winner.uid) {
+                     // Wywołujemy showWinnerScreen "w trybie cichym" (funkcja sama sprawdzi currentTier i nie pokaże modala, ale zapisze do bazy)
+                     showWinnerScreen(winner, entries, tier, poolAmount);  
                 }
             }
             
-            // Reset bazy (działa w tle)
+            // B) RESET BAZY (Działa ZAWSZE w tle, niezależnie od zakładki)
+            // Naprawa błędu 400: Używamy 'tier' (zamknięcie), a nie 'currentTier'
             if (winner && currentUser && ((currentUser.uid === winner.uid) || currentNick === ADMIN_NICK)) {
                 setTimeout(async () => {
-                    const activeConf = TIER_CONFIG[tier];
-                    await setDoc(doc(db, activeConf.db, "current"), {
-                        status: 'open', entries: [], startTime: null, winner: null, winnerProcessing: false
-                    });
+                    console.log(`Resetowanie stołu: ${tier}`);
+                    const activeConf = TIER_CONFIG[tier]; // Używamy zmiennej lokalnej 'tier'!
+                    
+                    try {
+                        await setDoc(doc(db, activeConf.db, "current"), {
+                            status: 'open', entries: [], startTime: null, winner: null, winnerProcessing: false
+                        });
+                    } catch(e) {
+                        console.error("Błąd resetowania stołu:", e);
+                    }
                 }, 10000);
             }
+            // Awaryjny reset dla admina, gdy brak winnera (błąd bazy)
+            else if (!winner && currentNick === ADMIN_NICK) {
+                 const activeConf = TIER_CONFIG[tier];
+                 await setDoc(doc(db, activeConf.db, "current"), {
+                    status: 'open', entries: [], startTime: null, winner: null, winnerProcessing: false
+                });
+            }
+
         }, 8500);
     }
 
@@ -5118,6 +5133,7 @@ function showWinnerScreen(winner, entries, tier, poolAmount) {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
