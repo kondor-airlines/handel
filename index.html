@@ -1667,7 +1667,12 @@
                     </div>
                 </div>
 
-					<div id="historyDetailsModal" style="display: none; position: fixed; z-index: 10070; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.95); align-items: center; justify-content: center; backdrop-filter: blur(5px);">
+
+        </div>
+    </div>
+</div>
+
+						<div id="historyDetailsModal" style="display: none; position: fixed; z-index: 10070; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.95); align-items: center; justify-content: center; backdrop-filter: blur(5px);">
     				<div style="background: #111; border: 2px solid #444; border-radius: 12px; width: 90%; max-width: 400px; padding: 20px; text-align: center; position: relative; box-shadow: 0 0 30px rgba(0,0,0,0.8);">
         			<button onclick="document.getElementById('historyDetailsModal').style.display='none'" style="position: absolute; top: 10px; right: 15px; background: none; border: none; color: #888; font-size: 1.5em; cursor: pointer;">✕</button>
 
@@ -1685,9 +1690,6 @@
     </div>
 				
             </div>
-        </div>
-    </div>
-</div>
 	
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
@@ -4830,161 +4832,118 @@ async function finalizeJackpot(tier) {
     function spinTheWheel(winner, entries, tier, poolAmount) {
         const strip = document.getElementById('jackpotStrip');
         const rail = document.querySelector('.jackpot-rail');
-        
-        // 1. GENEROWANIE KART (Tylko jeśli jesteśmy w dobrej zakładce)
-        if (currentTier === tier) {
+
+        // Sprawdzamy, czy to aktywny pokój
+        const isVisible = (currentTier === tier);
+
+        if (isVisible) {
+            strip.classList.remove('spun');
             strip.classList.add('spinning');
-            
-            const CARD_WIDTH = 80; 
-            const MARGIN = 4;      
-            const FULL_CARD = CARD_WIDTH + MARGIN; 
-            const WINNER_INDEX = 75; 
-            
-            strip.innerHTML = "";
             strip.style.transition = "none";
             strip.style.transform = "translateX(0px)";
 
+            const WINNER_INDEX = 75;
             let cardsHtml = "";
             for(let i=0; i < 100; i++) {
-                let entry = null;
-                if(i === WINNER_INDEX) {
-                    entry = winner; 
-                } else {
-                    if (entries && entries.length > 0) entry = entries[Math.floor(Math.random() * entries.length)];
-                }
-                
-                // Zabezpieczenie przed brakiem gracza (Duch)
-                if (!entry) entry = { avatar: 'https://micc.garmory-cdn.cloud/obrazki/itemy/nas/pyt.gif', color: '#333' };
+                let entry = (i === WINNER_INDEX) ? winner : (entries[Math.floor(Math.random() * entries.length)] || {avatar:'', color:'#333'});
+                if (!entry) entry = { avatar: '', color: '#333' };
+                cardsHtml += `<div class="jp-card" style="width:80px; height:80px; margin:0 2px; flex-shrink:0; border-bottom: 4px solid ${entry.color}; background:#222; border:2px solid #444; display:flex; align-items:center; justify-content:center;"><img src="${entry.avatar}" style="width:100%; height:100%; object-fit:cover;" onerror="this.style.opacity='0'"></div>`;
+            }
+            strip.innerHTML = cardsHtml;
+            document.getElementById('jackpotControls').style.display = 'none';
 
-                cardsHtml += `
-                    <div class="jp-card" style="width:80px; height:80px; margin:0 2px; flex-shrink:0; border-bottom: 4px solid ${entry.color}; background:#222; border:2px solid #444; display:flex; align-items:center; justify-content:center;">
-                        <img src="${entry.avatar}" style="width:100%; height:100%; object-fit:cover;" onerror="this.style.display='none'">
-                    </div>
-                `;
-            }
-            // Wstawiamy karty TYLKO jeśli nadal jesteśmy w tym samym pokoju
-            if (currentTier === tier) {
-                strip.innerHTML = cardsHtml;
-                document.getElementById('jackpotControls').style.display = 'none';
-            }
+            setTimeout(() => {
+                if (currentTier !== tier) return; // Jeśli przełączono w locie - przerwij
+                const FULL_CARD = 84;
+                const centerPosition = - (WINNER_INDEX * FULL_CARD) + (rail.offsetWidth / 2) - (FULL_CARD / 2);
+                strip.style.transition = "transform 8s cubic-bezier(0.15, 0, 0.10, 1)";
+                strip.style.transform = `translateX(${centerPosition + (Math.random()*40-20)}px)`;
+                window.playSound('coin');
+            }, 100);
         }
 
-        // 2. START ANIMACJI (100ms później)
-        setTimeout(() => {
-            // Jeśli użytkownik zmienił zakładkę - PRZERYWAMY RYSOWANIE
-            if (currentTier !== tier) return;
-
-            const CARD_WIDTH = 80; const MARGIN = 4; const FULL_CARD = CARD_WIDTH + MARGIN; const WINNER_INDEX = 75;
-            const containerWidth = rail.offsetWidth;
-            const centerPosition = - (WINNER_INDEX * FULL_CARD) + (containerWidth / 2) - (FULL_CARD / 2);
-            const jitter = Math.floor(Math.random() * 50) - 25; 
-            const finalPosition = centerPosition + jitter;
-            
-            strip.style.transition = "transform 8s cubic-bezier(0.15, 0, 0.10, 1)"; 
-            strip.style.transform = `translateX(${finalPosition}px)`;
-            window.playSound('coin'); 
-        }, 100);
-
-        // 3. FINAŁ I LOGIKA BAZY (8.5s później)
+        // LOGIKA KOŃCOWA (Zawsze po 8.5s)
         setTimeout(async () => {
-            // A) WIZUALIZACJA (Tylko jeśli patrzymy na ten pokój)
-            if (currentTier === tier) {
-                strip.classList.add('spun');
-                if (winner) {
-                    showWinnerScreen(winner, entries, tier, poolAmount);    
-                } else {
-                    console.error("Błąd: Brak zwycięzcy.");
-                }
-            } else {
-                // Jeśli jesteśmy w innej zakładce, tylko logujemy w konsoli
-                console.log(`Zakończono grę w tle dla pokoju: ${tier}`);
-                // Mimo że nie widzimy ekranu, MUSIMY zapisać historię (dla spójności danych)
-                if (winner && currentUser && currentUser.uid === winner.uid) {
-                     // Wywołujemy showWinnerScreen "w trybie cichym" (funkcja sama sprawdzi currentTier i nie pokaże modala, ale zapisze do bazy)
-                     showWinnerScreen(winner, entries, tier, poolAmount);  
-                }
-            }
-            
-            // B) RESET BAZY (Działa ZAWSZE w tle, niezależnie od zakładki)
-            // Naprawa błędu 400: Używamy 'tier' (zamknięcie), a nie 'currentTier'
-            if (winner && currentUser && ((currentUser.uid === winner.uid) || currentNick === ADMIN_NICK)) {
-                setTimeout(async () => {
-                    console.log(`Resetowanie stołu: ${tier}`);
-                    const activeConf = TIER_CONFIG[tier]; // Używamy zmiennej lokalnej 'tier'!
-                    
-                    try {
-                        await setDoc(doc(db, activeConf.db, "current"), {
-                            status: 'open', entries: [], startTime: null, winner: null, winnerProcessing: false
-                        });
-                    } catch(e) {
-                        console.error("Błąd resetowania stołu:", e);
-                    }
-                }, 10000);
-            }
-            // Awaryjny reset dla admina, gdy brak winnera (błąd bazy)
-            else if (!winner && currentNick === ADMIN_NICK) {
-                 const activeConf = TIER_CONFIG[tier];
-                 await setDoc(doc(db, activeConf.db, "current"), {
-                    status: 'open', entries: [], startTime: null, winner: null, winnerProcessing: false
-                });
-            }
+            // Wywołujemy zapis (zawsze) i pokazanie UI (tylko jak tier się zgadza)
+            showWinnerScreen(winner, entries, tier, poolAmount);
 
+            // Reset bazy danych (Robi to Admin lub Zwycięzca)
+            const isWinner = currentUser && winner && currentUser.uid === winner.uid;
+            if (isWinner || currentNick === ADMIN_NICK) {
+                setTimeout(async () => {
+                    const activeConf = TIER_CONFIG[tier];
+                    await setDoc(doc(db, activeConf.db, "current"), {
+                        status: 'open', entries: [], startTime: null, winner: null, winnerProcessing: false
+                    });
+                }, 5000); // Reset po 5s od zakończenia animacji
+            }
         }, 8500);
     }
 
 function showWinnerScreen(winner, entries, tier, poolAmount) {
-        // Zabezpieczenie przed zerową wygraną (spam 0)
-        if (!poolAmount || poolAmount <= 0) {
-            console.warn("Pusta pula, pomijam ekran wygranej.");
-            return;
-        }
-
+        if (!winner || !poolAmount) return;
         const totalStr = s_formatGold(poolAmount);
+        const conf = TIER_CONFIG[tier];
 
-        // --- TYLKO JEŚLI PATRZYMY NA TEN SAM POKÓJ, POKAŻ EKRAN ---
-        if (currentTier === tier) {
-            for(let i=0; i<20; i++) createEmber(); 
-            
-            document.getElementById('jackpotWinnerDisplay').style.display = 'block';
-            document.getElementById('winnerNick').innerText = winner.nick;
-            
-            // --- OBLICZANIE DŁUGÓW ---
-            let debts = {};
-            if (entries && entries.length > 0) {
+        // --- 1. ZAPIS DO BAZY (Zawsze, nawet w tle) ---
+        if (currentUser && currentUser.uid === winner.uid) {
+            // Czat
+            addDoc(collection(db, "chat"), {
+                nick: "System Jackpot",
+                text: `🎰 ${winner.nick} rozbił bank na stole ${tier.toUpperCase()}! Zgarnia: ${totalStr}!`,
+                type: 'roll',
+                date: new Date().toISOString()
+            });
+
+            // Oblicz dłużników dla historii
+            let debtsToSave = {};
+            if (entries) {
                 entries.forEach(e => {
                     if (e.uid !== winner.uid) {
-                        if (!debts[e.nick]) debts[e.nick] = 0;
-                        debts[e.nick] += e.amount;
+                        if (!debtsToSave[e.nick]) debtsToSave[e.nick] = 0;
+                        debtsToSave[e.nick] += e.amount;
                     }
                 });
             }
+
+            // Historia właściwego pokoju
+            addDoc(collection(db, conf.hist), {
+                nick: winner.nick,
+                amount: totalStr,
+                avatar: winner.avatar,
+                date: new Date().toISOString(),
+                debts: debtsToSave
+            });
+        }
+
+        // --- 2. POKAZYWANIE NA EKRANIE (Tylko jeśli to ten pokój oglądamy) ---
+        if (currentTier === tier) {
+            for(let i=0; i<20; i++) createEmber(); 
+            document.getElementById('jackpotWinnerDisplay').style.display = 'block';
+            document.getElementById('winnerNick').innerText = winner.nick;
             
+            let debts = {};
+            entries.forEach(e => {
+                if (e.uid !== winner.uid) {
+                    if (!debts[e.nick]) debts[e.nick] = 0;
+                    debts[e.nick] += e.amount;
+                }
+            });
+
             let debtorsListHtml = "";
-            const sortedDebtors = Object.keys(debts).sort((a,b) => debts[b] - debts[a]);
-            
-            if (sortedDebtors.length > 0) {
-                debtorsListHtml += `<div style="margin-top:15px; border-top:1px dashed #555; padding-top:10px;">`;
-                debtorsListHtml += `<div style="color:#aaa; font-size:0.8em; margin-bottom:5px; text-transform:uppercase;">Do odebrania od:</div>`;
-                debtorsListHtml += `<div style="max-height: 150px; overflow-y: auto; padding-right: 5px;">`; 
-                
-                sortedDebtors.forEach(nick => {
-                    debtorsListHtml += `
-                        <div style="display:flex; justify-content:space-between; border-bottom:1px solid rgba(255,255,255,0.05); padding:4px 0;">
-                            <span style="color:#fff;">${nick}</span>
-                            <span style="color:#ff6666; font-weight:bold;">${s_formatGold(debts[nick])}</span>
-                        </div>`;
+            const sorted = Object.keys(debts).sort((a,b) => debts[b] - debts[a]);
+            if (sorted.length > 0) {
+                debtorsListHtml += `<div style="margin-top:15px; border-top:1px dashed #555; padding-top:10px;"><div style="max-height: 150px; overflow-y: auto;">`;
+                sorted.forEach(nick => {
+                    debtorsListHtml += `<div style="display:flex; justify-content:space-between; padding:4px 0;"><span style="color:#fff;">${nick}</span><span style="color:#ff6666; font-weight:bold;">${s_formatGold(debts[nick])}</span></div>`;
                 });
-                
-                debtorsListHtml += `</div></div>`; 
+                debtorsListHtml += `</div></div>`;
             } else {
                 debtorsListHtml = `<div style="color:#666; font-size:0.8em; margin-top:10px;">(Wygrałeś własne wpłaty)</div>`;
             }
-
-            document.getElementById('winAmount').innerHTML = `
-                <div style="font-size:1.2em; color:var(--green); margin-bottom:10px;">Wygrywa pulę: <b>${totalStr}</b></div>
-                ${debtorsListHtml}
-            `;
+            document.getElementById('winAmount').innerHTML = `<div style="font-size:1.2em; color:var(--green); margin-bottom:10px;">Wygrywa pulę: <b>${totalStr}</b></div>${debtorsListHtml}`;
         }
+    }
 
         // --- ZAPIS DO BAZY (Działa w tle, nawet jak zmienisz zakładkę) ---
         if(currentUser && currentUser.uid === winner.uid) { 
@@ -5163,6 +5122,7 @@ window.switchJackpotTier = (tier) => {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
