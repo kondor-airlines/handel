@@ -4536,8 +4536,9 @@ function startSplitHistory() {
     // Zmienne globalne (muszą być tutaj)
     let jackpotEndTime = 0;
     let timeOffset = 0;
-
 	let currentTier = 'low'; // Domyślny pokój
+	// Mapa zapamiętująca ostatnio rozegrane gry w każdym pokoju, żeby ich nie powtarzać
+    let processedSpins = { low: null, medium: null, high: null };
     let isBettingProcessing = false; // Blokada spamu
     
     // Konfiguracja limitów dla każdego pokoju
@@ -4649,7 +4650,6 @@ window.joinJackpot = async () => {
     function startJackpotListener() {
         if(jackpotUnsub) jackpotUnsub();
         
-        // ZAPAMIĘTUJEMY POKÓJ LOKALNIE DLA TEGO NASŁUCHIWANIA
         const listeningTier = currentTier; 
         const conf = TIER_CONFIG[listeningTier];
         
@@ -4664,38 +4664,51 @@ window.joinJackpot = async () => {
                 timeOffset = docSnap.readTime.toMillis() - new Date().getTime(); 
             }
 
-            // UI aktualizujemy tylko jeśli nadal jesteśmy w tym samym pokoju
             if (currentTier === listeningTier) {
                 renderJackpotUI(data);
             }
 
             const timerEl = document.getElementById('jackpotTimer');
+            let startMillis = 0;
 
-            if(data.status === 'open' && data.startTime) {
-                let startMillis = (data.startTime.toMillis ? data.startTime.toMillis() : (data.startTime.seconds ? data.startTime.seconds*1000 : new Date(data.startTime).getTime()));
-                if (startMillis > 0) {
-                    jackpotEndTime = startMillis + (JP_GAME_TIME * 1000);
-                    if(currentTier === listeningTier) timerEl.style.display = 'block';
-                }
+            if (data.startTime) {
+                startMillis = (data.startTime.toMillis ? data.startTime.toMillis() : (data.startTime.seconds ? data.startTime.seconds*1000 : new Date(data.startTime).getTime()));
+            }
+
+            // Obsługa stanu OPEN (odliczanie)
+            if(data.status === 'open' && startMillis > 0) {
+                jackpotEndTime = startMillis + (JP_GAME_TIME * 1000);
+                if(currentTier === listeningTier) timerEl.style.display = 'block';
             } else {
                 jackpotEndTime = 0;
                 if(currentTier === listeningTier) timerEl.style.display = 'none';
             }
 
-            // SPINNING: Przekazujemy listeningTier i winnerTotal dalej!
-            if(data.status === 'spinning' && !document.getElementById('jackpotStrip').classList.contains('spinning')) {
+            // --- POPRAWKA: Obsługa stanu SPINNING ---
+            if(data.status === 'spinning') {
                 if(currentTier === listeningTier) timerEl.style.display = 'none';
-                
-                // --- TUTAJ PRZEKAZUJEMY DANE DALEJ ---
-                spinTheWheel(data.winner, data.entries, listeningTier, data.winnerTotal);
+
+                // SPRAWDZAMY, CZY JUŻ TEGO NIE KRĘCILIŚMY
+                // Używamy startMillis jako unikalnego ID rundy
+                const roundId = startMillis.toString();
+
+                if (processedSpins[listeningTier] !== roundId) {
+                    // Jeśli to nowa runda, której jeszcze nie obsługiwaliśmy:
+                    processedSpins[listeningTier] = roundId; // Oznaczamy jako obsłużoną
+                    spinTheWheel(data.winner, data.entries, listeningTier, data.winnerTotal);
+                } else {
+                    // Jeśli już to kręcimy, nie rób nic (nawet jak user wrócił na zakładkę)
+                    console.log(`Pominięto duplikat kręcenia dla ${listeningTier}`);
+                }
             }
             
-            if(data.status === 'open' && document.getElementById('jackpotStrip').classList.contains('spun')) {
+            // Reset wizualny po zakończeniu
+            if(data.status === 'open' && currentTier === listeningTier && document.getElementById('jackpotStrip').classList.contains('spun')) {
                  resetJackpotVisuals();
             }
         });
         
-        // Timer bez zmian, ale używa listeningTier do sprawdzenia finalizacji
+        // Timer (pozostał bez zmian)
         if(jpTimerInterval) clearInterval(jpTimerInterval);
         jpTimerInterval = setInterval(() => {
              if (!jackpotEndTime) return;
@@ -4712,9 +4725,7 @@ window.joinJackpot = async () => {
              } else {
                  if(currentTier === listeningTier) timerEl.innerText = "LOSOWANIE...";
                  
-                 // Trigger losowania tylko raz (po stronie klienta)
                  if (diff > -2000 && diff < 0) {
-                     // Używamy ZAPAMIĘTANEGO configu, a nie currentTier
                      const activeConf = TIER_CONFIG[listeningTier];
                      getDoc(doc(db, activeConf.db, "current")).then(snap => {
                          const d = snap.data();
@@ -4724,7 +4735,6 @@ window.joinJackpot = async () => {
              }
         }, 50);
     }
-
     function renderJackpotUI(data) {
         const list = document.getElementById('jackpotPlayersList');
         const poolEl = document.getElementById('jackpotTotalPool');
@@ -4796,77 +4806,70 @@ async function finalizeJackpot() {
     function spinTheWheel(winner, entries, tier, poolAmount) {
         const strip = document.getElementById('jackpotStrip');
         const rail = document.querySelector('.jackpot-rail');
-        strip.classList.add('spinning');
         
-        const CARD_WIDTH = 80; 
-        const MARGIN = 4;      
-        const FULL_CARD = CARD_WIDTH + MARGIN; 
-        const WINNER_INDEX = 75; 
-        
-        strip.innerHTML = "";
-        strip.style.transition = "none";
-        strip.style.transform = "translateX(0px)";
+        // Tylko jeśli jesteśmy w dobrej zakładce, pokazujemy animację
+        if (currentTier === tier) {
+            strip.classList.add('spinning');
+            
+            const CARD_WIDTH = 80; 
+            const MARGIN = 4;      
+            const FULL_CARD = CARD_WIDTH + MARGIN; 
+            const WINNER_INDEX = 75; 
+            
+            strip.innerHTML = "";
+            strip.style.transition = "none";
+            strip.style.transform = "translateX(0px)";
 
-        let cardsHtml = "";
-        for(let i=0; i < 100; i++) {
-            let entry = null;
-
-            if(i === WINNER_INDEX) {
-                entry = winner; 
-            } else {
-                if (entries && entries.length > 0) {
-                    entry = entries[Math.floor(Math.random() * entries.length)];
+            let cardsHtml = "";
+            for(let i=0; i < 100; i++) {
+                let entry = null;
+                if(i === WINNER_INDEX) {
+                    entry = winner; 
+                } else {
+                    if (entries && entries.length > 0) entry = entries[Math.floor(Math.random() * entries.length)];
                 }
-            }
-            
-            // Zabezpieczenie na wypadek braku danych gracza
-            if (!entry) {
-                entry = {
-                    avatar: 'https://micc.garmory-cdn.cloud/obrazki/itemy/nas/pyt.gif', 
-                    color: '#333' 
-                };
-            }
+                
+                if (!entry) entry = { avatar: 'https://micc.garmory-cdn.cloud/obrazki/itemy/nas/pyt.gif', color: '#333' };
 
-            cardsHtml += `
-                <div class="jp-card" style="width:80px; height:80px; margin:0 2px; flex-shrink:0; border-bottom: 4px solid ${entry.color}; background:#222; border:2px solid #444; display:flex; align-items:center; justify-content:center;">
-                    <img src="${entry.avatar}" style="width:100%; height:100%; object-fit:cover;" onerror="this.style.display='none'">
-                </div>
-            `;
+                cardsHtml += `
+                    <div class="jp-card" style="width:80px; height:80px; margin:0 2px; flex-shrink:0; border-bottom: 4px solid ${entry.color}; background:#222; border:2px solid #444; display:flex; align-items:center; justify-content:center;">
+                        <img src="${entry.avatar}" style="width:100%; height:100%; object-fit:cover;" onerror="this.style.display='none'">
+                    </div>
+                `;
+            }
+            strip.innerHTML = cardsHtml;
+            document.getElementById('jackpotControls').style.display = 'none';
+
+            // Start animacji
+            setTimeout(() => {
+                const containerWidth = rail.offsetWidth;
+                const centerPosition = - (WINNER_INDEX * FULL_CARD) + (containerWidth / 2) - (FULL_CARD / 2);
+                const jitter = Math.floor(Math.random() * 50) - 25; 
+                const finalPosition = centerPosition + jitter;
+                strip.style.transition = "transform 8s cubic-bezier(0.15, 0, 0.10, 1)"; 
+                strip.style.transform = `translateX(${finalPosition}px)`;
+                window.playSound('coin'); 
+            }, 100);
         }
-        strip.innerHTML = cardsHtml;
 
-        document.getElementById('jackpotControls').style.display = 'none';
-
-        setTimeout(() => {
-            const containerWidth = rail.offsetWidth;
-            const centerPosition = - (WINNER_INDEX * FULL_CARD) + (containerWidth / 2) - (FULL_CARD / 2);
-            const jitter = Math.floor(Math.random() * 50) - 25; 
-            const finalPosition = centerPosition + jitter;
-
-            strip.style.transition = "transform 8s cubic-bezier(0.15, 0, 0.10, 1)"; 
-            strip.style.transform = `translateX(${finalPosition}px)`;
-            window.playSound('coin'); 
-        }, 100);
-
+        // Finał po 8.5s (niezależnie od tego czy patrzymy na zakładkę)
         setTimeout(async () => {
-            strip.classList.add('spun');
+            if (currentTier === tier) strip.classList.add('spun');
             
-            // --- GŁÓWNA ZMIANA (Obsługa błędu) ---
             if (winner) {
                 showWinnerScreen(winner, entries, tier, poolAmount);    
             } else {
-                console.error("Błąd krytyczny: Brak zwycięzcy w danych z bazy!");
-                // Jeśli jesteś Adminem, próbujemy naprawić automatycznie
+                console.error("Błąd: Brak zwycięzcy.");
+                // Auto-fix dla admina
                 if (currentNick === ADMIN_NICK) {
                     const activeConf = TIER_CONFIG[tier];
                     await setDoc(doc(db, activeConf.db, "current"), {
                         status: 'open', entries: [], startTime: null, winner: null, winnerProcessing: false
                     });
-                    console.log("Awaryjny reset bazy wykonany.");
                 }
             }
             
-            // Standardowy reset bazy po udanej grze
+            // Reset bazy
             if (winner && currentUser && ((currentUser.uid === winner.uid) || currentNick === ADMIN_NICK)) {
                 setTimeout(async () => {
                     const activeConf = TIER_CONFIG[tier];
@@ -5103,6 +5106,7 @@ function showWinnerScreen(winner, entries, tier, poolAmount) {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
