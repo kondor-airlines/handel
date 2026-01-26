@@ -4649,12 +4649,12 @@ window.joinJackpot = async () => {
     function startJackpotListener() {
         if(jackpotUnsub) jackpotUnsub();
         
-        const conf = TIER_CONFIG[currentTier]; // Pobierz konfig dla obecnego pokoju
+        // ZAPAMIĘTUJEMY POKÓJ LOKALNIE DLA TEGO NASŁUCHIWANIA
+        const listeningTier = currentTier; 
+        const conf = TIER_CONFIG[listeningTier];
         
-        // Nasłuchujemy odpowiedniej kolekcji (jackpot_low, jackpot_medium lub jackpot_high)
         jackpotUnsub = onSnapshot(doc(db, conf.db, "current"), (docSnap) => {
             if(!docSnap.exists()) {
-                // Jeśli dokument nie istnieje, tworzymy go (pierwsze odpalenie)
                 renderJackpotUI({entries: []});
                 return;
             }
@@ -4664,24 +4664,30 @@ window.joinJackpot = async () => {
                 timeOffset = docSnap.readTime.toMillis() - new Date().getTime(); 
             }
 
-            renderJackpotUI(data);
+            // UI aktualizujemy tylko jeśli nadal jesteśmy w tym samym pokoju
+            if (currentTier === listeningTier) {
+                renderJackpotUI(data);
+            }
+
             const timerEl = document.getElementById('jackpotTimer');
 
             if(data.status === 'open' && data.startTime) {
-                // ... (logika czasu taka sama jak wcześniej) ...
                 let startMillis = (data.startTime.toMillis ? data.startTime.toMillis() : (data.startTime.seconds ? data.startTime.seconds*1000 : new Date(data.startTime).getTime()));
                 if (startMillis > 0) {
                     jackpotEndTime = startMillis + (JP_GAME_TIME * 1000);
-                    timerEl.style.display = 'block';
+                    if(currentTier === listeningTier) timerEl.style.display = 'block';
                 }
             } else {
                 jackpotEndTime = 0;
-                timerEl.style.display = 'none';
+                if(currentTier === listeningTier) timerEl.style.display = 'none';
             }
 
+            // SPINNING: Przekazujemy listeningTier i winnerTotal dalej!
             if(data.status === 'spinning' && !document.getElementById('jackpotStrip').classList.contains('spinning')) {
-                timerEl.style.display = 'none';
-                spinTheWheel(data.winner, data.entries);
+                if(currentTier === listeningTier) timerEl.style.display = 'none';
+                
+                // --- TUTAJ PRZEKAZUJEMY DANE DALEJ ---
+                spinTheWheel(data.winner, data.entries, listeningTier, data.winnerTotal);
             }
             
             if(data.status === 'open' && document.getElementById('jackpotStrip').classList.contains('spun')) {
@@ -4689,7 +4695,7 @@ window.joinJackpot = async () => {
             }
         });
         
-        // Interwał timera bez zmian...
+        // Timer bez zmian, ale używa listeningTier do sprawdzenia finalizacji
         if(jpTimerInterval) clearInterval(jpTimerInterval);
         jpTimerInterval = setInterval(() => {
              if (!jackpotEndTime) return;
@@ -4698,15 +4704,19 @@ window.joinJackpot = async () => {
              const timerEl = document.getElementById('jackpotTimer');
 
              if (diff > 0) {
-                 let seconds = diff / 1000;
-                 if (seconds > JP_GAME_TIME) seconds = JP_GAME_TIME;
-                 timerEl.innerText = seconds.toFixed(2) + "s";
+                 if(currentTier === listeningTier) {
+                     let seconds = diff / 1000;
+                     if (seconds > JP_GAME_TIME) seconds = JP_GAME_TIME;
+                     timerEl.innerText = seconds.toFixed(2) + "s";
+                 }
              } else {
-                 timerEl.innerText = "LOSOWANIE...";
+                 if(currentTier === listeningTier) timerEl.innerText = "LOSOWANIE...";
+                 
+                 // Trigger losowania tylko raz (po stronie klienta)
                  if (diff > -2000 && diff < 0) {
-                     // Sprawdź dokument w aktualnym pokoju
-                     const conf = TIER_CONFIG[currentTier];
-                     getDoc(doc(db, conf.db, "current")).then(snap => {
+                     // Używamy ZAPAMIĘTANEGO configu, a nie currentTier
+                     const activeConf = TIER_CONFIG[listeningTier];
+                     getDoc(doc(db, activeConf.db, "current")).then(snap => {
                          const d = snap.data();
                          if(d && d.status === 'open' && !d.winnerProcessing) finalizeJackpot();
                      });
@@ -4783,7 +4793,7 @@ async function finalizeJackpot() {
         } catch (e) { console.log(e); }
     }
 
-    function spinTheWheel(winner, entries) {
+    function spinTheWheel(winner, entries, tier, poolAmount) {
         const strip = document.getElementById('jackpotStrip');
         const rail = document.querySelector('.jackpot-rail');
         strip.classList.add('spinning');
@@ -4829,85 +4839,101 @@ async function finalizeJackpot() {
 
         setTimeout(async () => {
             strip.classList.add('spun');
-			showWinnerScreen(winner, entries);    
-			
+            
+            // PRZEKAZUJEMY DANE DALEJ (Tier i Kwota)
+            showWinnerScreen(winner, entries, tier, poolAmount);    
+            
+            // Reset bazy (robi to zwycięzca lub admin)
             if (currentUser && (currentUser.uid === winner.uid || currentNick === ADMIN_NICK)) {
                 setTimeout(async () => {
-                    await setDoc(doc(db, "jackpot", "current"), {
-                        status: 'open',
-                        entries: [],
-                        startTime: null,
-                        winner: null,
-                        winnerProcessing: false
+                    // Używamy tier przekazanego w argumencie, a nie currentTier!
+                    const activeConf = TIER_CONFIG[tier];
+                    await setDoc(doc(db, activeConf.db, "current"), {
+                        status: 'open', entries: [], startTime: null, winner: null, winnerProcessing: false
                     });
                 }, 10000);
             }
         }, 8500);
     }
 
-		function showWinnerScreen(winner, entries) {
-        for(let i=0; i<20; i++) createEmber(); 
-        
-        document.getElementById('jackpotWinnerDisplay').style.display = 'block';
-        document.getElementById('winnerNick').innerText = winner.nick;
-        const totalStr = document.getElementById('jackpotTotalPool').innerText;
-        
-        // --- OBLICZANIE DŁUGÓW ---
-        let debts = {};
-        if (entries && entries.length > 0) {
-            entries.forEach(e => {
-                if (e.uid !== winner.uid) {
-                    if (!debts[e.nick]) debts[e.nick] = 0;
-                    debts[e.nick] += e.amount;
-                }
-            });
-        }
-        // -------------------------
-
-        // Renderowanie listy dla "Tu i Teraz"
-        let debtorsListHtml = "";
-        const sortedDebtors = Object.keys(debts).sort((a,b) => debts[b] - debts[a]);
-        
-        if (sortedDebtors.length > 0) {
-            debtorsListHtml += `<div style="margin-top:15px; border-top:1px dashed #555; padding-top:10px;">`;
-            debtorsListHtml += `<div style="color:#aaa; font-size:0.8em; margin-bottom:5px; text-transform:uppercase;">Do odebrania od:</div>`;
-            
-            // Scroll dla długiej listy
-            debtorsListHtml += `<div style="max-height: 150px; overflow-y: auto; padding-right: 5px;">`; 
-            
-            sortedDebtors.forEach(nick => {
-                debtorsListHtml += `
-                    <div style="display:flex; justify-content:space-between; border-bottom:1px solid rgba(255,255,255,0.05); padding:4px 0;">
-                        <span style="color:#fff;">${nick}</span>
-                        <span style="color:#ff6666; font-weight:bold;">${s_formatGold(debts[nick])}</span>
-                    </div>`;
-            });
-            
-            debtorsListHtml += `</div>`; 
-            debtorsListHtml += `</div>`; 
-        } else {
-            debtorsListHtml = `<div style="color:#666; font-size:0.8em; margin-top:10px;">(Wygrałeś własne wpłaty)</div>`;
+function showWinnerScreen(winner, entries, tier, poolAmount) {
+        // Zabezpieczenie przed zerową wygraną (spam 0)
+        if (!poolAmount || poolAmount <= 0) {
+            console.warn("Pusta pula, pomijam ekran wygranej.");
+            return;
         }
 
-        document.getElementById('winAmount').innerHTML = `
-            <div style="font-size:1.2em; color:var(--green); margin-bottom:10px;">Wygrywa pulę: <b>${totalStr}</b></div>
-            ${debtorsListHtml}
-        `;
-        
-        // Zapis do bazy (Tylko zwycięzca wykonuje operacje)
+        const totalStr = s_formatGold(poolAmount);
+
+        // --- TYLKO JEŚLI PATRZYMY NA TEN SAM POKÓJ, POKAŻ EKRAN ---
+        if (currentTier === tier) {
+            for(let i=0; i<20; i++) createEmber(); 
+            
+            document.getElementById('jackpotWinnerDisplay').style.display = 'block';
+            document.getElementById('winnerNick').innerText = winner.nick;
+            
+            // --- OBLICZANIE DŁUGÓW ---
+            let debts = {};
+            if (entries && entries.length > 0) {
+                entries.forEach(e => {
+                    if (e.uid !== winner.uid) {
+                        if (!debts[e.nick]) debts[e.nick] = 0;
+                        debts[e.nick] += e.amount;
+                    }
+                });
+            }
+            
+            let debtorsListHtml = "";
+            const sortedDebtors = Object.keys(debts).sort((a,b) => debts[b] - debts[a]);
+            
+            if (sortedDebtors.length > 0) {
+                debtorsListHtml += `<div style="margin-top:15px; border-top:1px dashed #555; padding-top:10px;">`;
+                debtorsListHtml += `<div style="color:#aaa; font-size:0.8em; margin-bottom:5px; text-transform:uppercase;">Do odebrania od:</div>`;
+                debtorsListHtml += `<div style="max-height: 150px; overflow-y: auto; padding-right: 5px;">`; 
+                
+                sortedDebtors.forEach(nick => {
+                    debtorsListHtml += `
+                        <div style="display:flex; justify-content:space-between; border-bottom:1px solid rgba(255,255,255,0.05); padding:4px 0;">
+                            <span style="color:#fff;">${nick}</span>
+                            <span style="color:#ff6666; font-weight:bold;">${s_formatGold(debts[nick])}</span>
+                        </div>`;
+                });
+                
+                debtorsListHtml += `</div></div>`; 
+            } else {
+                debtorsListHtml = `<div style="color:#666; font-size:0.8em; margin-top:10px;">(Wygrałeś własne wpłaty)</div>`;
+            }
+
+            document.getElementById('winAmount').innerHTML = `
+                <div style="font-size:1.2em; color:var(--green); margin-bottom:10px;">Wygrywa pulę: <b>${totalStr}</b></div>
+                ${debtorsListHtml}
+            `;
+        }
+
+        // --- ZAPIS DO BAZY (Działa w tle, nawet jak zmienisz zakładkę) ---
         if(currentUser && currentUser.uid === winner.uid) { 
              
              // 1. Czat
              addDoc(collection(db, "chat"), {
                 nick: "System Jackpot",
-                text: `🎰 ${winner.nick} rozbił bank! Zgarnia: ${totalStr}!`,
+                text: `🎰 ${winner.nick} rozbił bank na stole ${tier.toUpperCase()}! Zgarnia: ${totalStr}!`,
                 type: 'roll',
                 date: new Date().toISOString()
             });
 
-            // 2. Historia
-            const conf = TIER_CONFIG[currentTier]; 
-            const debtsToSave = debts || {}; 
+            // 2. Historia - używamy "tier" z argumentu, a nie currentTier!
+            const conf = TIER_CONFIG[tier]; 
+            
+            // Ponowne obliczenie długów dla zapisu (bo blok wyżej mógł się nie wykonać)
+            let debtsToSave = {};
+            if (entries && entries.length > 0) {
+                entries.forEach(e => {
+                    if (e.uid !== winner.uid) {
+                        if (!debtsToSave[e.nick]) debtsToSave[e.nick] = 0;
+                        debtsToSave[e.nick] += e.amount;
+                    }
+                });
+            }
 
             addDoc(collection(db, conf.hist), {
                 nick: winner.nick,
@@ -4916,13 +4942,6 @@ async function finalizeJackpot() {
                 date: new Date().toISOString(),
                 debts: debtsToSave
             });
-            
-            // 3. Reset gry (po 10 sekundach)
-            setTimeout(async () => {
-                 await setDoc(doc(db, conf.db, "current"), {
-                    status: 'open', entries: [], startTime: null, winner: null, winnerProcessing: false
-                });
-            }, 10000);
         }
     }
 			
@@ -5062,6 +5081,7 @@ async function finalizeJackpot() {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
