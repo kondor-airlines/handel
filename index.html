@@ -759,7 +759,76 @@
         .quote-date { font-size: 0.7em; opacity: 0.7; text-align: right; }
         .del-quote-btn { position: absolute; top: 5px; right: 5px; cursor: pointer; color: #8d6e63; font-weight: bold; font-family: sans-serif; opacity: 0.5; }
         .del-quote-btn:hover { opacity: 1; color: red; }
-		
+
+		/* --- PRZYCISK OTWIERANIA --- */
+.jackpot-btn-toggle {
+    position: fixed; bottom: 450px; right: 30px; /* Nad Złotymi Ustami */
+    width: 50px; height: 50px; border-radius: 50%;
+    background: linear-gradient(135deg, #FFD700, #FF8C00);
+    border: 2px solid #fff; color: #000;
+    font-size: 1.8em; cursor: pointer; z-index: 999;
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.6);
+    transition: 0.3s; display: flex; align-items: center; justify-content: center;
+    animation: pulseGold 2s infinite;
+}
+.jackpot-btn-toggle:hover { transform: scale(1.1); }
+
+/* --- PASEK RULETKI --- */
+.jackpot-rail {
+    position: relative;
+    width: 100%;
+    height: 100px;
+    background: #050505;
+    border-top: 2px solid #333;
+    border-bottom: 2px solid #333;
+    overflow: hidden; /* Ukrywa to co poza ekranem */
+    display: flex;
+    align-items: center;
+}
+
+/* Wskaźnik (strzałka) */
+.jackpot-pointer {
+    position: absolute;
+    top: 0; left: 50%; transform: translateX(-50%);
+    color: #fff; font-size: 20px; z-index: 10;
+    text-shadow: 0 2px 2px #000;
+    pointer-events: none;
+}
+.jackpot-pointer::after {
+    content: '▲'; position: absolute; bottom: -85px; left: 0; color: #fff;
+}
+.jackpot-pointer::before {
+    content: ''; position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+    width: 4px; height: 100px; background: rgba(255,255,255,0.3); z-index: -1;
+}
+
+/* Taśma z awatarami */
+.jackpot-strip {
+    display: flex;
+    height: 80px;
+    will-change: transform; /* Optymalizacja dla przeglądarki */
+    /* Animacja będzie sterowana przez JS */
+}
+
+.jp-card {
+    width: 80px; height: 80px;
+    margin: 0 2px;
+    background: #222;
+    border: 2px solid #444;
+    flex-shrink: 0; /* Nie zgniatać */
+    display: flex; align-items: center; justify-content: center;
+    position: relative;
+}
+.jp-card img { width: 100%; height: 100%; object-fit: cover; }
+
+/* Lista graczy w panelu */
+.jp-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 0.9em;
+}
+.jp-percent { font-weight: bold; color: var(--gold); }
+
+@keyframes pulseGold { 0% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(255, 215, 0, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0); } }
 		
         @keyframes rise {
             0% { opacity: 0; transform: translateY(0) scale(1); }
@@ -1169,6 +1238,7 @@
 
 <button class="encyclo-btn-toggle" onclick="toggleEncyclopedia()" title="Encyklopedia Dropu">📖</button>
 	<button class="quotes-btn-toggle" onclick="toggleQuotes()" title="Złote Usta (Cytaty)">🏆</button>
+	<button class="jackpot-btn-toggle" onclick="openJackpot()" title="Otwórz Jackpot">🎰</button>
 
 
 <div id="extractModal" style="display: none; position: fixed; z-index: 10009; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.85); align-items: center; justify-content: center; backdrop-filter: blur(3px);">
@@ -1372,6 +1442,63 @@
         </div>
     </div>
 </div>
+
+	<div id="jackpotModal" style="display: none; position: fixed; z-index: 10060; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.95); align-items: center; justify-content: center; backdrop-filter: blur(5px);">
+    <div style="background: #111; border: 2px solid var(--gold); border-radius: 12px; width: 95%; max-width: 700px; display:flex; flex-direction:column; overflow:hidden; box-shadow: 0 0 50px rgba(255, 215, 0, 0.2);">
+        
+        <div style="background: linear-gradient(90deg, #222, #000); padding: 15px; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #333;">
+            <div style="display:flex; align-items:center; gap:10px;">
+                <span style="font-size:2em;">🎰</span>
+                <div>
+                    <h3 style="color:var(--gold); margin:0; font-family:'MedievalSharp'; line-height:1;">Klanowy JACKPOT</h3>
+                    <small style="color:#777;">Pula zgarnia wszystko!</small>
+                </div>
+            </div>
+            <div id="jackpotTimer" style="font-family:'MedievalSharp'; font-size:2em; color:#fff; text-shadow:0 0 10px red; display:none;">60.00</div>
+            <button onclick="document.getElementById('jackpotModal').style.display='none'" style="background:none; border:none; color:#888; font-size:1.5em; cursor:pointer;">✕</button>
+        </div>
+
+        <div class="jackpot-rail">
+            <div class="jackpot-pointer">▼</div>
+            <div class="jackpot-strip" id="jackpotStrip">
+                </div>
+        </div>
+
+        <div style="padding: 20px; display:grid; grid-template-columns: 1fr 1fr; gap:20px;">
+            
+            <div>
+                <div style="background:rgba(255,255,255,0.05); padding:15px; border-radius:8px; margin-bottom:15px; text-align:center;">
+                    <div style="color:#aaa; font-size:0.8em; text-transform:uppercase;">Aktualna Pula</div>
+                    <div id="jackpotTotalPool" style="font-size:1.8em; color:var(--green); font-weight:bold; text-shadow:0 0 15px rgba(46, 204, 113, 0.4);">0</div>
+                </div>
+
+                <div id="jackpotControls">
+                    <label style="color:#888; font-size:0.8em;">Twoja stawka (min. 100k):</label>
+                    <div style="display:flex; gap:5px; margin-top:5px;">
+                        <input type="text" id="jackpotBetAmount" placeholder="np. 50m, 1g" style="flex:1;">
+                        <button onclick="joinJackpot()" class="action-btn" style="flex:1; background:linear-gradient(to bottom, #ffd700, #b8860b); color:black; font-size:0.9em;">WCHODZĘ! 💰</button>
+                    </div>
+                </div>
+                <div id="jackpotWinnerDisplay" style="display:none; text-align:center; padding:20px;">
+                    <h2 style="color:var(--gold); margin:0;">WYGRYWA:</h2>
+                    <div id="winnerNick" style="font-size:1.5em; font-weight:bold; color:#fff;">...</div>
+                    <div id="winAmount" style="color:var(--green);">...</div>
+                </div>
+            </div>
+
+            <div style="background:rgba(0,0,0,0.3); border:1px solid #333; border-radius:8px; display:flex; flex-direction:column;">
+                <div style="padding:10px; border-bottom:1px solid #333; font-weight:bold; color:#aaa; font-size:0.8em; display:flex; justify-content:space-between;">
+                    <span>GRACZ</span>
+                    <span>SZANSA</span>
+                </div>
+                <div id="jackpotPlayersList" style="overflow-y:auto; max-height:200px; padding:5px;">
+                    </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<button class="jackpot-btn-toggle" onclick="openJackpot()" title="Otwórz Jackpot">🎰</button>
 	
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
@@ -4223,9 +4350,286 @@ function startSplitHistory() {
             });
         });
     }
+
+	// --- SYSTEM JACKPOT ---
+    let jackpotUnsub = null;
+    let jpTimerInterval = null;
+    const JP_GAME_TIME = 60; // Czas w sekundach (60s)
+
+    window.openJackpot = () => {
+        document.getElementById('jackpotModal').style.display = 'flex';
+        startJackpotListener();
+    };
+
+    // 1. Dołączanie do gry
+    window.joinJackpot = async () => {
+        if(!currentUser) return alert("Zaloguj się!");
+        const input = document.getElementById('jackpotBetAmount');
+        const amount = parseGold(input.value);
+
+        if(amount < 100000) return alert("Minimum 100k wpisowego!");
+
+        // Pobieramy aktualny stan gry
+        const jpRef = doc(db, "jackpot", "current");
+        const snap = await getDoc(jpRef);
+        
+        let data = { status: 'open', entries: [], endTime: null };
+        if(snap.exists()) data = snap.data();
+
+        if(data.status !== 'open') return alert("Runda trwa lub się zakończyła! Poczekaj.");
+
+        // Dodajemy wpis
+        const newEntry = {
+            uid: currentUser.uid,
+            nick: currentNick,
+            avatar: currentUser.photoURL,
+            amount: amount,
+            color: getRandomColor() // Przypisujemy kolor graczowi
+        };
+
+        const newEntries = [...(data.entries || []), newEntry];
+        
+        let updateData = { entries: newEntries };
+
+        // LOGIKA CZASU: Jeśli to drugi gracz, uruchom licznik
+        // Liczymy unikalnych graczy
+        const uniquePlayers = new Set(newEntries.map(e => e.uid)).size;
+        
+        if (uniquePlayers >= 2 && !data.endTime) {
+            const end = new Date();
+            end.setSeconds(end.getSeconds() + JP_GAME_TIME);
+            updateData.endTime = end.toISOString();
+        }
+
+        await setDoc(jpRef, updateData, { merge: true });
+        input.value = "";
+        window.playSound('coin');
+    };
+
+    // 2. Nasłuch zmian w bazie
+    function startJackpotListener() {
+        if(jackpotUnsub) jackpotUnsub();
+        
+        jackpotUnsub = onSnapshot(doc(db, "jackpot", "current"), (docSnap) => {
+            if(!docSnap.exists()) return; // Brak gry
+            const data = docSnap.data();
+            
+            renderJackpotUI(data);
+
+            // Obsługa timera
+            if(data.endTime && data.status === 'open') {
+                const left = (new Date(data.endTime).getTime() - new Date().getTime()) / 1000;
+                if(left > 0) {
+                    document.getElementById('jackpotTimer').style.display = 'block';
+                    document.getElementById('jackpotTimer').innerText = left.toFixed(2) + "s";
+                    
+                    // Jeśli jestem pierwszy, który zauważył koniec czasu -> Losuję zwycięzcę
+                    if(left < 1 && !data.winnerProcessing) {
+                        finalizeJackpot(data); 
+                    }
+                } else {
+                    document.getElementById('jackpotTimer').innerText = "LOSOWANIE...";
+                }
+            } else {
+                document.getElementById('jackpotTimer').style.display = 'none';
+            }
+
+            // Obsługa kręcenia
+            if(data.status === 'spinning' && !document.getElementById('jackpotStrip').classList.contains('spinning')) {
+                spinTheWheel(data.winner, data.entries);
+            }
+            
+            // Reset widoku jeśli otwarta nowa runda
+            if(data.status === 'open' && document.getElementById('jackpotStrip').classList.contains('spun')) {
+                 resetJackpotVisuals();
+            }
+        });
+        
+        // Płynny timer w JS dla efektu wizualnego
+        if(jpTimerInterval) clearInterval(jpTimerInterval);
+        jpTimerInterval = setInterval(() => {
+             const timerEl = document.getElementById('jackpotTimer');
+             if(timerEl.style.display === 'block') {
+                 // To tylko odświeża co 100ms, prawdziwa logika jest w onSnapshot
+                 // Można tu dodać 'tick' sound
+             }
+        }, 100);
+    }
+
+    // 3. Renderowanie UI (Lista graczy, Pula)
+    function renderJackpotUI(data) {
+        const list = document.getElementById('jackpotPlayersList');
+        const poolEl = document.getElementById('jackpotTotalPool');
+        
+        let total = 0;
+        data.entries.forEach(e => total += e.amount);
+        poolEl.innerText = s_formatGold(total);
+
+        list.innerHTML = "";
+        
+        // Grupujemy wpisy po użytkownikach
+        let players = {};
+        data.entries.forEach(e => {
+            if(!players[e.uid]) players[e.uid] = { nick: e.nick, amount: 0, avatar: e.avatar, color: e.color };
+            players[e.uid].amount += e.amount;
+        });
+
+        // Sortujemy od największej wpłaty
+        Object.values(players).sort((a,b) => b.amount - a.amount).forEach(p => {
+            const percent = ((p.amount / total) * 100).toFixed(1);
+            list.innerHTML += `
+                <div class="jp-row" style="border-left: 4px solid ${p.color}">
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <img src="${p.avatar}" style="width:24px; height:24px; border-radius:50%;">
+                        <span>${p.nick}</span>
+                    </div>
+                    <div style="text-align:right;">
+                        <div style="color:var(--gold);">${s_formatGold(p.amount)}</div>
+                        <div style="font-size:0.8em; color:#666;">${percent}%</div>
+                    </div>
+                </div>
+            `;
+        });
+    }
+
+    // 4. Losowanie zwycięzcy (Wykonuje jedna osoba - ta, której timer pierwszy zejdzie do 0)
+    async function finalizeJackpot(data) {
+        // Blokujemy przed podwójnym wywołaniem
+        await updateDoc(doc(db, "jackpot", "current"), { winnerProcessing: true });
+
+        // Matematyka ważona (Weighted Random)
+        let total = 0;
+        data.entries.forEach(e => total += e.amount);
+        let randomPoint = Math.random() * total;
+        
+        let winner = null;
+        let currentStack = 0;
+        
+        for(let e of data.entries) {
+            currentStack += e.amount;
+            if(randomPoint <= currentStack) {
+                winner = e;
+                break;
+            }
+        }
+
+        // Zapisujemy wynik i zmieniamy status na 'spinning'
+        await updateDoc(doc(db, "jackpot", "current"), {
+            status: 'spinning',
+            winner: winner,
+            winnerTotal: total // Cała pula
+        });
+    }
+
+    // 5. Animacja Ruletki
+    function spinTheWheel(winner, entries) {
+        const strip = document.getElementById('jackpotStrip');
+        const containerWidth = document.querySelector('.jackpot-rail').offsetWidth;
+        strip.classList.add('spinning');
+        
+        // Generujemy pasek: Dużo losowych + ZWYCIĘZCA na ok. 75. pozycji + trochę losowych
+        let cardsHtml = "";
+        const CARD_WIDTH = 84; // 80px + margin
+        const WINNER_INDEX = 65; // Gdzie ma się zatrzymać (musi być daleko, żeby się kręciło długo)
+        
+        // Czyścimy
+        strip.innerHTML = "";
+        strip.style.transition = "none";
+        strip.style.transform = "translateX(0px)";
+
+        // Budujemy długi łańcuch
+        for(let i=0; i < 90; i++) {
+            let entry;
+            if(i === WINNER_INDEX) {
+                entry = winner; // TU MUSI BYĆ ZWYCIĘZCA
+            } else {
+                entry = entries[Math.floor(Math.random() * entries.length)];
+            }
+            
+            cardsHtml += `
+                <div class="jp-card" style="border-bottom: 4px solid ${entry.color || '#333'}">
+                    <img src="${entry.avatar}">
+                </div>
+            `;
+        }
+        strip.innerHTML = cardsHtml;
+
+        // Ukrywamy przyciski
+        document.getElementById('jackpotControls').style.display = 'none';
+
+        // START ANIMACJI PO CHWILI
+        setTimeout(() => {
+            // Obliczamy przesunięcie
+            // Chcemy, żeby WINNER_INDEX był na środku kontenera
+            const centerOffset = containerWidth / 2 - (CARD_WIDTH / 2);
+            const targetPos = -(WINNER_INDEX * CARD_WIDTH) + centerOffset;
+            
+            // Dodajemy trochę losowości (żeby nie zawsze stawało idealnie na środku kafelka)
+            const jitter = Math.floor(Math.random() * 60) - 30; 
+
+            strip.style.transition = "transform 8s cubic-bezier(0.15, 0, 0.10, 1)"; // Start szybko, koniec bardzo wolno
+            strip.style.transform = `translateX(${targetPos + jitter}px)`;
+            
+            window.playSound('coin'); // Dźwięk startu
+        }, 100);
+
+        // KONIEC ANIMACJI (po 8.5s)
+        setTimeout(async () => {
+            strip.classList.add('spun');
+            showWinnerScreen(winner);
+            
+            // Tylko admin lub zwycięzca czyści grę po 15s (dla bezpieczeństwa wyścigów)
+            if (currentUser.uid === winner.uid || currentNick === ADMIN_NICK) {
+                setTimeout(async () => {
+                    await setDoc(doc(db, "jackpot", "current"), {
+                        status: 'open',
+                        entries: [],
+                        endTime: null,
+                        winner: null,
+                        winnerProcessing: false
+                    });
+                }, 10000);
+            }
+        }, 8500);
+    }
+
+    function showWinnerScreen(winner) {
+        // Efekt confetti (iskry)
+        for(let i=0; i<20; i++) createEmber(); 
+        
+        document.getElementById('jackpotWinnerDisplay').style.display = 'block';
+        document.getElementById('winnerNick').innerText = winner.nick;
+        const total = document.getElementById('jackpotTotalPool').innerText;
+        document.getElementById('winAmount').innerText = `Zgarnia: ${total}`;
+        
+        // Dodaj wpis na czat
+        if(currentUser.uid === winner.uid) { // Żeby nie spamować, tylko zwycięzca wysyła info
+             addDoc(collection(db, "chat"), {
+                nick: "System Jackpot",
+                text: `🎰 ${winner.nick} wygrywa pulę ${total} przy szansie!`,
+                type: 'roll',
+                date: new Date().toISOString()
+            });
+        }
+    }
+
+    function resetJackpotVisuals() {
+        document.getElementById('jackpotStrip').style.transition = 'none';
+        document.getElementById('jackpotStrip').style.transform = 'translateX(0)';
+        document.getElementById('jackpotStrip').innerHTML = '';
+        document.getElementById('jackpotStrip').classList.remove('spinning', 'spun');
+        document.getElementById('jackpotWinnerDisplay').style.display = 'none';
+        document.getElementById('jackpotControls').style.display = 'block';
+    }
+
+    function getRandomColor() {
+        const colors = ['#e74c3c', '#3498db', '#2ecc71', '#9b59b6', '#f1c40f', '#e67e22'];
+        return colors[Math.floor(Math.random() * colors.length)];
+    }
 	
 </script>
 
 <div id="toast-container"></div>
 </body>
 </html>
+
