@@ -782,6 +782,7 @@
             <select id="itemBonding" class="full-width" style="border-color: #444;">
                 <option value="bound">🔒 Związany (Standard)</option>
                 <option value="unbound">🔓 Odwiązany (Unbound)</option>
+                <option value="any" style="display:none;">🔓/🔒 Obojętne (To i to)</option>
             </select>
 
             <div id="livePreview" class="preview-box" style="display: none;">
@@ -2275,34 +2276,24 @@ window.toggleSpecialFields = () => {
         if (!typeEl) return;
         const type = typeEl.value;
 
-        // Resetowanie widoczności wszystkich sekcji specjalnych
+        // Resetowanie widoczności sekcji
         document.getElementById('field-sell').style.display = 'none';
         document.getElementById('field-buy').style.display = 'none';
         document.getElementById('field-trade').style.display = 'none';
         document.getElementById('field-gold').style.display = 'none';
         document.getElementById('chestBundleContainer').style.display = 'none';
 
-        // Logika pokazywania odpowiednich pól
-        if (type === 'sprzedam') {
-            document.getElementById('field-sell').style.display = 'block';
-        } 
-        else if (type === 'kupie') {
-            document.getElementById('field-buy').style.display = 'block';
-        }
-        else if (type === 'zamienie') {
-            document.getElementById('field-trade').style.display = 'block';
-        }
-        else if (type === 'gold') {
-            const goldField = document.getElementById('field-gold');
-            goldField.style.display = 'grid'; 
-        }
+        // Logika sekcji
+        if (type === 'sprzedam') document.getElementById('field-sell').style.display = 'block';
+        else if (type === 'kupie') document.getElementById('field-buy').style.display = 'block';
+        else if (type === 'zamienie') document.getElementById('field-trade').style.display = 'block';
+        else if (type === 'gold') document.getElementById('field-gold').style.display = 'grid';
         else if (type === 'chest') {
             document.getElementById('chestBundleContainer').style.display = 'block';
             if(document.getElementById('chestRowsArea').innerHTML === "") window.addChestRow();
         }
 
-        // --- Obsługa pól standardowych (Kategoria, Nazwa, Obrazek) ---
-        // Ukrywamy wybór potwora dla usług i złota
+        // --- Obsługa pól standardowych ---
         const hideSource = ['gold', 'exp', 'other', 'chest'].includes(type);
         const displayStyle = hideSource ? 'none' : 'block';
 
@@ -2310,6 +2301,20 @@ window.toggleSpecialFields = () => {
             const el = document.getElementById(id);
             if(el) el.style.display = displayStyle;
         });
+
+        // --- NOWOŚĆ: Obsługa opcji "Obojętne" w kłódce ---
+        const bondingSel = document.getElementById('itemBonding');
+        const anyOption = bondingSel.querySelector('option[value="any"]');
+        
+        if (type === 'kupie') {
+            // Przy kupnie pokazujemy opcję "Obojętne"
+            anyOption.style.display = 'block'; 
+        } else {
+            // W każdym innym przypadku (np. Sprzedam) ukrywamy ją i resetujemy jeśli była wybrana
+            anyOption.style.display = 'none';
+            if (bondingSel.value === 'any') bondingSel.value = 'bound';
+        }
+        // --------------------------------------------------
 
         // Autouzupełnianie ikon i nazw
         const nameInput = document.getElementById('itemName');
@@ -2331,9 +2336,7 @@ window.toggleSpecialFields = () => {
         } 
         else if (specialMap[type]) {
             nameInput.disabled = false;
-            // Dla złota nazwa będzie generowana dynamicznie przy wysyłce
             nameInput.value = (type === 'gold') ? "" : specialMap[type].name; 
-            
             imgInput.style.display = 'block';
             imgInput.value = specialMap[type].img;
             preview.style.display = 'flex';
@@ -2343,10 +2346,8 @@ window.toggleSpecialFields = () => {
         else {
             nameInput.disabled = false;
             nameInput.placeholder = "Nazwa przedmiotu";
-            // Czyścimy, jeśli wcześniej było coś automatycznego
             const autoNames = Object.values(specialMap).map(m => m.name);
             if(autoNames.includes(nameInput.value)) nameInput.value = "";
-            
             imgInput.style.display = 'block';
             preview.style.display = 'none';
         }
@@ -2743,12 +2744,21 @@ window.renderOffers = () => {
 
         // --- 4. PRZYGOTOWANIE WIZUALNE (Kłódki, Klasy, Przyciski) ---
         
+        // --- 4. PRZYGOTOWANIE WIZUALNE (Kłódki) ---
         let bondingIcon = "";
         const hideBondingFor = ['gold', 'chest', 'exp', 'other'];
+        
         if (!hideBondingFor.includes(data.type) && !isSkrytka) {
-            if (data.bonding === 'unbound') {
+            if (data.bonding === 'any') {
+                // Ikona dla "Obojętne" (Dwie kłódki)
+                bondingIcon = '<span title="Wiązanie: Obojętne (To i to)" style="margin-right:5px; color:#aaa; cursor:help;">🔓/🔒</span>';
+            } 
+            else if (data.bonding === 'unbound') {
+                // Ikona dla odwiązanych (świecąca na złoto)
                 bondingIcon = '<span title="Przedmiot Odwiązany" style="margin-right:5px; text-shadow:0 0 10px var(--gold); cursor:help;">🔓</span>';
-            } else {
+            } 
+            else {
+                // Ikona dla związanych (lekko szara, domyślna)
                 bondingIcon = '<span title="Przedmiot Związany" style="margin-right:5px; opacity: 0.5; cursor:help;">🔒</span>';
             }
         }
@@ -3773,6 +3783,7 @@ function startSplitHistory() {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
