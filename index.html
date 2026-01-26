@@ -866,12 +866,13 @@
 
             <div id="chestBundleContainer" class="full-width" style="display:none; background:rgba(0,0,0,0.3); padding:10px; border-radius:8px; border:1px dashed #555;">
                 
-                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:10px;">
-                    <select id="chestAction" style="background:#222; color:var(--gold); font-weight:bold; padding:10px; border:1px solid #444; border-radius:4px;">
+                <div id="chestInputsRow" style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:10px;">
+                    <select id="chestAction" onchange="toggleChestPrice()" style="background:#222; color:var(--gold); font-weight:bold; padding:10px; border:1px solid #444; border-radius:4px; width:100%;">
                         <option value="Sprzedam">📦 Sprzedam</option>
                         <option value="Kupię">💰 Kupię</option>
                     </select>
-                    <input type="text" id="chestPrice" placeholder="Cena (np. 100m, 20 PLN)" 
+                    
+                    <input type="text" id="chestPrice" placeholder="Cena za zestaw (np. 100m)" 
                            oninput="validatePriceInput(this)" 
                            style="border:1px solid #444;">
                 </div>
@@ -2464,10 +2465,12 @@ window.toggleSpecialFields = () => {
     else if (type === 'kupie') document.getElementById('field-buy').style.display = 'block';
     else if (type === 'zamienie') document.getElementById('field-trade').style.display = 'block';
     else if (type === 'gold') document.getElementById('field-gold').style.display = 'grid';
-    else if (type === 'chest') {
-        document.getElementById('chestBundleContainer').style.display = 'block';
-        if(document.getElementById('chestRowsArea').innerHTML === "") window.addChestRow();
-    }
+   else if (type === 'chest') {
+            document.getElementById('chestBundleContainer').style.display = 'block';
+            // Resetujemy widok ceny (domyślnie pokaż, chyba że wybrano Kupię)
+            window.toggleChestPrice(); 
+            if(document.getElementById('chestRowsArea').innerHTML === "") window.addChestRow();
+        }
 
     // --- Obsługa pól standardowych ---
     const hideSource = ['gold', 'exp', 'other', 'chest'].includes(type);
@@ -2529,6 +2532,21 @@ window.toggleSpecialFields = () => {
     }
 };
 
+	// Funkcja ukrywająca cenę przy kupnie skrzynek
+    window.toggleChestPrice = () => {
+        const action = document.getElementById('chestAction').value;
+        const priceInput = document.getElementById('chestPrice');
+        const container = document.getElementById('chestInputsRow');
+
+        if (action === 'Kupię') {
+            priceInput.style.display = 'none'; // Ukryj pole ceny
+            container.style.display = 'block'; // Rozciągnij select na całą szerokość
+        } else {
+            priceInput.style.display = 'block'; // Pokaż pole ceny
+            container.style.display = 'grid';   // Wróć do układu dwie kolumny
+        }
+    };
+	
 	window.addChestRow = () => {
         const area = document.getElementById('chestRowsArea');
         const rowId = Date.now(); // Unikalne ID
@@ -3136,6 +3154,7 @@ window.renderOffers = () => {
         }
 
         // 7. Logika dla "SKRZYNKI" (ZAKTUALIZOWANA)
+        // 7. Logika dla "SKRZYNKI" (POPRAWIONA)
         else if (type === 'chest') {
             const rows = document.querySelectorAll('.chest-row');
             if (rows.length === 0) return alert("Dodaj przynajmniej jedną skrzynkę!");
@@ -3152,16 +3171,22 @@ window.renderOffers = () => {
                 
                 if (!select.value || qty < 1) return alert("Uzupełnij wszystkie pola skrzynek!");
                 
-                // Tworzymy ładny opis: "5x Skrzynia..." -> "5x Mrocznego Patryka"
                 chestSummary.push(`${qty}x ${select.value.replace('Skrzynia ', '')}`);
                 
                 const u = select.options[select.selectedIndex].dataset.img;
                 if(u) imagesArray.push(u);
             }
 
-            finalName = `${chestAction}: ` + chestSummary.join(', '); // np. "Kupię: 5x Patryka, 2x Złodzieja"
+            finalName = `${chestAction}: ` + chestSummary.join(', ');
             finalImg = imagesArray.join('|');
-            finalPrice = chestPriceVal || "Do dogadania"; 
+            
+            // JEŚLI KUPIĘ -> Cena to "Do dogadania", JEŚLI SPRZEDAM -> Cena z inputa
+            if (chestAction === 'Kupię') {
+                finalPrice = "Do dogadania";
+            } else {
+                finalPrice = chestPriceVal || "Do dogadania";
+            }
+
             finalSource = "Skrzynki Herosów";
             finalSourceImg = ""; 
             finalBonding = "bound";
@@ -3983,6 +4008,7 @@ function startSplitHistory() {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
