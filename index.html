@@ -833,6 +833,95 @@
 }
 .jp-percent { font-weight: bold; color: var(--gold); }
 
+/* --- NOWY PASEK BOCZNY (SIDEBAR) --- */
+    
+    /* Główny przycisk sterujący (Oko) */
+    .sidebar-toggle-main {
+        position: fixed;
+        bottom: 30px;
+        right: 30px;
+        width: 50px; height: 50px;
+        border-radius: 50%;
+        background: #111;
+        border: 2px solid #555;
+        color: #888;
+        font-size: 1.5em;
+        cursor: pointer;
+        z-index: 10000; /* Zawsze na wierzchu */
+        box-shadow: 0 0 10px rgba(0,0,0,0.8);
+        transition: 0.3s;
+    }
+    .sidebar-toggle-main:hover {
+        border-color: #fff;
+        color: #fff;
+        transform: scale(1.1);
+    }
+
+    /* Kontener na przyciski (słupek) */
+    .sidebar-container {
+        position: fixed;
+        bottom: 90px; /* Zaczyna się nad przyciskiem Oka */
+        right: 30px;
+        display: flex;
+        flex-direction: column-reverse; /* Układa od dołu do góry */
+        gap: 12px; /* Odstęp między ikonkami */
+        z-index: 9990;
+        transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* Efekt sprężyny */
+        transform: translateX(0); /* Domyślnie widoczne */
+    }
+
+    /* Klasa ukrywająca */
+    .sidebar-hidden {
+        transform: translateX(100px); /* Przesuwa w prawo poza ekran */
+    }
+
+    /* --- WSPÓLNY STYL DLA WSZYSTKICH PRZYCISKÓW --- */
+    .side-btn {
+        width: 45px; height: 45px;
+        border-radius: 50%;
+        cursor: pointer;
+        display: flex; align-items: center; justify-content: center;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+        transition: 0.2s;
+        border: 2px solid;
+        position: relative !important; /* Nadpisujemy stare fixed */
+        bottom: auto !important;       /* Resetujemy stare pozycje */
+        right: auto !important;
+    }
+    .side-btn:hover { transform: scale(1.15); z-index: 10; }
+    .side-btn img { width: 28px; height: 28px; object-fit: contain; }
+
+    /* --- INDYWIDUALNE KOLORY (Skopiowane z Twoich starych styli) --- */
+    .jackpot-btn-style {
+        background: linear-gradient(135deg, #FFD700, #FF8C00);
+        border-color: #fff; color: #000; font-size: 1.5em;
+        animation: pulseGold 2s infinite;
+    }
+    .quotes-btn-style {
+        background: linear-gradient(135deg, #2c3e50, #000);
+        border-color: var(--gold); color: var(--gold); font-size: 1.2em;
+    }
+    .extract-btn-style {
+        background: linear-gradient(135deg, #001a00, #004d00);
+        border-color: #2ecc71;
+    }
+    .upgrade-btn-style {
+        background: linear-gradient(135deg, #1a1a1a, #444);
+        border-color: var(--gold);
+    }
+    .essence-btn-style {
+        background: linear-gradient(135deg, #2d0036, #580063);
+        border-color: #9b59b6;
+    }
+    .encyclo-btn-style {
+        background: linear-gradient(135deg, #1a1a1a, #2a2a2a);
+        border-color: #ccc; color: #ccc; font-size: 1.2em;
+    }
+    .calc-btn-style {
+        background: linear-gradient(135deg, #1a1a1a, #332b00);
+        border-color: var(--gold); font-size: 1.2em;
+    }
+
 @keyframes pulseGold { 0% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(255, 215, 0, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0); } }
 		
         @keyframes rise {
@@ -1229,21 +1318,31 @@
     </div>
 </div>
 
-<button class="extract-btn-toggle" onclick="toggleExtract()" title="Kalkulator Ekstrakcji">
-    <img src="https://micc.garmory-cdn.cloud/obrazki/itemy/upg/lege_enh_ball.gif" alt="Ekstrakcja">
-</button>
+<div id="rightSidebar" class="sidebar-container">
+    
+    <button class="side-btn jackpot-btn-style" onclick="openJackpot()" title="Jackpot">🎰</button>
+    
+    <button class="side-btn quotes-btn-style" onclick="toggleQuotes()" title="Złote Usta">🏆</button>
+    
+    <button class="side-btn extract-btn-style" onclick="toggleExtract()" title="Ekstrakcja">
+        <img src="https://micc.garmory-cdn.cloud/obrazki/itemy/upg/lege_enh_ball.gif">
+    </button>
+    
+    <button class="side-btn upgrade-btn-style" onclick="toggleUpgrade()" title="Ulepszanie">
+        <img src="https://micc.garmory-cdn.cloud/obrazki/npc/mez/npc249.gif">
+    </button>
+    
+    <button class="side-btn essence-btn-style" onclick="toggleEssence()" title="Esencja">
+        <img src="https://micc.garmory-cdn.cloud/obrazki/itemy/neu/pyl-sakryfikacji.gif">
+    </button>
+    
+    <button class="side-btn encyclo-btn-style" onclick="toggleEncyclopedia()" title="Bestiariusz">📖</button>
+    
+    <button class="side-btn calc-btn-style" onclick="toggleCalc()" title="Podział Łupu">💰</button>
 
-<button class="upgrade-btn-toggle" onclick="toggleUpgrade()" title="Kalkulator Ulepszania">
-    <img src="https://micc.garmory-cdn.cloud/obrazki/npc/mez/npc249.gif" alt="Ulepszanie">
-</button>
+</div>
 
-<button class="essence-btn-toggle" onclick="toggleEssence()" title="Kalkulator Esencji">
-    <img src="https://micc.garmory-cdn.cloud/obrazki/itemy/neu/pyl-sakryfikacji.gif" alt="Esencja">
-</button>
-
-<button class="encyclo-btn-toggle" onclick="toggleEncyclopedia()" title="Encyklopedia Dropu">📖</button>
-	<button class="quotes-btn-toggle" onclick="toggleQuotes()" title="Złote Usta (Cytaty)">🏆</button>
-	<button class="jackpot-btn-toggle" onclick="openJackpot()" title="Otwórz Jackpot">🎰</button>
+<button class="sidebar-toggle-main" onclick="toggleSidebar()" title="Pokaż/Ukryj Menu">👁️</button>
 
 
 <div id="extractModal" style="display: none; position: fixed; z-index: 10009; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.85); align-items: center; justify-content: center; backdrop-filter: blur(3px);">
@@ -4743,12 +4842,32 @@ function startSplitHistory() {
             });
         });
     }
+
+	window.toggleSidebar = () => {
+        const sidebar = document.getElementById('rightSidebar');
+        const btn = document.querySelector('.sidebar-toggle-main');
+        
+        // Przełącz klasę
+        sidebar.classList.toggle('sidebar-hidden');
+        
+        // Zmień ikonkę oka (opcjonalnie)
+        if (sidebar.classList.contains('sidebar-hidden')) {
+            btn.innerText = '◀'; // Strzałka, że można wysunąć
+            btn.style.borderColor = '#00ffff'; // Podświetlenie
+        } else {
+            btn.innerText = '👁️'; // Oko, że widoczne
+            btn.style.borderColor = '#555';
+        }
+        
+        window.playSound('click');
+    };
 	
 </script>
 
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
