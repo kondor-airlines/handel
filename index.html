@@ -806,16 +806,21 @@
 .jackpot-strip {
     display: flex;
     height: 80px;
-    will-change: transform; /* Optymalizacja dla przeglądarki */
-    /* Animacja będzie sterowana przez JS */
+    will-change: transform; 
+    /* Ważne: usuwamy domyślne wyrównania, liczymy piksele sami */
 }
 
 .jp-card {
-    width: 80px; height: 80px;
-    margin: 0 2px;
+    /* SZTYWNE WYMIARY - NIE ZMIENIAJ TEGO */
+    width: 80px !important; 
+    height: 80px !important;
+    margin: 0 2px !important; /* 2px z lewej + 2px z prawej = 4px marginesu */
+    /* Całkowita szerokość elementu to 80 + 4 = 84px */
+    
     background: #222;
     border: 2px solid #444;
-    flex-shrink: 0; /* Nie zgniatać */
+    box-sizing: border-box; /* Border wchodzi w wymiar */
+    flex-shrink: 0;
     display: flex; align-items: center; justify-content: center;
     position: relative;
 }
@@ -4435,6 +4440,7 @@ window.joinJackpot = async () => {
     };
 
 let currentJackpotEndTime = null; 
+    let serverTimeOffset = 0; // Różnica między Twoim PC a serwerem Google
 
     function startJackpotListener() {
         if(jackpotUnsub) jackpotUnsub();
@@ -4443,18 +4449,21 @@ let currentJackpotEndTime = null;
             if(!docSnap.exists()) return; 
             const data = docSnap.data();
             
+            // 1. OBLICZANIE PRZESUNIĘCIA CZASU (Synchronizacja)
+            // Snapshot ma metadane z czasem serwera (readTime)
+            if(docSnap.readTime) {
+                const serverNow = docSnap.readTime.toMillis();
+                const localNow = new Date().getTime();
+                serverTimeOffset = serverNow - localNow; // Np. +7000ms jeśli Twój zegar się spóźnia
+            }
+
             renderJackpotUI(data);
 
-            // OBSŁUGA CZASU (NOWA LOGIKA)
+            // 2. USTAWIANIE LICZNIKA
             if(data.status === 'open' && data.startTime) {
-                // Jeśli startTime jest "świeży" (null przez ułamek sekundy przy zapisie), czekamy
                 if(data.startTime) {
-                    // Konwersja Timestampa Firebase na datę JS
                     const startMillis = data.startTime.toMillis ? data.startTime.toMillis() : new Date(data.startTime).getTime();
-                    
-                    // Czas końca = Czas startu (serwerowy) + 60 sekund
                     currentJackpotEndTime = startMillis + (JP_GAME_TIME * 1000);
-                    
                     document.getElementById('jackpotTimer').style.display = 'block';
                 }
             } else {
@@ -4462,39 +4471,42 @@ let currentJackpotEndTime = null;
                 document.getElementById('jackpotTimer').style.display = 'none';
             }
 
+            // 3. START RULETKI
             if(data.status === 'spinning' && !document.getElementById('jackpotStrip').classList.contains('spinning')) {
                 document.getElementById('jackpotTimer').style.display = 'none';
                 spinTheWheel(data.winner, data.entries);
             }
             
+            // 4. RESET
             if(data.status === 'open' && document.getElementById('jackpotStrip').classList.contains('spun')) {
                  resetJackpotVisuals();
             }
         });
         
-        // INTERWAŁ ODLICZANIA
+        // INTERWAŁ ODLICZANIA (Z uwzględnieniem korekty)
         if(jpTimerInterval) clearInterval(jpTimerInterval);
         
         jpTimerInterval = setInterval(() => {
              if (!currentJackpotEndTime) return;
 
-             const now = new Date().getTime();
-             let diff = currentJackpotEndTime - now; 
+             // Tu używamy magicznej korekty: (TwójCzas + Różnica) = CzasSerwera
+             const nowSynced = new Date().getTime() + serverTimeOffset;
+             let diff = currentJackpotEndTime - nowSynced; 
 
              const timerEl = document.getElementById('jackpotTimer');
 
              if (diff > 0) {
-                 // ZABEZPIECZENIE WIZUALNE:
-                 // Jeśli przez różnice zegarów pokazuje np. 65s, ucinamy do 60.00s
                  let seconds = diff / 1000;
-                 if(seconds > JP_GAME_TIME) seconds = JP_GAME_TIME;
-                 
+                 // Kaganiec wizualny, żeby nie pokazywało 90s przy lagach
+                 if(seconds > JP_GAME_TIME + 2) seconds = JP_GAME_TIME; 
                  timerEl.innerText = seconds.toFixed(2) + "s";
              } else {
                  timerEl.innerText = "LOSOWANIE...";
                  
-                 // Wyzwalacz losowania (tylko raz, gdy czas minął)
-                 if (diff > -2000 && diff < 0) {
+                 // Próbujemy wylosować, jeśli czas minął (nawet jeśli minął dawno temu)
+                 // Warunek: status wciąż 'open'
+                 if (diff < 0) { 
+                     // Pobieramy raz jeszcze, żeby nie spamować bazy
                      getDoc(doc(db, "jackpot", "current")).then(snap => {
                          const d = snap.data();
                          if(d && d.status === 'open' && !d.winnerProcessing) {
@@ -4574,67 +4586,76 @@ let currentJackpotEndTime = null;
     // 5. Animacja Ruletki
     function spinTheWheel(winner, entries) {
         const strip = document.getElementById('jackpotStrip');
-        const containerWidth = document.querySelector('.jackpot-rail').offsetWidth;
+        const rail = document.querySelector('.jackpot-rail');
         strip.classList.add('spinning');
         
-        // Generujemy pasek: Dużo losowych + ZWYCIĘZCA na ok. 75. pozycji + trochę losowych
-        let cardsHtml = "";
-        const CARD_WIDTH = 84; // 80px + margin
-        const WINNER_INDEX = 65; // Gdzie ma się zatrzymać (musi być daleko, żeby się kręciło długo)
+        // --- MATEMATYKA PRECYZYJNA ---
+        const CARD_WIDTH = 80; // Szerokość obrazka
+        const MARGIN = 4;      // 2px z lewej + 2px z prawej
+        const FULL_CARD = CARD_WIDTH + MARGIN; // 84px - to jest nasz krok
+        const WINNER_INDEX = 75; // Zawsze 75-ta karta to zwycięzca
         
-        // Czyścimy
         strip.innerHTML = "";
         strip.style.transition = "none";
         strip.style.transform = "translateX(0px)";
 
-        // Budujemy długi łańcuch
-        for(let i=0; i < 90; i++) {
+        // Generujemy pasek (100 kart)
+        let cardsHtml = "";
+        for(let i=0; i < 100; i++) {
             let entry;
             if(i === WINNER_INDEX) {
-                entry = winner; // TU MUSI BYĆ ZWYCIĘZCA
+                entry = winner; // Wstawiamy zwycięzcę na sztywno pod indeks 75
             } else {
-                entry = entries[Math.floor(Math.random() * entries.length)];
+                // Reszta losowa (ale nie może być pusta)
+                entry = entries.length > 0 ? entries[Math.floor(Math.random() * entries.length)] : {avatar:'', color:'#333'};
             }
             
+            // Renderujemy kartę
             cardsHtml += `
                 <div class="jp-card" style="border-bottom: 4px solid ${entry.color || '#333'}">
-                    <img src="${entry.avatar}">
+                    <img src="${entry.avatar}" onerror="this.style.display='none'">
                 </div>
             `;
         }
         strip.innerHTML = cardsHtml;
 
-        // Ukrywamy przyciski
         document.getElementById('jackpotControls').style.display = 'none';
 
-        // START ANIMACJI PO CHWILI
+        // Opóźnienie startu animacji
         setTimeout(() => {
-            // Obliczamy przesunięcie
-            // Chcemy, żeby WINNER_INDEX był na środku kontenera
-            const centerOffset = containerWidth / 2 - (CARD_WIDTH / 2);
-            const targetPos = -(WINNER_INDEX * CARD_WIDTH) + centerOffset;
+            const containerWidth = rail.offsetWidth;
             
-            // Dodajemy trochę losowości (żeby nie zawsze stawało idealnie na środku kafelka)
+            // WZÓR NA ŚRODEK:
+            // Przesuwamy o N kart w lewo (-)
+            // Dodajemy połowę ekranu (+)
+            // Odejmujemy połowę karty (-) żeby środek karty był na środku ekranu
+            const centerPosition = - (WINNER_INDEX * FULL_CARD) + (containerWidth / 2) - (FULL_CARD / 2);
+            
+            // Losowość (Jitter) - żeby nie stawało zawsze idealnie centralnie
+            // Zakres: od -30px do +30px (mieści się w karcie 80px)
             const jitter = Math.floor(Math.random() * 60) - 30; 
-
-            strip.style.transition = "transform 8s cubic-bezier(0.15, 0, 0.10, 1)"; // Start szybko, koniec bardzo wolno
-            strip.style.transform = `translateX(${targetPos + jitter}px)`;
             
-            window.playSound('coin'); // Dźwięk startu
+            const finalPosition = centerPosition + jitter;
+
+            // Animacja 8 sekund, cubic-bezier dla efektu "koła fortuny" (szybko -> wolno -> stop)
+            strip.style.transition = "transform 8s cubic-bezier(0.15, 0, 0.10, 1)"; 
+            strip.style.transform = `translateX(${finalPosition}px)`;
+            
+            window.playSound('coin'); 
         }, 100);
 
-        // KONIEC ANIMACJI (po 8.5s)
+        // Koniec po 8.5s
         setTimeout(async () => {
             strip.classList.add('spun');
             showWinnerScreen(winner);
             
-            // Tylko admin lub zwycięzca czyści grę po 15s (dla bezpieczeństwa wyścigów)
-            if (currentUser.uid === winner.uid || currentNick === ADMIN_NICK) {
+            // Auto-reset po 15s (tylko zwycięzca lub admin)
+            if (currentUser && (currentUser.uid === winner.uid || currentNick === ADMIN_NICK)) {
                 setTimeout(async () => {
                     await setDoc(doc(db, "jackpot", "current"), {
                         status: 'open',
                         entries: [],
-                        endTime: null,
+                        startTime: null,
                         winner: null,
                         winnerProcessing: false
                     });
@@ -4682,6 +4703,7 @@ let currentJackpotEndTime = null;
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
