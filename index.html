@@ -4509,9 +4509,14 @@ function startSplitHistory() {
         const input = document.getElementById('jackpotBetAmount');
         const amount = parseGold(input.value);
 
-        // Limity podstawowe (dla pojedynczego wpisu)
-        if(amount < 1000000) return alert("Minimum wpłaty to 1m!");
-        if(amount > 10000000000) return alert("Nie możesz wpłacić więcej niż 10g jednorazowo!");
+        // --- 1. TWARDE LIMITY (1m - 10g) ---
+        if(amount < 1000000) {
+            return alert("🚫 Za mało! Minimum wpłaty to 1m.");
+        }
+        if(amount > 10000000000) {
+            return alert("🚫 Za dużo! Maksymalnie możesz wpłacić 10g jednorazowo.");
+        }
+        // -----------------------------------
 
         const jpRef = doc(db, "jackpot", "current");
         const snap = await getDoc(jpRef);
@@ -4519,10 +4524,9 @@ function startSplitHistory() {
         let data = { status: 'open', entries: [], startTime: null };
         if(snap.exists()) data = snap.data();
 
-        // --- 1. SPRAWDZANIE LIMITU ŁĄCZNEGO (NOWOŚĆ) ---
+        // --- 2. SPRAWDZANIE LIMITU ŁĄCZNEGO (MAX 10g NA OSOBĘ) ---
         let myTotalInRound = 0;
         
-        // Zliczamy ile JUŻ wpłaciłeś w tej rundzie
         if (data.entries) {
             data.entries.forEach(e => {
                 if (e.uid === currentUser.uid) {
@@ -4531,14 +4535,17 @@ function startSplitHistory() {
             });
         }
 
-        const MAX_LIMIT = 10000000000; // 10g
+        const MAX_TOTAL_LIMIT = 10000000000; // 10g Łącznie
 
-        // Sprawdzamy czy (To co już wpłaciłeś + Nowa kwota) nie przekracza 10g
-        if ((myTotalInRound + amount) > MAX_LIMIT) {
-            const left = MAX_LIMIT - myTotalInRound;
-            return alert(`🚫 Limit na gracza to 10g!\nWpłaciłeś już: ${s_formatGold(myTotalInRound)}.\nMożesz dołożyć maksymalnie: ${s_formatGold(left)}.`);
+        if ((myTotalInRound + amount) > MAX_TOTAL_LIMIT) {
+            const left = MAX_TOTAL_LIMIT - myTotalInRound;
+            // Jeśli gracz ma już 10g, left będzie 0
+            if (left <= 0) {
+                return alert("🚫 Osiągnąłeś już limit 10g w tej rundzie!");
+            }
+            return alert(`🚫 Przekroczysz limit 10g!\nWpłaciłeś już: ${s_formatGold(myTotalInRound)}.\nMożesz dołożyć maksymalnie: ${s_formatGold(left)}.`);
         }
-        // ------------------------------------------------
+        // ---------------------------------------------------------
 
         // Zabezpieczenie przed zacięciem
         const now = new Date().getTime();
@@ -4574,7 +4581,7 @@ function startSplitHistory() {
 
         const newEntries = [...(data.entries || []), newEntry];
         
-        // Start gry (serverTimestamp)
+        // Start gry (2 graczy = start)
         const uniquePlayers = new Set(newEntries.map(e => e.uid)).size;
         let newStartTime = data.startTime;
 
@@ -5005,6 +5012,7 @@ function startSplitHistory() {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
