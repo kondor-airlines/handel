@@ -1692,6 +1692,7 @@
             </div>
 	
 <script type="module">
+	let isFinalizing = { low: false, medium: false, high: false };
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
     import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
     import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, deleteDoc, doc, getDoc, setDoc, getDocs, updateDoc, where, limit, serverTimestamp, runTransaction } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
@@ -4553,7 +4554,6 @@ function startSplitHistory() {
     let jpTimerInterval = null;
 	let currentTier = 'low'; // Domyślny pokój
 	let processedSpins = { low: null, medium: null, high: null };
-	let isFinalizing = { low: false, medium: false, high: false };
     const JP_GAME_TIME = 60; 
 
     // Zmienne globalne (muszą być tutaj)
@@ -4674,7 +4674,6 @@ function startJackpotListener() {
             
             if(docSnap.readTime) timeOffset = docSnap.readTime.toMillis() - new Date().getTime(); 
 
-            // UI aktualizujemy tylko dla aktywnej zakładki
             if (currentTier === listeningTier) renderJackpotUI(data);
 
             const timerEl = document.getElementById('jackpotTimer');
@@ -4715,19 +4714,29 @@ function startJackpotListener() {
              } else {
                  if(currentTier === listeningTier) timerEl.innerText = "LOSOWANIE...";
                  
-                 // Trigger losowania (tylko raz na pokój)
+                 // --- 🛑 KLUCZOWA POPRAWKA 🛑 ---
+                 // Triggerujemy tylko jeśli: czas minął, okno 3s i POKÓJ NIE JEST W TRAKCIE FINALIZACJI
                  if (diff < 0 && diff > -3000 && !isFinalizing[listeningTier]) {
-                     isFinalizing[listeningTier] = true;
+                     isFinalizing[listeningTier] = true; // Zaciągnij ręczny natychmiast!
+                     
                      const activeConf = TIER_CONFIG[listeningTier];
+                     
+                     console.log(`[System] Próba finalizacji stołu: ${listeningTier}`);
                      
                      getDoc(doc(db, activeConf.db, "current")).then(snap => {
                          const d = snap.data();
+                         // Tylko jeśli status to nadal 'open', wyślij JEDNĄ transakcję
                          if(d && d.status === 'open' && !d.winnerProcessing) {
                              finalizeJackpot(listeningTier); 
                          }
-                         // Resetujemy flagę po 4 sekundach (bezpieczny odstęp)
-                         setTimeout(() => { isFinalizing[listeningTier] = false; }, 4000);
-                     }).catch(() => { isFinalizing[listeningTier] = false; });
+                         
+                         // Odblokuj możliwość finalizacji dopiero za 5 sekund (bezpiecznik)
+                         setTimeout(() => { isFinalizing[listeningTier] = false; }, 5000);
+                     }).catch(err => {
+                         console.error("Błąd sieci:", err);
+                         // W razie błędu odblokuj szybciej, żeby spróbować ponownie
+                         setTimeout(() => { isFinalizing[listeningTier] = false; }, 1000);
+                     });
                  }
              }
         }, 50);
@@ -4830,10 +4839,15 @@ async function finalizeJackpot(tier) {
             strip.innerHTML = cardsHtml;
             document.getElementById('jackpotControls').style.display = 'none';
 
-            setTimeout(() => {
-                // Drugie sprawdzenie po 100ms
-                if (currentTier !== tier) return;
-                const FULL_CARD = 84;
+			setTimeout(() => {
+            // SPRAWDZENIE: Jeśli w ciągu tych 100ms zmieniłeś zakładkę - przestań rysować!
+            if (currentTier !== tier) {
+                console.log(`[Animacja] Przerwano animację dla ${tier}, bo użytkownik przełączył zakładkę.`);
+                return;
+            }
+
+            const FULL_CARD = 84;
+            // ... reszta logiki przesunięcia ...
                 const containerWidth = rail.offsetWidth;
                 const centerPosition = - (WINNER_INDEX * FULL_CARD) + (containerWidth / 2) - (FULL_CARD / 2);
                 strip.style.transition = "transform 8s cubic-bezier(0.15, 0, 0.10, 1)";
@@ -5108,6 +5122,7 @@ window.switchJackpotTier = (tier) => {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
