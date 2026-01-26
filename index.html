@@ -4809,15 +4809,29 @@ async function finalizeJackpot() {
 
         let cardsHtml = "";
         for(let i=0; i < 100; i++) {
-            let entry;
+            let entry = null;
+
             if(i === WINNER_INDEX) {
                 entry = winner; 
             } else {
-                entry = entries.length > 0 ? entries[Math.floor(Math.random() * entries.length)] : {avatar:'', color:'#333'};
+                // Losowanie zapełniaczy tła
+                if (entries && entries.length > 0) {
+                    entry = entries[Math.floor(Math.random() * entries.length)];
+                }
             }
             
+            // --- 🛑 NAPRAWA BŁĘDU (ZABEZPIECZENIE) 🛑 ---
+            // Jeśli entry jest puste (null/undefined), podstawiamy "zaślepkę"
+            if (!entry) {
+                entry = {
+                    avatar: 'https://micc.garmory-cdn.cloud/obrazki/itemy/nas/pyt.gif', // Znak zapytania
+                    color: '#333' 
+                };
+            }
+            // ----------------------------------------------
+
             cardsHtml += `
-                <div class="jp-card" style="width:80px; height:80px; margin:0 2px; flex-shrink:0; border-bottom: 4px solid ${entry.color || '#333'}; background:#222; border:2px solid #444; display:flex; align-items:center; justify-content:center;">
+                <div class="jp-card" style="width:80px; height:80px; margin:0 2px; flex-shrink:0; border-bottom: 4px solid ${entry.color}; background:#222; border:2px solid #444; display:flex; align-items:center; justify-content:center;">
                     <img src="${entry.avatar}" style="width:100%; height:100%; object-fit:cover;" onerror="this.style.display='none'">
                 </div>
             `;
@@ -4840,13 +4854,17 @@ async function finalizeJackpot() {
         setTimeout(async () => {
             strip.classList.add('spun');
             
-            // PRZEKAZUJEMY DANE DALEJ (Tier i Kwota)
-            showWinnerScreen(winner, entries, tier, poolAmount);    
+            // Jeśli winner był null (błąd bazy), to tutaj też musimy to obsłużyć, żeby nie wywaliło ShowWinner
+            if (winner) {
+                showWinnerScreen(winner, entries, tier, poolAmount);    
+            } else {
+                console.error("Błąd krytyczny: Brak zwycięzcy w danych z bazy!");
+                alert("Wystąpił błąd losowania (brak danych zwycięzcy). Gra zostanie zresetowana.");
+            }
             
-            // Reset bazy (robi to zwycięzca lub admin)
-            if (currentUser && (currentUser.uid === winner.uid || currentNick === ADMIN_NICK)) {
+            // Reset bazy
+            if (currentUser && ((winner && currentUser.uid === winner.uid) || currentNick === ADMIN_NICK)) {
                 setTimeout(async () => {
-                    // Używamy tier przekazanego w argumencie, a nie currentTier!
                     const activeConf = TIER_CONFIG[tier];
                     await setDoc(doc(db, activeConf.db, "current"), {
                         status: 'open', entries: [], startTime: null, winner: null, winnerProcessing: false
@@ -5081,6 +5099,7 @@ function showWinnerScreen(winner, entries, tier, poolAmount) {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
