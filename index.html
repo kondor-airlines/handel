@@ -2575,16 +2575,25 @@ window.toggleSpecialFields = () => {
 	// Funkcja ukrywająca cenę przy kupnie skrzynek
     window.toggleChestPrice = () => {
         const action = document.getElementById('chestAction').value;
-        const priceInput = document.getElementById('chestPrice');
-        const container = document.getElementById('chestInputsRow');
+        const totalInput = document.getElementById('chestPrice');
+        const totalContainer = document.getElementById('chestInputsRow');
 
+        // 1. Ukrywamy/Pokazujemy Cenę Główną (za zestaw)
         if (action === 'Kupię') {
-            priceInput.style.display = 'none'; // Ukryj pole ceny
-            container.style.display = 'block'; // Rozciągnij select na całą szerokość
+            totalInput.style.display = 'none';
+            totalContainer.style.display = 'block'; // Rozciągamy select
         } else {
-            priceInput.style.display = 'block'; // Pokaż pole ceny
-            container.style.display = 'grid';   // Wróć do układu dwie kolumny
+            totalInput.style.display = 'block';
+            totalContainer.style.display = 'grid';
         }
+
+        // 2. Ukrywamy/Pokazujemy Ceny Cząstkowe (w każdym wierszu)
+        const rowInputs = document.querySelectorAll('.chest-row-price');
+        rowInputs.forEach(input => {
+            input.style.display = (action === 'Kupię') ? 'none' : 'block';
+            // Opcjonalnie czyścimy wartość przy przełączeniu na Kupię
+            if (action === 'Kupię') input.value = '';
+        });
     };
 	
 	window.addChestRow = () => {
@@ -2596,15 +2605,18 @@ window.toggleSpecialFields = () => {
             optionsHtml += `<option value="${c.name}" data-img="${c.img}">${c.name}</option>`;
         });
 
+        // Sprawdzamy czy ukryć cenę w nowym wierszu
+        const currentAction = document.getElementById('chestAction').value;
+        const priceDisplay = (currentAction === 'Kupię') ? 'none' : 'block';
+
         const div = document.createElement('div');
         div.className = 'chest-row';
         div.id = `row-${rowId}`;
         
-        // Zmieniony HTML wiersza: Select | Ilość | Cena | X
         div.innerHTML = `
             <select class="chest-select" style="flex:3;">${optionsHtml}</select>
             <input type="number" class="chest-qty" placeholder="Ile" min="1" value="1" style="flex:0.8; text-align:center;">
-            <input type="text" class="chest-row-price" placeholder="Cena (np. 10m)" style="flex:1.2; text-align:center;">
+            <input type="text" class="chest-row-price" placeholder="Cena (np. 10m)" style="flex:1.2; text-align:center; display: ${priceDisplay};">
             <button class="remove-chest-btn" onclick="removeChestRow('${rowId}')">✕</button>
         `;
         area.appendChild(div);
@@ -3213,13 +3225,15 @@ window.renderOffers = () => {
             for (let row of rows) {
                 const select = row.querySelector('.chest-select');
                 const qty = row.querySelector('.chest-qty').value;
-                const singlePrice = row.querySelector('.chest-row-price').value.trim(); // Cena za ten konkretny rodzaj
+                const singlePrice = row.querySelector('.chest-row-price').value.trim();
                 
                 if (!select.value || qty < 1) return alert("Uzupełnij nazwy i ilość skrzynek!");
                 
-                // Budujemy opis: "5x Patryk (50m)"
+                // Budujemy opis
                 let rowText = `${qty}x ${select.value.replace('Skrzynia ', '')}`;
-                if (singlePrice) {
+                
+                // Dopisz cenę TYLKO jeśli to sprzedaż i cena została wpisana
+                if (chestAction === 'Sprzedam' && singlePrice) {
                     rowText += ` (${singlePrice})`;
                 }
                 
@@ -4070,6 +4084,7 @@ function startSplitHistory() {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
