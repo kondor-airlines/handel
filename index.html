@@ -3059,18 +3059,20 @@ window.renderOffers = () => {
         let finalName = document.getElementById('itemName').value;
         let finalImg = document.getElementById('itemImg').value;
         let finalSource = sel.value;
-        let finalSourceImg = sel.options[sel.selectedIndex]?.dataset.img || '';
+        // Pobieramy obrazek potwora, ale zaraz go nadpiszemy jeśli to oferta specjalna
+        let finalSourceImg = sel.options[sel.selectedIndex]?.dataset.img || ''; 
         let finalBonding = document.getElementById('itemBonding').value;
 
         // 1. Logika dla "SPRZEDAM"
         if (type === 'sprzedam') {
             const inp = document.getElementById('itemPrice');
-            const pattern = /^\d+(\.\d+)?\s*([kmg]|pln|zł)$/i; // Akceptuje też PLN i ZŁ
+            const pattern = /^\d+(\.\d+)?\s*([kmg]|pln|zł)$/i;
             if (!pattern.test(inp.value.trim())) {
                 return alert("Błędna cena! Wpisz np: 150m, 50k, 20 PLN");
             }
             finalPrice = inp.value.trim().toLowerCase();
             if (!sel.value) return alert("Wybierz potwora z listy!");
+            // Tutaj finalSourceImg zostaje takie jak wybrano (Heros/E2)
         }
 
         // 2. Logika dla "KUPIĘ"
@@ -3100,9 +3102,10 @@ window.renderOffers = () => {
             
             if (!amount) return alert("Podaj ilość złota!");
             
-            finalName = `${action} Złoto`; // Np. "Kupię Złoto"
-            finalPrice = amount;           // Np. "1.5g"
+            finalName = `${action} Złoto`; 
+            finalPrice = amount;           
             finalSource = "Kantor";
+            finalSourceImg = ""; // <--- NAPRAWA: Usuwamy obrazek herosa/potwora
             finalBonding = "bound";
         }
 
@@ -3110,6 +3113,7 @@ window.renderOffers = () => {
         else if (type === 'exp') {
             finalPrice = "Do dogadania";
             finalSource = "Usługa";
+            finalSourceImg = ""; // <--- NAPRAWA
             finalBonding = "bound";
         }
 
@@ -3117,6 +3121,7 @@ window.renderOffers = () => {
         else if (type === 'other') {
             finalPrice = "Inne";
             finalSource = "Ogłoszenie";
+            finalSourceImg = ""; // <--- NAPRAWA
             finalBonding = "bound";
         }
 
@@ -3136,12 +3141,9 @@ window.renderOffers = () => {
             }
             finalName = "Zestaw: " + chestSummary.join(', ');
             finalImg = imagesArray.join('|');
-            // Przy skrzynkach cena może być dowolna, ale skoro user nie chce ceny przy wymianach, 
-            // tu możemy zostawić "Sprzedam" input widoczny lub ustawić stałą. 
-            // W obecnym kodzie toggleSpecialFields ukrywa input ceny dla skrzynek? 
-            // Jeśli tak, dajmy:
             finalPrice = "Zestaw"; 
             finalSource = "Skrzynki Herosów";
+            finalSourceImg = ""; // <--- NAPRAWA
             finalBonding = "bound";
         }
 
@@ -3155,7 +3157,7 @@ window.renderOffers = () => {
             name: finalName,
             price: finalPrice, 
             source: finalSource, 
-            sourceImg: finalSourceImg,
+            sourceImg: finalSourceImg, // Teraz będzie puste dla złota
             desc: document.getElementById('itemDesc').value,
             img: finalImg,
             date: new Date().toISOString(), 
@@ -3168,7 +3170,10 @@ window.renderOffers = () => {
         // Reset
         document.getElementById('addOfferPanel').style.display = 'none';
         document.getElementById('toggleAddBtn').innerText = '+ WYSTAW ARTEFAKT';
-        window.toggleSpecialFields(); // Reset widoku
+        
+        // Resetujemy formularz do stanu początkowego
+        document.getElementById('offerType').value = 'sprzedam';
+        window.toggleSpecialFields(); 
     };
     
     window.reserveOffer = async (id) => { if(!currentNick) return alert("Zaloguj się!"); await updateDoc(doc(db, "oferty", id), { reservedBy: currentNick }); window.playSound('click'); };
@@ -3954,6 +3959,7 @@ function startSplitHistory() {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
