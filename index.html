@@ -721,25 +721,54 @@
     </button>
 
     <div id="addOfferPanel" class="panel" style="display: none;">
-        <h3 style="margin-top:0; color:var(--gold); font-family:'MedievalSharp';">Wystaw Artefakt</h3>
+        <h3 style="margin-top:0; color:var(--gold); font-family:'MedievalSharp';">Wystaw Ogłoszenie</h3>
         <div class="form-grid">
-		<select id="offerType" onchange="toggleSpecialFields()">
-                <option value="sprzedam">Sprzedam</option>
-                <option value="kupie">Kupię</option>
-                <option value="zamienie">Zamienię</option>
-                <option value="gold">Sprzedaż Złota</option>
-				<option value="chest">Sprzedaż Skrzynek</option>
-                <option value="exp">Pomoc / Expienie</option>
-                <option value="other">Inne</option>
+            <select id="offerType" onchange="toggleSpecialFields()" class="full-width" style="font-weight:bold; color:var(--gold);">
+                <option value="sprzedam">🗡️ Sprzedam Przedmiot</option>
+                <option value="kupie">💰 Kupię Przedmiot</option>
+                <option value="zamienie">🔄 Zamienię się</option>
+                <option value="gold">⚖️ Handel Złotem</option>
+                <option value="chest">📦 Sprzedaż Skrzynek</option>
+                <option value="exp">🛡️ Pomoc / Expienie</option>
+                <option value="other">🎲 Inne</option>
             </select>
-            <input type="text" id="itemPrice" placeholder="Cena (wymagane m, g lub k, np. 150m)" maxlength="10" 
-                   oninput="this.style.borderColor = /^\d+(\.\d+)?[kmg]$/i.test(this.value.trim().replace(',', '.')) ? 'var(--green)' : 'var(--red)'">
 
-			<div id="chestBundleContainer" class="full-width" style="display:none; background:rgba(0,0,0,0.3); padding:10px; border-radius:8px; border:1px dashed #555;">
+            <div id="field-sell" class="full-width">
+                <input type="text" id="itemPrice" placeholder="Cena (np. 150m, 50k, 20 PLN, 100 ZŁ)" 
+                       oninput="validatePriceInput(this)">
+                <div style="font-size:0.7em; color:#666; margin-top:3px;">*Dozwolone waluty: k, m, g, PLN, ZŁ</div>
+            </div>
+
+            <div id="field-buy" class="full-width" style="display:none;">
+                <label style="color:#aaa; font-size:0.8em;">Czym płacisz?</label>
+                <select id="buyCurrency">
+                    <option value="Złoto (m/g)">💰 Tylko Złoto (w grze)</option>
+                    <option value="PLN / ZŁ">💸 Gotówka (PLN / BLIK)</option>
+                    <option value="Złoto lub PLN">⚖️ Złoto lub PLN (do dogadania)</option>
+                </select>
+            </div>
+
+            <div id="field-trade" class="full-width" style="display:none; background:rgba(0,0,0,0.3); padding:10px; border-radius:6px; border:1px dashed #444;">
+                <label style="display:flex; align-items:center; gap:10px; cursor:pointer; color:#aaa;">
+                    <input type="checkbox" id="tradeSurchargeCheck" onchange="toggleSurchargeInput()">
+                    <span>Mogę dopłacić do wymiany?</span>
+                </label>
+                <input type="text" id="tradeSurchargeInput" placeholder="Ile dopłacisz? (np. 100m, 20 PLN)" style="display:none; margin-top:10px; border-color:var(--orange);">
+            </div>
+
+            <div id="field-gold" class="full-width" style="display:none; gap:10px; grid-template-columns: 1fr 1fr;">
+                <select id="goldAction" style="background:#222; color:var(--gold);">
+                    <option value="Sprzedam">Sprzedam Złoto</option>
+                    <option value="Kupię">Kupię Złoto</option>
+                </select>
+                <input type="text" id="goldAmount" placeholder="Ilość (np. 1.5g, 500m)">
+            </div>
+
+            <div id="chestBundleContainer" class="full-width" style="display:none; background:rgba(0,0,0,0.3); padding:10px; border-radius:8px; border:1px dashed #555;">
                 <div id="chestRowsArea"></div>
                 <button onclick="addChestRow()" class="small-btn" style="width:100%; margin-top:5px; border-style:dashed;">+ Dodaj kolejny rodzaj skrzyni</button>
             </div>
-			
+            
             <select id="sourceCategory" class="full-width" onchange="updateSourceList()">
                 <option value="">-- Wybierz Kategorię --</option>
                 <option value="herosi">Herosi</option>
@@ -750,12 +779,11 @@
             <select id="itemSource" class="full-width" onchange="updateLootList()"><option value="">-- Przeciwnik --</option></select>
             <input type="text" id="itemSearch" class="full-width search-box" placeholder="🔍 Szukaj przedmiotu..." oninput="updateLootList()" style="display:none;">
             <select id="itemSelect" class="full-width" onchange="fillItemDetails()"><option value="">-- Przedmiot --</option></select>
-			<select id="itemBonding" class="full-width" style="border-color: #444;">
+            <select id="itemBonding" class="full-width" style="border-color: #444;">
                 <option value="bound">🔒 Związany (Standard)</option>
                 <option value="unbound">🔓 Odwiązany (Unbound)</option>
             </select>
 
-			
             <div id="livePreview" class="preview-box" style="display: none;">
                 <div class="preview-content">
                     <span class="preview-label">Podgląd</span>
@@ -769,19 +797,19 @@
             <div style="display:flex; gap:10px; align-items:center;" class="full-width">
                 <input type="text" id="itemName" placeholder="Nazwa przedmiotu" maxlength="50">
                 <button class="helper-btn" onclick="searchMargo()" title="Sprawdź statystyki przedmiotu">
-    			<span>STATYSTYKI</span> 
-    			<span class="helper-btn-icon">🔍</span>
-				</button>
+                <span>STATYSTYKI</span> 
+                <span class="helper-btn-icon">🔍</span>
+                </button>
             </div>
             <div class="full-width" style="display:flex; gap:10px; align-items:center;">
                 <input type="text" id="itemImg" placeholder="Link do obrazka (lub wybierz plik obok ➡)" oninput="manualImgPreview()" style="flex-grow:1;">
-                
                 <label class="small-btn" style="width:auto; padding:0 15px; cursor:pointer; height:42px; display:flex; align-items:center; justify-content:center; background:#222; border:1px solid #444;" title="Wgraj z komputera">
                     📂
                     <input type="file" id="fileUpload" accept="image/*" style="display:none" onchange="window.handleFileUpload(this)">
                 </label>
             </div>
             <textarea id="itemDesc" placeholder="Dodatkowy opis..." class="full-width" maxlength="150" rows="2"></textarea>
+            
             <button class="action-btn full-width" onclick="addOffer()">Opublikuj na Targu</button>
         </div>
     </div>
@@ -2243,110 +2271,86 @@ const lootTable = {
     };
 
 window.toggleSpecialFields = () => {
-    const typeEl = document.getElementById('offerType');
-    if (!typeEl) return;
-    
-    const type = typeEl.value;
-    const isSpecial = ['gold', 'exp', 'other'].includes(type);
-    const isChest = type === 'chest';
-    const displayStyle = (isSpecial || isChest) ? 'none' : 'block';
-    
-    // Elementy do manipulacji
-    const sourceCategory = document.getElementById('sourceCategory');
-    const itemSource = document.getElementById('itemSource');
-    const itemSelect = document.getElementById('itemSelect');
-    const sourceSearch = document.getElementById('sourceSearch');
-    const itemSearch = document.getElementById('itemSearch');
-    const bondingSelect = document.getElementById('itemBonding');
-    const chestDiv = document.getElementById('chestBundleContainer');
-    const standardName = document.getElementById('itemName');
-    const standardImg = document.getElementById('itemImg');
-    const preview = document.getElementById('livePreview');
+        const typeEl = document.getElementById('offerType');
+        if (!typeEl) return;
+        const type = typeEl.value;
 
-    // Resetowanie ukrytych wyborów przy zmianie trybu
-    if (isSpecial || isChest) {
-        sourceCategory.value = ""; 
-        itemSource.innerHTML = '<option value="">-- Przeciwnik --</option>';
-        itemSource.value = "";
-        itemSelect.innerHTML = '<option value="">-- Przedmiot --</option>';
-        itemSelect.value = "";
-        sourceSearch.value = "";
-        itemSearch.value = "";
-    }
+        // Resetowanie widoczności wszystkich sekcji specjalnych
+        document.getElementById('field-sell').style.display = 'none';
+        document.getElementById('field-buy').style.display = 'none';
+        document.getElementById('field-trade').style.display = 'none';
+        document.getElementById('field-gold').style.display = 'none';
+        document.getElementById('chestBundleContainer').style.display = 'none';
 
-    // Widoczność pól standardowych
-    sourceCategory.style.display = displayStyle;
-    itemSource.style.display = displayStyle;
-    itemSelect.style.display = displayStyle;
-    sourceSearch.style.display = displayStyle;
-    itemSearch.style.display = displayStyle;
-    if (bondingSelect) bondingSelect.style.display = (isSpecial || isChest) ? 'none' : 'block';
-
-    if (isChest) {
-        if(chestDiv) chestDiv.style.display = 'block';
-        standardName.placeholder = "Nazwa wygeneruje się sama...";
-        standardName.disabled = true;
-        standardName.value = ""; 
-        standardImg.style.display = 'none';
-        standardImg.value = "";  
-        preview.style.display = 'none';
-        if(document.getElementById('chestRowsArea')?.innerHTML === "") window.addChestRow();
-    } 
-    else if (type === 'gold') {
-        if(chestDiv) chestDiv.style.display = 'none';
-        standardName.disabled = false;
-        standardName.value = "Sprzedaż Złota";
-        standardImg.style.display = 'block';
-        standardImg.value = "https://micc.garmory-cdn.cloud/obrazki/itemy/zlo/zloto8.gif";
-        
-        preview.style.display = 'flex';
-        document.getElementById('previewIcon').src = standardImg.value;
-        document.getElementById('previewName').innerText = "Sprzedaż Złota";
-    } 
-    else if (type === 'exp') {
-        // --- LOGIKA DLA EXP / POMOC (Tunia) ---
-        if(chestDiv) chestDiv.style.display = 'none';
-        standardName.disabled = false;
-        standardName.value = "Pomoc / Expienie";
-        standardImg.style.display = 'block';
-        standardImg.value = "https://micc.garmory-cdn.cloud/obrazki/npc/kob/tunia.gif";
-        
-        preview.style.display = 'flex';
-        document.getElementById('previewIcon').src = standardImg.value;
-        document.getElementById('previewName').innerText = "Pomoc / Expienie";
-    }
-    else if (type === 'other') {
-        if(chestDiv) chestDiv.style.display = 'none';
-        standardName.disabled = false;
-        standardName.value = "Inne";
-        standardImg.style.display = 'block';
-        standardImg.value = "https://micc.garmory-cdn.cloud/obrazki/itemy/neu/pyl-sakryfikacji.gif";
-        
-        preview.style.display = 'flex';
-        document.getElementById('previewIcon').src = standardImg.value;
-        document.getElementById('previewName').innerText = "Inne";
-    }
-    else {
-        // Powrót do zwykłego przedmiotu
-        if(chestDiv) chestDiv.style.display = 'none';
-        standardName.disabled = false;
-        standardName.placeholder = "Nazwa przedmiotu";
-        standardImg.style.display = 'block';
-        
-        // Rozszerzone czyszczenie autouzupełniania
-        const specialNames = ["Sprzedaż Złota", "Inne", "Pomoc / Expienie"];
-        if(specialNames.includes(standardName.value)) {
-            standardName.value = "";
+        // Logika pokazywania odpowiednich pól
+        if (type === 'sprzedam') {
+            document.getElementById('field-sell').style.display = 'block';
+        } 
+        else if (type === 'kupie') {
+            document.getElementById('field-buy').style.display = 'block';
+        }
+        else if (type === 'zamienie') {
+            document.getElementById('field-trade').style.display = 'block';
+        }
+        else if (type === 'gold') {
+            const goldField = document.getElementById('field-gold');
+            goldField.style.display = 'grid'; 
+        }
+        else if (type === 'chest') {
+            document.getElementById('chestBundleContainer').style.display = 'block';
+            if(document.getElementById('chestRowsArea').innerHTML === "") window.addChestRow();
         }
 
-        const specialImgs = ["zloto8.gif", "pyl-sakryfikacji.gif", "tunia.gif"];
-        if(specialImgs.some(img => standardImg.value.includes(img))) {
-            standardImg.value = "";
+        // --- Obsługa pól standardowych (Kategoria, Nazwa, Obrazek) ---
+        // Ukrywamy wybór potwora dla usług i złota
+        const hideSource = ['gold', 'exp', 'other', 'chest'].includes(type);
+        const displayStyle = hideSource ? 'none' : 'block';
+
+        ['sourceCategory', 'itemSource', 'itemSelect', 'sourceSearch', 'itemSearch', 'itemBonding'].forEach(id => {
+            const el = document.getElementById(id);
+            if(el) el.style.display = displayStyle;
+        });
+
+        // Autouzupełnianie ikon i nazw
+        const nameInput = document.getElementById('itemName');
+        const imgInput = document.getElementById('itemImg');
+        const preview = document.getElementById('livePreview');
+
+        const specialMap = {
+            gold: { name: "Złoto", img: "https://micc.garmory-cdn.cloud/obrazki/itemy/zlo/zloto8.gif" },
+            exp:  { name: "Pomoc / Expienie", img: "https://micc.garmory-cdn.cloud/obrazki/npc/kob/tunia.gif" },
+            other: { name: "Inne", img: "https://micc.garmory-cdn.cloud/obrazki/itemy/neu/pyl-sakryfikacji.gif" }
+        };
+
+        if (type === 'chest') {
+            nameInput.disabled = true;
+            nameInput.placeholder = "Zestaw skrzyń...";
+            nameInput.value = "";
+            imgInput.style.display = 'none';
+            preview.style.display = 'none';
+        } 
+        else if (specialMap[type]) {
+            nameInput.disabled = false;
+            // Dla złota nazwa będzie generowana dynamicznie przy wysyłce
+            nameInput.value = (type === 'gold') ? "" : specialMap[type].name; 
+            
+            imgInput.style.display = 'block';
+            imgInput.value = specialMap[type].img;
+            preview.style.display = 'flex';
+            document.getElementById('previewIcon').src = specialMap[type].img;
+            document.getElementById('previewName').innerText = nameInput.value || "Handel Złotem";
+        } 
+        else {
+            nameInput.disabled = false;
+            nameInput.placeholder = "Nazwa przedmiotu";
+            // Czyścimy, jeśli wcześniej było coś automatycznego
+            const autoNames = Object.values(specialMap).map(m => m.name);
+            if(autoNames.includes(nameInput.value)) nameInput.value = "";
+            
+            imgInput.style.display = 'block';
+            preview.style.display = 'none';
         }
-        
-        preview.style.display = 'none';
-    }
-};
+    };
 
 	window.addChestRow = () => {
         const area = document.getElementById('chestRowsArea');
@@ -2856,77 +2860,125 @@ window.renderOffers = () => {
         }
         window.renderOffers();
     });
+
+	// Walidacja ceny (teraz obsługuje też PLN i ZŁ)
+    window.validatePriceInput = (input) => {
+        // Akceptuje: liczby + k/m/g LUB liczby + pln/zł (wielkość liter dowolna)
+        const pattern = /^\d+(\.\d+)?\s*([kmg]|pln|zł)$/i;
+        input.style.borderColor = pattern.test(input.value.trim()) ? 'var(--green)' : 'var(--red)';
+    };
+
+    // Pokazywanie pola dopłaty w "Zamienię"
+    window.toggleSurchargeInput = () => {
+        const chk = document.getElementById('tradeSurchargeCheck');
+        const inp = document.getElementById('tradeSurchargeInput');
+        inp.style.display = chk.checked ? 'block' : 'none';
+        if (!chk.checked) inp.value = "";
+    };
+	
     window.addOffer = async () => {
         const type = document.getElementById('offerType').value;
-        const isChest = type === 'chest';
-        const isSpecial = ['gold', 'exp', 'other'].includes(type);
-        
         const sel = document.getElementById('itemSource');
-        const priceInput = document.getElementById('itemPrice');
-        const priceVal = priceInput.value.trim().replace(',', '.'); 
         
-        // Walidacja ceny
-        const pricePattern = /^\d+(\.\d+)?[kmg]$/i;
-        if (!priceVal) { return window.alert("Błąd: Podaj cenę!"); }
-        if (!pricePattern.test(priceVal)) { return window.alert("Błąd formatu! Cena MUSI kończyć się literą k, m lub g (np. 500k, 150m, 1.2g)."); }
-
-        // Zmienne, które zaraz ustalimy w zależności od typu
+        let finalPrice = "";
         let finalName = document.getElementById('itemName').value;
         let finalImg = document.getElementById('itemImg').value;
         let finalSource = sel.value;
         let finalSourceImg = sel.options[sel.selectedIndex]?.dataset.img || '';
+        let finalBonding = document.getElementById('itemBonding').value;
 
-        // --- LOGIKA DLA SKRZYNEK (Zestawy) ---
-        if (isChest) {
-            const rows = document.querySelectorAll('.chest-row');
-            if (rows.length === 0) return window.alert("Dodaj przynajmniej jedną skrzynkę!");
+        // 1. Logika dla "SPRZEDAM"
+        if (type === 'sprzedam') {
+            const inp = document.getElementById('itemPrice');
+            const pattern = /^\d+(\.\d+)?\s*([kmg]|pln|zł)$/i; // Akceptuje też PLN i ZŁ
+            if (!pattern.test(inp.value.trim())) {
+                return alert("Błędna cena! Wpisz np: 150m, 50k, 20 PLN");
+            }
+            finalPrice = inp.value.trim().toLowerCase();
+            if (!sel.value) return alert("Wybierz potwora z listy!");
+        }
+
+        // 2. Logika dla "KUPIĘ"
+        else if (type === 'kupie') {
+            const currency = document.getElementById('buyCurrency').value;
+            finalPrice = `Płacę: ${currency}`;
+            if (!sel.value) return alert("Wybierz co chcesz kupić!");
+        }
+
+        // 3. Logika dla "ZAMIENIĘ"
+        else if (type === 'zamienie') {
+            const surcharge = document.getElementById('tradeSurchargeInput').value.trim();
+            const hasSurcharge = document.getElementById('tradeSurchargeCheck').checked;
             
+            if (hasSurcharge && surcharge) {
+                finalPrice = `Dopłata: ${surcharge}`;
+            } else {
+                finalPrice = "Wymiana";
+            }
+            if (!sel.value) return alert("Wybierz przedmiot!");
+        }
+
+        // 4. Logika dla "HANDEL ZŁOTEM"
+        else if (type === 'gold') {
+            const action = document.getElementById('goldAction').value;
+            const amount = document.getElementById('goldAmount').value.trim();
+            
+            if (!amount) return alert("Podaj ilość złota!");
+            
+            finalName = `${action} Złoto`; // Np. "Kupię Złoto"
+            finalPrice = amount;           // Np. "1.5g"
+            finalSource = "Kantor";
+            finalBonding = "bound";
+        }
+
+        // 5. Logika dla "POMOC / EXPIENIE"
+        else if (type === 'exp') {
+            finalPrice = "Do dogadania";
+            finalSource = "Usługa";
+            finalBonding = "bound";
+        }
+
+        // 6. Logika dla "INNE"
+        else if (type === 'other') {
+            finalPrice = "Inne";
+            finalSource = "Ogłoszenie";
+            finalBonding = "bound";
+        }
+
+        // 7. Logika dla "SKRZYNKI"
+        else if (type === 'chest') {
+            const rows = document.querySelectorAll('.chest-row');
+            if (rows.length === 0) return alert("Dodaj skrzynki!");
             let chestSummary = [];
             let imagesArray = [];
-            
             for (let row of rows) {
                 const select = row.querySelector('.chest-select');
                 const qty = row.querySelector('.chest-qty').value;
-                const name = select.value;
-                
-                if (!name || qty < 1) return window.alert("Uzupełnij wszystkie pola skrzynek!");
-                
-                // Nazwa do opisu
-                chestSummary.push(`${qty}x ${name.replace('Skrzynia ', '')}`);
-                
-                // Obrazek do listy
-                const imgUrl = select.options[select.selectedIndex].dataset.img;
-                if(imgUrl) imagesArray.push(imgUrl); 
+                if (!select.value || qty < 1) return alert("Uzupełnij skrzynki!");
+                chestSummary.push(`${qty}x ${select.value.replace('Skrzynia ', '')}`);
+                const u = select.options[select.selectedIndex].dataset.img;
+                if(u) imagesArray.push(u);
             }
-            
             finalName = "Zestaw: " + chestSummary.join(', ');
-            finalImg = imagesArray.join('|'); // Łączymy linki znakiem "|"
-            
+            finalImg = imagesArray.join('|');
+            // Przy skrzynkach cena może być dowolna, ale skoro user nie chce ceny przy wymianach, 
+            // tu możemy zostawić "Sprzedam" input widoczny lub ustawić stałą. 
+            // W obecnym kodzie toggleSpecialFields ukrywa input ceny dla skrzynek? 
+            // Jeśli tak, dajmy:
+            finalPrice = "Zestaw"; 
             finalSource = "Skrzynki Herosów";
-        } 
-        // --- LOGIKA DLA ZŁOTA / EXP / INNE ---
-        else if (isSpecial) {
-            finalName = document.getElementById('itemName').value || (type === 'gold' ? 'Złoto' : 'Usługa');
-            finalSource = type === 'gold' ? 'Kantor' : 'Ogłoszenie';
-            // finalImg bierzemy z inputa (link lub upload)
-        } 
-        // --- LOGIKA DLA ZWYKŁYCH PRZEDMIOTÓW ---
-        else {
-            if (!sel.value) return window.alert("Błąd: Wybierz przeciwnika z listy!");
-            // finalImg bierzemy z inputa (link lub upload)
+            finalBonding = "bound";
         }
 
-        // --- ZAPIS DO BAZY DANYCH (To jest ten fragment, o który pytałeś) ---
+        // Wysyłka do Firebase
         await addDoc(collection(db, "oferty"), {
             userId: currentUser.uid, 
             nick: currentNick, 
             avatar: currentUser.photoURL,
             type: type,
-            // --- NOWOŚĆ: Zapisujemy status wiązania ---
-            bonding: (isSpecial || isChest) ? 'bound' : document.getElementById('itemBonding').value, 
-            // ------------------------------------------
+            bonding: finalBonding,
             name: finalName,
-            price: priceVal.toLowerCase(), 
+            price: finalPrice, 
             source: finalSource, 
             sourceImg: finalSourceImg,
             desc: document.getElementById('itemDesc').value,
@@ -2936,23 +2988,12 @@ window.renderOffers = () => {
         });
         
         window.playSound('coin');
-        window.alert("Dodano ofertę!");
+        window.alert("Dodano ofertę! ✅");
         
-        // Reset formularza po dodaniu
-        document.getElementById('itemPrice').value = "";
-        document.getElementById('itemName').value = "";
-        document.getElementById('itemImg').value = "";
-        document.getElementById('itemDesc').value = "";
-        
-        // Czyścimy sekcję skrzynek
-        const chestArea = document.getElementById('chestRowsArea');
-        if(chestArea) chestArea.innerHTML = "";
-        
-        document.getElementById('livePreview').style.display = 'none';
-        document.getElementById('offerType').value = 'sprzedam';
-        
-        // Reset widoku pól
-        window.toggleSpecialFields();
+        // Reset
+        document.getElementById('addOfferPanel').style.display = 'none';
+        document.getElementById('toggleAddBtn').innerText = '+ WYSTAW ARTEFAKT';
+        window.toggleSpecialFields(); // Reset widoku
     };
     
     window.reserveOffer = async (id) => { if(!currentNick) return alert("Zaloguj się!"); await updateDoc(doc(db, "oferty", id), { reservedBy: currentNick }); window.playSound('click'); };
@@ -3732,6 +3773,7 @@ function startSplitHistory() {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
