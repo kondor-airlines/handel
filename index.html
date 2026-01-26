@@ -3999,49 +3999,44 @@ function startSplitHistory() {
 
         if (isNaN(lvl) || lvl < 1) return alert("Wpisz poprawny poziom!");
 
-        // Współczynniki e (punkty) i n (złoto) zgodnie z teorią
         const e_vals = { common: 1, unique: 10, heroic: 100, legendary: 1000, improved: 0 };
         const n_vals = { common: 1, unique: 10, heroic: 30, improved: 40, legendary: 60 };
-        
-        // Procenty kosztów na każdy "schodek" ulepszenia
-        // +1=100%, +2=110%, +3=130%, +4=160%, +5=200%
         const steps_percents = [0, 1.0, 1.1, 1.3, 1.6, 2.0];
 
         let e = e_vals[rarity];
         let n = n_vals[rarity];
 
-        // 1. Obliczanie BAZOWEJ wartości PU (dla 100%)
+        // 1. Obliczanie BAZOWEJ wartości PU
         let base_pu = 0;
         if (rarity === 'improved') {
-            // Wzór dla ulepszonych: (150*lvl+27000)
             base_pu = 150 * lvl + 27000;
         } else {
-            // Wzór standardowy: (180+lvl)*e
             base_pu = (180 + lvl) * e;
         }
 
-        // 2. Sumowanie procentów (od +1 do wybranego celu)
-        // Np. dla celu +3 sumujemy: 1.0 + 1.1 + 1.3 = 3.4 (340%)
+        // 2. Sumowanie procentów
         let total_percent = 0;
         for (let i = 1; i <= target; i++) {
             total_percent += steps_percents[i];
         }
 
-        // 3. Finalne obliczenia
-        let total_pu = Math.floor(base_pu * total_percent);
-        let total_gold = (10 * lvl + 1300) * lvl * n;
+        // 3. Finalne obliczenia z POPRAWKĄ (zaokrąglanie do 10 w dół)
+        let raw_pu = Math.floor(base_pu * total_percent);
         
-        // Esencja: (lvl/10+10)*300% (zaokrąglanie do najbliższej)
+        // Magiczna linijka naprawiająca błąd (398 -> 390):
+        let total_pu = Math.floor(raw_pu / 10) * 10; 
+
+        // Złoto i Esencja bez zmian
+        let total_gold = (10 * lvl + 1300) * lvl * n;
         let total_essence = Math.round((lvl / 10 + 10) * 3);
 
-        // --- Wyświetlanie wyników ---
         resBox.style.display = 'block';
         resBox.innerHTML = `
             <div style="margin-bottom:8px; border-bottom:1px solid #333; padding-bottom:5px;">
                 <span style="color:var(--gold);">Cel:</span> <b>Przedmiot ${lvl}lvl (${rarity}) od +0 do +${target}</b>
             </div>
             <div style="display:flex; flex-direction:column; gap:4px;">
-                <span>✨ Wymagane PU: <b style="color:#fff;">${total_pu.toLocaleString()}</b> <small>(${Math.round(total_percent*100)}% bazy)</small></span>
+                <span>✨ Wymagane PU: <b style="color:#fff;">${total_pu.toLocaleString()}</b></span>
                 <span>💰 Wartość przedmiotu: <b style="color:var(--green);">${s_formatGold(total_gold)}</b></span>
                 <span>🔮 Wartość esencji: <b style="color:#cca3ff;">${total_essence} szt.</b></span>
             </div>
@@ -4062,6 +4057,7 @@ function startSplitHistory() {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
