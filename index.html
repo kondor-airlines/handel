@@ -4855,12 +4855,9 @@ async function finalizeJackpot() {
                 }
             });
         }
-        
-        console.log("Zwycięzca:", winner.nick);
-        console.log("Lista dłużników:", debts);
         // -------------------------
 
-        // Renderowanie listy
+        // Renderowanie listy dla "Tu i Teraz"
         let debtorsListHtml = "";
         const sortedDebtors = Object.keys(debts).sort((a,b) => debts[b] - debts[a]);
         
@@ -4868,8 +4865,7 @@ async function finalizeJackpot() {
             debtorsListHtml += `<div style="margin-top:15px; border-top:1px dashed #555; padding-top:10px;">`;
             debtorsListHtml += `<div style="color:#aaa; font-size:0.8em; margin-bottom:5px; text-transform:uppercase;">Do odebrania od:</div>`;
             
-            // --- TUTAJ JEST ZMIANA (SCROLL) ---
-            // Dodajemy kontener o maksymalnej wysokości 150px z suwakiem
+            // Scroll dla długiej listy
             debtorsListHtml += `<div style="max-height: 150px; overflow-y: auto; padding-right: 5px;">`; 
             
             sortedDebtors.forEach(nick => {
@@ -4880,12 +4876,10 @@ async function finalizeJackpot() {
                     </div>`;
             });
             
-            debtorsListHtml += `</div>`; // Zamykamy scrolla
-            debtorsListHtml += `</div>`; // Zamykamy kontener główny
+            debtorsListHtml += `</div>`; 
+            debtorsListHtml += `</div>`; 
         } else {
-            debtorsListHtml += `<div style="color:#888; font-size:0.8em; margin-top:15px; font-style:italic; border-top:1px dashed #444; padding-top:5px;">
-                (W puli były tylko Twoje wpłaty)
-            </div>`;
+            debtorsListHtml = `<div style="color:#666; font-size:0.8em; margin-top:10px;">(Wygrałeś własne wpłaty)</div>`;
         }
 
         document.getElementById('winAmount').innerHTML = `
@@ -4895,6 +4889,8 @@ async function finalizeJackpot() {
         
         // Zapis do bazy (Zwycięzca)
         if(currentUser && currentUser.uid === winner.uid) { 
+             
+             // 1. Czat
              addDoc(collection(db, "chat"), {
                 nick: "System Jackpot",
                 text: `🎰 ${winner.nick} rozbił bank! Zgarnia: ${totalStr}!`,
@@ -4902,34 +4898,25 @@ async function finalizeJackpot() {
                 date: new Date().toISOString()
             });
 
+            // 2. Historia (POPRAWIONE: Zapisujemy tylko raz do właściwego pokoju)
+            const conf = TIER_CONFIG[currentTier]; 
             const debtsToSave = debts || {}; 
 
-            addDoc(collection(db, "jackpot_history"), {
+            addDoc(collection(db, conf.hist), {
                 nick: winner.nick,
                 amount: totalStr,
                 avatar: winner.avatar,
                 date: new Date().toISOString(),
                 debts: debtsToSave
             });
-
-		const conf = TIER_CONFIG[currentTier]; // Pobierz config żeby wiedzieć gdzie zapisać
-        const debtsToSave = debts || {}; 
-
-        // Zapisz do odpowiedniej kolekcji historii
-        addDoc(collection(db, conf.hist), {
-            nick: winner.nick,
-            amount: totalStr,
-            avatar: winner.avatar,
-            date: new Date().toISOString(),
-            debts: debtsToSave
-        });
-        
-        // Zresetuj grę w odpowiedniej kolekcji
-        setTimeout(async () => {
-             await setDoc(doc(db, conf.db, "current"), {
-                status: 'open', entries: [], startTime: null, winner: null, winnerProcessing: false
-            });
-        }, 10000);
+            
+            // 3. Reset gry (po 10 sekundach)
+            setTimeout(async () => {
+                 await setDoc(doc(db, conf.db, "current"), {
+                    status: 'open', entries: [], startTime: null, winner: null, winnerProcessing: false
+                });
+            }, 10000);
+        }
     }
 			
         }
@@ -5068,6 +5055,7 @@ async function finalizeJackpot() {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
