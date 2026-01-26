@@ -4807,60 +4807,72 @@ async function finalizeJackpot() {
         const strip = document.getElementById('jackpotStrip');
         const rail = document.querySelector('.jackpot-rail');
         
-        // Tylko jeśli jesteśmy w dobrej zakładce, pokazujemy animację
-        if (currentTier === tier) {
-            strip.classList.add('spinning');
-            
-            const CARD_WIDTH = 80; 
-            const MARGIN = 4;      
-            const FULL_CARD = CARD_WIDTH + MARGIN; 
-            const WINNER_INDEX = 75; 
-            
-            strip.innerHTML = "";
-            strip.style.transition = "none";
-            strip.style.transform = "translateX(0px)";
+        // 1. Jeśli użytkownik zdążył zmienić zakładkę ZANIM funkcja ruszyła - przerwij rysowanie
+        if (currentTier !== tier) return;
 
-            let cardsHtml = "";
-            for(let i=0; i < 100; i++) {
-                let entry = null;
-                if(i === WINNER_INDEX) {
-                    entry = winner; 
-                } else {
-                    if (entries && entries.length > 0) entry = entries[Math.floor(Math.random() * entries.length)];
-                }
-                
-                if (!entry) entry = { avatar: 'https://micc.garmory-cdn.cloud/obrazki/itemy/nas/pyt.gif', color: '#333' };
+        strip.classList.add('spinning');
+        
+        const CARD_WIDTH = 80; 
+        const MARGIN = 4;      
+        const FULL_CARD = CARD_WIDTH + MARGIN; 
+        const WINNER_INDEX = 75; 
+        
+        strip.innerHTML = "";
+        strip.style.transition = "none";
+        strip.style.transform = "translateX(0px)";
 
-                cardsHtml += `
-                    <div class="jp-card" style="width:80px; height:80px; margin:0 2px; flex-shrink:0; border-bottom: 4px solid ${entry.color}; background:#222; border:2px solid #444; display:flex; align-items:center; justify-content:center;">
-                        <img src="${entry.avatar}" style="width:100%; height:100%; object-fit:cover;" onerror="this.style.display='none'">
-                    </div>
-                `;
+        let cardsHtml = "";
+        for(let i=0; i < 100; i++) {
+            let entry = null;
+            if(i === WINNER_INDEX) {
+                entry = winner; 
+            } else {
+                if (entries && entries.length > 0) entry = entries[Math.floor(Math.random() * entries.length)];
             }
-            strip.innerHTML = cardsHtml;
-            document.getElementById('jackpotControls').style.display = 'none';
+            
+            if (!entry) entry = { avatar: 'https://micc.garmory-cdn.cloud/obrazki/itemy/nas/pyt.gif', color: '#333' };
 
-            // Start animacji
-            setTimeout(() => {
-                const containerWidth = rail.offsetWidth;
-                const centerPosition = - (WINNER_INDEX * FULL_CARD) + (containerWidth / 2) - (FULL_CARD / 2);
-                const jitter = Math.floor(Math.random() * 50) - 25; 
-                const finalPosition = centerPosition + jitter;
-                strip.style.transition = "transform 8s cubic-bezier(0.15, 0, 0.10, 1)"; 
-                strip.style.transform = `translateX(${finalPosition}px)`;
-                window.playSound('coin'); 
-            }, 100);
+            cardsHtml += `
+                <div class="jp-card" style="width:80px; height:80px; margin:0 2px; flex-shrink:0; border-bottom: 4px solid ${entry.color}; background:#222; border:2px solid #444; display:flex; align-items:center; justify-content:center;">
+                    <img src="${entry.avatar}" style="width:100%; height:100%; object-fit:cover;" onerror="this.style.display='none'">
+                </div>
+            `;
         }
+        strip.innerHTML = cardsHtml;
+        document.getElementById('jackpotControls').style.display = 'none';
 
-        // Finał po 8.5s (niezależnie od tego czy patrzymy na zakładkę)
+        // Start animacji (100ms opóźnienia)
+        setTimeout(() => {
+            // --- 🛑 POPRAWKA: Blokada animacji po zmianie karty 🛑 ---
+            // Jeśli w ciągu tych 100ms zmieniłeś zakładkę, nie uruchamiaj przesuwu!
+            if (currentTier !== tier) {
+                strip.innerHTML = ""; // Czyścimy pasek, żeby nie wisiał
+                return; 
+            }
+            // ---------------------------------------------------------
+
+            const containerWidth = rail.offsetWidth;
+            const centerPosition = - (WINNER_INDEX * FULL_CARD) + (containerWidth / 2) - (FULL_CARD / 2);
+            const jitter = Math.floor(Math.random() * 50) - 25; 
+            const finalPosition = centerPosition + jitter;
+            
+            strip.style.transition = "transform 8s cubic-bezier(0.15, 0, 0.10, 1)"; 
+            strip.style.transform = `translateX(${finalPosition}px)`;
+            window.playSound('coin'); 
+        }, 100);
+
+        // Finał po 8.5s (niezależnie od tego czy patrzymy na zakładkę - to logika bazy)
         setTimeout(async () => {
-            if (currentTier === tier) strip.classList.add('spun');
+            // UI aktualizujemy TYLKO jeśli nadal tu jesteśmy
+            if (currentTier === tier) {
+                strip.classList.add('spun');
+            }
             
             if (winner) {
+                // To wywoła zapis do bazy (działa w tle)
                 showWinnerScreen(winner, entries, tier, poolAmount);    
             } else {
                 console.error("Błąd: Brak zwycięzcy.");
-                // Auto-fix dla admina
                 if (currentNick === ADMIN_NICK) {
                     const activeConf = TIER_CONFIG[tier];
                     await setDoc(doc(db, activeConf.db, "current"), {
@@ -4869,7 +4881,7 @@ async function finalizeJackpot() {
                 }
             }
             
-            // Reset bazy
+            // Reset bazy (działa w tle)
             if (winner && currentUser && ((currentUser.uid === winner.uid) || currentNick === ADMIN_NICK)) {
                 setTimeout(async () => {
                     const activeConf = TIER_CONFIG[tier];
@@ -5106,6 +5118,7 @@ function showWinnerScreen(winner, entries, tier, poolAmount) {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
