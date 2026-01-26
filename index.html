@@ -4549,15 +4549,17 @@ function startSplitHistory() {
 
 // --- SYSTEM JACKPOT (WERSJA PANCERNA) ---
     let jackpotUnsub = null;
+	let historyUnsub = null;
     let jpTimerInterval = null;
+	let currentTier = 'low'; // Domyślny pokój
+	let processedSpins = { low: null, medium: null, high: null };
+	let isFinalizing = { low: false, medium: false, high: false };
     const JP_GAME_TIME = 60; 
 
     // Zmienne globalne (muszą być tutaj)
     let jackpotEndTime = 0;
     let timeOffset = 0;
-	let currentTier = 'low'; // Domyślny pokój
 	// Mapa zapamiętująca ostatnio rozegrane gry w każdym pokoju, żeby ich nie powtarzać
-    let processedSpins = { low: null, medium: null, high: null };
     let isBettingProcessing = false; // Blokada spamu
     
     // Konfiguracja limitów dla każdego pokoju
@@ -4665,28 +4667,18 @@ function startJackpotListener() {
         
         const listeningTier = currentTier; 
         const conf = TIER_CONFIG[listeningTier];
-        let isFinalizing = false; // Bezpiecznik transakcji
-
+        
         jackpotUnsub = onSnapshot(doc(db, conf.db, "current"), (docSnap) => {
-            if(!docSnap.exists()) {
-                if (currentTier === listeningTier) renderJackpotUI({entries: []});
-                return;
-            }
+            if(!docSnap.exists()) return;
             const data = docSnap.data();
             
-            if(docSnap.readTime) {
-                timeOffset = docSnap.readTime.toMillis() - new Date().getTime(); 
-            }
+            if(docSnap.readTime) timeOffset = docSnap.readTime.toMillis() - new Date().getTime(); 
 
-            if (currentTier === listeningTier) {
-                renderJackpotUI(data);
-            }
+            // UI aktualizujemy tylko dla aktywnej zakładki
+            if (currentTier === listeningTier) renderJackpotUI(data);
 
             const timerEl = document.getElementById('jackpotTimer');
-            let startMillis = 0;
-            if (data.startTime) {
-                 startMillis = (data.startTime.toMillis ? data.startTime.toMillis() : (data.startTime.seconds ? data.startTime.seconds*1000 : new Date(data.startTime).getTime()));
-            }
+            let startMillis = data.startTime ? (data.startTime.toMillis ? data.startTime.toMillis() : data.startTime.seconds * 1000) : 0;
 
             if(data.status === 'open' && startMillis > 0) {
                 jackpotEndTime = startMillis + (JP_GAME_TIME * 1000);
@@ -4711,45 +4703,31 @@ function startJackpotListener() {
         });
         
         if(jpTimerInterval) clearInterval(jpTimerInterval);
-        
         jpTimerInterval = setInterval(() => {
              if (!jackpotEndTime) return;
-             
-             const nowSynced = new Date().getTime() + timeOffset;
-             const diff = jackpotEndTime - nowSynced; 
+             const diff = jackpotEndTime - (new Date().getTime() + timeOffset);
              const timerEl = document.getElementById('jackpotTimer');
 
              if (diff > 0) {
                  if(currentTier === listeningTier) {
-                     let seconds = diff / 1000;
-                     if (seconds > JP_GAME_TIME) seconds = JP_GAME_TIME;
-                     timerEl.innerText = seconds.toFixed(2) + "s";
+                     timerEl.innerText = (diff / 1000).toFixed(2) + "s";
                  }
              } else {
-                 // CZAS MINĄŁ - Faza losowania
                  if(currentTier === listeningTier) timerEl.innerText = "LOSOWANIE...";
                  
-                 if (diff < 0 && diff > -3000) { 
-                     if (isFinalizing) return; // Jeśli transakcja już trwa, nie spamuj
-                     
-                     isFinalizing = true; 
+                 // Trigger losowania (tylko raz na pokój)
+                 if (diff < 0 && diff > -3000 && !isFinalizing[listeningTier]) {
+                     isFinalizing[listeningTier] = true;
                      const activeConf = TIER_CONFIG[listeningTier];
                      
                      getDoc(doc(db, activeConf.db, "current")).then(snap => {
-                         // Jeśli w międzyczasie zmieniono zakładkę, nie przerywamy losowania w bazie,
-                         // ale resetujemy flagę lokalną.
-                         if (currentTier !== listeningTier) { isFinalizing = false; return; }
-
                          const d = snap.data();
                          if(d && d.status === 'open' && !d.winnerProcessing) {
-                             finalizeJackpot(listeningTier).finally(() => {
-                                 isFinalizing = false; 
-                             });
+                             finalizeJackpot(listeningTier); 
                          }
-                     }).catch(err => {
-                         console.error("Błąd odczytu bazy:", err);
-                         isFinalizing = false; 
-                     });
+                         // Resetujemy flagę po 4 sekundach (bezpieczny odstęp)
+                         setTimeout(() => { isFinalizing[listeningTier] = false; }, 4000);
+                     }).catch(() => { isFinalizing[listeningTier] = false; });
                  }
              }
         }, 50);
@@ -4833,7 +4811,7 @@ async function finalizeJackpot(tier) {
         const strip = document.getElementById('jackpotStrip');
         const rail = document.querySelector('.jackpot-rail');
 
-        // Sprawdzamy, czy to aktywny pokój
+        // Jeśli to nie jest pokój który oglądamy - NIE DOTYKAJ HTML
         const isVisible = (currentTier === tier);
 
         if (isVisible) {
@@ -4853,21 +4831,23 @@ async function finalizeJackpot(tier) {
             document.getElementById('jackpotControls').style.display = 'none';
 
             setTimeout(() => {
-                if (currentTier !== tier) return; // Jeśli przełączono w locie - przerwij
+                // Drugie sprawdzenie po 100ms
+                if (currentTier !== tier) return;
                 const FULL_CARD = 84;
-                const centerPosition = - (WINNER_INDEX * FULL_CARD) + (rail.offsetWidth / 2) - (FULL_CARD / 2);
+                const containerWidth = rail.offsetWidth;
+                const centerPosition = - (WINNER_INDEX * FULL_CARD) + (containerWidth / 2) - (FULL_CARD / 2);
                 strip.style.transition = "transform 8s cubic-bezier(0.15, 0, 0.10, 1)";
                 strip.style.transform = `translateX(${centerPosition + (Math.random()*40-20)}px)`;
                 window.playSound('coin');
             }, 100);
         }
 
-        // LOGIKA KOŃCOWA (Zawsze po 8.5s)
+        // --- LOGIKA KOŃCOWA (Zawsze po 8.5s, niezależnie od widoku) ---
         setTimeout(async () => {
-            // Wywołujemy zapis (zawsze) i pokazanie UI (tylko jak tier się zgadza)
+            // Zapisz wynik (zawsze) i pokaż modal (jeśli tier się zgadza)
             showWinnerScreen(winner, entries, tier, poolAmount);
 
-            // Reset bazy danych (Robi to Admin lub Zwycięzca)
+            // Reset bazy (robi to Admin lub Zwycięzca danej rundy)
             const isWinner = currentUser && winner && currentUser.uid === winner.uid;
             if (isWinner || currentNick === ADMIN_NICK) {
                 setTimeout(async () => {
@@ -4875,7 +4855,8 @@ async function finalizeJackpot(tier) {
                     await setDoc(doc(db, activeConf.db, "current"), {
                         status: 'open', entries: [], startTime: null, winner: null, winnerProcessing: false
                     });
-                }, 5000); // Reset po 5s od zakończenia animacji
+                    console.log(`[Baza] Stół ${tier} zresetowany.`);
+                }, 5000);
             }
         }, 8500);
     }
@@ -4885,9 +4866,11 @@ function showWinnerScreen(winner, entries, tier, poolAmount) {
         const totalStr = s_formatGold(poolAmount);
         const conf = TIER_CONFIG[tier];
 
-        // --- 1. ZAPIS DO BAZY (Zawsze, nawet w tle) ---
+        // --- 1. LOGIKA BAZODANOWA (Zawsze wykonuje Zwycięzca, nawet w tle) ---
         if (currentUser && currentUser.uid === winner.uid) {
-            // Czat
+            console.log(`Zapisuję wygraną w tle dla pokoju: ${tier}`);
+            
+            // Dodanie do czatu
             addDoc(collection(db, "chat"), {
                 nick: "System Jackpot",
                 text: `🎰 ${winner.nick} rozbił bank na stole ${tier.toUpperCase()}! Zgarnia: ${totalStr}!`,
@@ -4895,7 +4878,7 @@ function showWinnerScreen(winner, entries, tier, poolAmount) {
                 date: new Date().toISOString()
             });
 
-            // Oblicz dłużników dla historii
+            // Obliczanie dłużników
             let debtsToSave = {};
             if (entries) {
                 entries.forEach(e => {
@@ -4906,7 +4889,7 @@ function showWinnerScreen(winner, entries, tier, poolAmount) {
                 });
             }
 
-            // Historia właściwego pokoju
+            // Zapis do właściwej historii
             addDoc(collection(db, conf.hist), {
                 nick: winner.nick,
                 amount: totalStr,
@@ -4916,32 +4899,36 @@ function showWinnerScreen(winner, entries, tier, poolAmount) {
             });
         }
 
-        // --- 2. POKAZYWANIE NA EKRANIE (Tylko jeśli to ten pokój oglądamy) ---
+        // --- 2. LOGIKA WIZUALNA (Tylko jeśli użytkownik patrzy na ten stół) ---
         if (currentTier === tier) {
-            for(let i=0; i<20; i++) createEmber(); 
-            document.getElementById('jackpotWinnerDisplay').style.display = 'block';
-            document.getElementById('winnerNick').innerText = winner.nick;
-            
-            let debts = {};
-            entries.forEach(e => {
-                if (e.uid !== winner.uid) {
-                    if (!debts[e.nick]) debts[e.nick] = 0;
-                    debts[e.nick] += e.amount;
-                }
-            });
-
-            let debtorsListHtml = "";
-            const sorted = Object.keys(debts).sort((a,b) => debts[b] - debts[a]);
-            if (sorted.length > 0) {
-                debtorsListHtml += `<div style="margin-top:15px; border-top:1px dashed #555; padding-top:10px;"><div style="max-height: 150px; overflow-y: auto;">`;
-                sorted.forEach(nick => {
-                    debtorsListHtml += `<div style="display:flex; justify-content:space-between; padding:4px 0;"><span style="color:#fff;">${nick}</span><span style="color:#ff6666; font-weight:bold;">${s_formatGold(debts[nick])}</span></div>`;
+            const winnerDisplay = document.getElementById('jackpotWinnerDisplay');
+            if (winnerDisplay) {
+                winnerDisplay.style.display = 'block';
+                document.getElementById('winnerNick').innerText = winner.nick;
+                
+                // Ponowne przeliczenie długów tylko dla wyświetlenia listy
+                let debts = {};
+                entries.forEach(e => {
+                    if (e.uid !== winner.uid) {
+                        if (!debts[e.nick]) debts[e.nick] = 0;
+                        debts[e.nick] += e.amount;
+                    }
                 });
-                debtorsListHtml += `</div></div>`;
-            } else {
-                debtorsListHtml = `<div style="color:#666; font-size:0.8em; margin-top:10px;">(Wygrałeś własne wpłaty)</div>`;
+
+                let debtorsListHtml = "";
+                const sorted = Object.keys(debts).sort((a,b) => debts[b] - debts[a]);
+                if (sorted.length > 0) {
+                    debtorsListHtml += `<div style="margin-top:15px; border-top:1px dashed #555; padding-top:10px;"><div style="max-height: 150px; overflow-y: auto; padding-right:5px;">`;
+                    sorted.forEach(nick => {
+                        debtorsListHtml += `<div style="display:flex; justify-content:space-between; padding:4px 0;"><span style="color:#fff;">${nick}</span><span style="color:#ff6666; font-weight:bold;">${s_formatGold(debts[nick])}</span></div>`;
+                    });
+                    debtorsListHtml += `</div></div>`;
+                } else {
+                    debtorsListHtml = `<div style="color:#666; font-size:0.8em; margin-top:10px;">(Wygrałeś własne wpłaty)</div>`;
+                }
+                document.getElementById('winAmount').innerHTML = `<div style="font-size:1.2em; color:var(--green); margin-bottom:10px;">Wygrywa pulę: <b>${totalStr}</b></div>${debtorsListHtml}`;
+                for(let i=0; i<20; i++) createEmber(); 
             }
-            document.getElementById('winAmount').innerHTML = `<div style="font-size:1.2em; color:var(--green); margin-bottom:10px;">Wygrywa pulę: <b>${totalStr}</b></div>${debtorsListHtml}`;
         }
     }
 
@@ -4996,7 +4983,6 @@ function showWinnerScreen(winner, entries, tier, poolAmount) {
         return colors[Math.floor(Math.random() * colors.length)];
     }
 
-	let historyUnsub = null;
     window.jackpotHistoryData = []; // Magazyn na dane
 
     function startJackpotHistoryListener() {
@@ -5122,6 +5108,7 @@ window.switchJackpotTier = (tier) => {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
