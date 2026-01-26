@@ -4439,54 +4439,73 @@ function startSplitHistory() {
         window.playSound('coin');
     };
 
-    // 2. Nasłuch zmian w bazie
+   // Zmienna pomocnicza do przechowywania czasu końca (dostępna dla interwału)
+    let currentJackpotEndTime = null; 
+
     function startJackpotListener() {
         if(jackpotUnsub) jackpotUnsub();
         
+        // 1. NASŁUCHIWANIE DANYCH Z BAZY (Tylko pobiera dane, nie odlicza)
         jackpotUnsub = onSnapshot(doc(db, "jackpot", "current"), (docSnap) => {
-            if(!docSnap.exists()) return; // Brak gry
+            if(!docSnap.exists()) return; 
             const data = docSnap.data();
             
             renderJackpotUI(data);
 
-            // Obsługa timera
-            if(data.endTime && data.status === 'open') {
-                const left = (new Date(data.endTime).getTime() - new Date().getTime()) / 1000;
-                if(left > 0) {
-                    document.getElementById('jackpotTimer').style.display = 'block';
-                    document.getElementById('jackpotTimer').innerText = left.toFixed(2) + "s";
-                    
-                    // Jeśli jestem pierwszy, który zauważył koniec czasu -> Losuję zwycięzcę
-                    if(left < 1 && !data.winnerProcessing) {
-                        finalizeJackpot(data); 
-                    }
-                } else {
-                    document.getElementById('jackpotTimer').innerText = "LOSOWANIE...";
-                }
+            // Zapisujemy czas końca do zmiennej globalnej, żeby interwał go widział
+            if(data.status === 'open' && data.endTime) {
+                currentJackpotEndTime = new Date(data.endTime).getTime();
+                document.getElementById('jackpotTimer').style.display = 'block';
             } else {
+                currentJackpotEndTime = null;
                 document.getElementById('jackpotTimer').style.display = 'none';
             }
 
-            // Obsługa kręcenia
+            // Obsługa kręcenia (uruchamia animację)
             if(data.status === 'spinning' && !document.getElementById('jackpotStrip').classList.contains('spinning')) {
+                document.getElementById('jackpotTimer').style.display = 'none'; // Ukryj licznik jak kręci
                 spinTheWheel(data.winner, data.entries);
             }
             
-            // Reset widoku jeśli otwarta nowa runda
+            // Reset widoku po nowej rundzie
             if(data.status === 'open' && document.getElementById('jackpotStrip').classList.contains('spun')) {
                  resetJackpotVisuals();
             }
         });
         
-        // Płynny timer w JS dla efektu wizualnego
+        // 2. ODLICZANIE CZASU (Działa niezależnie, co 50ms)
         if(jpTimerInterval) clearInterval(jpTimerInterval);
+        
         jpTimerInterval = setInterval(() => {
+             // Jeśli nie ma ustawionego czasu końca, nic nie rób
+             if (!currentJackpotEndTime) return;
+
+             const now = new Date().getTime();
+             const diff = currentJackpotEndTime - now; // Różnica w milisekundach
+
              const timerEl = document.getElementById('jackpotTimer');
-             if(timerEl.style.display === 'block') {
-                 // To tylko odświeża co 100ms, prawdziwa logika jest w onSnapshot
-                 // Można tu dodać 'tick' sound
+
+             if (diff > 0) {
+                 // Wyświetlamy sekundy i setne sekundy (np. 45.32s)
+                 timerEl.innerText = (diff / 1000).toFixed(2) + "s";
+             } else {
+                 // Czas minął
+                 timerEl.innerText = "LOSOWANIE...";
+                 
+                 // Zabezpieczenie: Tylko jedna osoba wywołuje losowanie (żeby nie było spamu do bazy)
+                 // Robimy to sprawdzając, czy status w bazie to wciąż 'open' (wewnątrz finalizeJackpot jest update)
+                 // Ale wywołujemy to tylko raz, gdy licznik właśnie przeszedł przez zero (np. do -1 sekundy)
+                 if (diff > -2000 && diff < 0) {
+                     // Pobieramy aktualny stan, żeby sprawdzić czy już nie losuje
+                     getDoc(doc(db, "jackpot", "current")).then(snap => {
+                         const d = snap.data();
+                         if(d && d.status === 'open' && !d.winnerProcessing) {
+                             finalizeJackpot(d);
+                         }
+                     });
+                 }
              }
-        }, 100);
+        }, 50); // Odświeżanie 20 razy na sekundę = super płynność
     }
 
     // 3. Renderowanie UI (Lista graczy, Pula)
@@ -4665,5 +4684,6 @@ function startSplitHistory() {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
