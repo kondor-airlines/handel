@@ -4665,13 +4665,12 @@ window.joinJackpot = async () => {
     };
 
     function startJackpotListener() {
+        let isFinalizing = false; 
         if(jackpotUnsub) jackpotUnsub();
         
         const listeningTier = currentTier; 
         const conf = TIER_CONFIG[listeningTier];
         
-        // Flaga zapobiegająca wysyłaniu 20 zapytań na sekundę
-        let isFinalizing = false; 
 
         jackpotUnsub = onSnapshot(doc(db, conf.db, "current"), (docSnap) => {
             if(!docSnap.exists()) {
@@ -4732,33 +4731,27 @@ window.joinJackpot = async () => {
                      timerEl.innerText = seconds.toFixed(2) + "s";
                  }
              } else {
-                 if(currentTier === listeningTier) timerEl.innerText = "LOSOWANIE...";
-                 
-                 // --- POPRAWIONY TRIGGER (ANTY-SPAM) ---
-                 if (diff < 0 && diff > -3000) { // Okno 3 sekund na finalizację
-                     if (isFinalizing) return; // Jeśli już wysłano prośbę, nie rób nic więcej
+                 if (diff < 0 && diff > -3000) { 
+        if (isFinalizing) return; // 🛑 TO JEST KLUCZOWE - blokuje spamowanie bazy
 
-                     isFinalizing = true; // Zaciągamy hamulec
-                     const activeConf = TIER_CONFIG[listeningTier];
-                     
-                     getDoc(doc(db, activeConf.db, "current")).then(snap => {
-                         if (currentTier !== listeningTier) {
-                             isFinalizing = false; // Resetujemy flagę jeśli user zmienił zakładkę
-                             return;
-                         }
-
-                         const d = snap.data();
-                         if(d && d.status === 'open' && !d.winnerProcessing) {
-                             finalizeJackpot(listeningTier); 
-                         }
-                     }).catch(err => {
-                         console.log("Błąd odczytu przy finalizacji:", err);
-                         isFinalizing = false; // Pozwól spróbować ponownie przy błędzie sieci
-                     });
-                 }
-             }
-        }, 50);
+        isFinalizing = true; // Zaciągamy hamulec
+        const activeConf = TIER_CONFIG[listeningTier];
+        
+        getDoc(doc(db, activeConf.db, "current")).then(snap => {
+            if (currentTier !== listeningTier) {
+                isFinalizing = false;
+                return;
+            }
+            const d = snap.data();
+            if(d && d.status === 'open' && !d.winnerProcessing) {
+                finalizeJackpot(listeningTier); 
+            }
+        }).catch(err => {
+            console.log("Błąd:", err);
+            isFinalizing = false; // W razie błędu pozwól spróbować ponownie
+        });
     }
+}
     function renderJackpotUI(data) {
         const list = document.getElementById('jackpotPlayersList');
         const poolEl = document.getElementById('jackpotTotalPool');
@@ -4795,62 +4788,43 @@ window.joinJackpot = async () => {
 
 // Dodajemy argument 'tier', żeby funkcja wiedziała który stół zamknąć
 async function finalizeJackpot(tier) {
-        const targetTier = tier || currentTier;
-        const conf = TIER_CONFIG[targetTier];
-        if (!conf) return;
+    const targetTier = tier || currentTier;
+    const conf = TIER_CONFIG[targetTier];
+    if (!conf) return;
+    const jpRef = doc(db, conf.db, "current");
 
-        const jpRef = doc(db, conf.db, "current");
+    try {
+        await runTransaction(db, async (transaction) => {
+            const sfDoc = await transaction.get(jpRef);
+            if (!sfDoc.exists()) return;
+            const data = sfDoc.data();
 
-        try {
-            await runTransaction(db, async (transaction) => {
-                const sfDoc = await transaction.get(jpRef);
-                if (!sfDoc.exists()) return;
+            if (data.status !== 'open' || data.winnerProcessing) return;
+            if (!data.entries || data.entries.length < 2) {
+                transaction.update(jpRef, { startTime: null, winnerProcessing: false });
+                return;
+            }
 
-                const data = sfDoc.data();
+            transaction.update(jpRef, { winnerProcessing: true });
+            let total = 0;
+            data.entries.forEach(e => total += e.amount);
+            let randomPoint = Math.random() * total;
+            let winner = null;
+            let currentStack = 0;
+            for(let e of data.entries) {
+                currentStack += e.amount;
+                if(randomPoint <= currentStack) { winner = e; break; }
+            }
 
-                // Jeśli status nie jest 'open' lub ktoś już procesuje wygraną - przerywamy bezpiecznie
-                if (data.status !== 'open' || data.winnerProcessing === true) {
-                    return; 
-                }
-
-                // Zabezpieczenie przed brakiem graczy (np. ktoś wyszedł w ostatniej sekudzie)
-                if (!data.entries || data.entries.length === 0) {
-                    transaction.update(jpRef, { startTime: null, status: 'open', winnerProcessing: false });
-                    return;
-                }
-
-                // Blokujemy stół na poziomie bazy
-                transaction.update(jpRef, { winnerProcessing: true });
-
-                let total = 0;
-                data.entries.forEach(e => total += e.amount);
-                
-                let randomPoint = Math.random() * total;
-                let winner = null;
-                let currentStack = 0;
-                
-                for(let e of data.entries) {
-                    currentStack += e.amount;
-                    if(randomPoint <= currentStack) { 
-                        winner = e; 
-                        break; 
-                    }
-                }
-
-                // Finalny zapis stanu losowania
-                transaction.update(jpRef, {
-                    status: 'spinning',
-                    winner: winner,
-                    winnerTotal: total,
-                    winnerProcessing: false // Odblokowujemy flagę po ustawieniu zwycięzcy
-                });
+            transaction.update(jpRef, {
+                status: 'spinning',
+                winner: winner,
+                winnerTotal: total,
+                winnerProcessing: false // Ważne!
             });
-            console.log(`🎰 Losowanie rozpoczęte na stole: ${targetTier}`);
-        } catch (e) {
-            // Logujemy błąd tylko jeśli nie jest to zwykły konflikt transakcji
-            console.error(`Błąd losowania (${targetTier}):`, e);
-        }
-    }
+        });
+    } catch (e) { console.error("Błąd transakcji:", e); }
+}
 
     function spinTheWheel(winner, entries, tier, poolAmount) {
         const strip = document.getElementById('jackpotStrip');
@@ -5188,6 +5162,7 @@ window.switchJackpotTier = (tier) => {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
