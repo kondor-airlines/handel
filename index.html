@@ -4667,10 +4667,12 @@ window.joinJackpot = async () => {
     function startJackpotListener() {
         if(jackpotUnsub) jackpotUnsub();
         
-        // Zapamiętujemy, dla którego pokoju tworzymy ten nasłuch
         const listeningTier = currentTier; 
         const conf = TIER_CONFIG[listeningTier];
         
+        // Flaga zapobiegająca wysyłaniu 20 zapytań na sekundę
+        let isFinalizing = false; 
+
         jackpotUnsub = onSnapshot(doc(db, conf.db, "current"), (docSnap) => {
             if(!docSnap.exists()) {
                 if (currentTier === listeningTier) renderJackpotUI({entries: []});
@@ -4682,19 +4684,16 @@ window.joinJackpot = async () => {
                 timeOffset = docSnap.readTime.toMillis() - new Date().getTime(); 
             }
 
-            // Aktualizuj UI tylko jeśli nadal tu jesteśmy
             if (currentTier === listeningTier) {
                 renderJackpotUI(data);
             }
 
             const timerEl = document.getElementById('jackpotTimer');
             let startMillis = 0;
-
             if (data.startTime) {
                  startMillis = (data.startTime.toMillis ? data.startTime.toMillis() : (data.startTime.seconds ? data.startTime.seconds*1000 : new Date(data.startTime).getTime()));
             }
 
-            // --- Obsługa Timera ---
             if(data.status === 'open' && startMillis > 0) {
                 jackpotEndTime = startMillis + (JP_GAME_TIME * 1000);
                 if(currentTier === listeningTier) timerEl.style.display = 'block';
@@ -4703,14 +4702,11 @@ window.joinJackpot = async () => {
                 if(currentTier === listeningTier) timerEl.style.display = 'none';
             }
 
-            // --- Obsługa Kręcenia ---
             if(data.status === 'spinning') {
                 if(currentTier === listeningTier) timerEl.style.display = 'none';
-
                 const roundId = startMillis.toString();
                 if (processedSpins[listeningTier] !== roundId) {
                     processedSpins[listeningTier] = roundId;
-                    // Tu też upewniamy się, że przekazujemy listeningTier
                     spinTheWheel(data.winner, data.entries, listeningTier, data.winnerTotal);
                 }
             }
@@ -4720,7 +4716,6 @@ window.joinJackpot = async () => {
             }
         });
         
-        // --- PĘTLA ODLICZAJĄCA CZAS ---
         if(jpTimerInterval) clearInterval(jpTimerInterval);
         
         jpTimerInterval = setInterval(() => {
@@ -4739,22 +4734,26 @@ window.joinJackpot = async () => {
              } else {
                  if(currentTier === listeningTier) timerEl.innerText = "LOSOWANIE...";
                  
-                 // Trigger losowania (tylko raz, gdy czas minie)
-                 if (diff > -2000 && diff < 0) {
+                 // --- POPRAWIONY TRIGGER (ANTY-SPAM) ---
+                 if (diff < 0 && diff > -3000) { // Okno 3 sekund na finalizację
+                     if (isFinalizing) return; // Jeśli już wysłano prośbę, nie rób nic więcej
+
+                     isFinalizing = true; // Zaciągamy hamulec
                      const activeConf = TIER_CONFIG[listeningTier];
                      
                      getDoc(doc(db, activeConf.db, "current")).then(snap => {
-                         // --- 🛑 NOWE ZABEZPIECZENIE (TO NAPRAWIA BŁĄD 400) 🛑 ---
-                         // Jeśli w międzyczasie zmieniłeś zakładkę, ignorujemy tę odpowiedź!
-                         if (currentTier !== listeningTier) return;
-                         // ---------------------------------------------------------
+                         if (currentTier !== listeningTier) {
+                             isFinalizing = false; // Resetujemy flagę jeśli user zmienił zakładkę
+                             return;
+                         }
 
                          const d = snap.data();
                          if(d && d.status === 'open' && !d.winnerProcessing) {
                              finalizeJackpot(listeningTier); 
                          }
                      }).catch(err => {
-                         console.log("Ignoruję błąd timera w tle:", err);
+                         console.log("Błąd odczytu przy finalizacji:", err);
+                         isFinalizing = false; // Pozwól spróbować ponownie przy błędzie sieci
                      });
                  }
              }
@@ -4798,43 +4797,58 @@ window.joinJackpot = async () => {
 async function finalizeJackpot(tier) {
         const targetTier = tier || currentTier;
         const conf = TIER_CONFIG[targetTier];
-        
-        // Jeśli config nie istnieje (np. błąd przełączania), przerywamy
-        if (!conf) return console.warn("finalizeJackpot: Brak konfiguracji dla", targetTier);
+        if (!conf) return;
 
         const jpRef = doc(db, conf.db, "current");
 
         try {
             await runTransaction(db, async (transaction) => {
                 const sfDoc = await transaction.get(jpRef);
-                if (!sfDoc.exists()) throw "Dokument nie istnieje!";
+                if (!sfDoc.exists()) return;
+
                 const data = sfDoc.data();
 
-                if (data.status !== 'open' || data.winnerProcessing) throw "Już wylosowano!";
+                // Jeśli status nie jest 'open' lub ktoś już procesuje wygraną - przerywamy bezpiecznie
+                if (data.status !== 'open' || data.winnerProcessing === true) {
+                    return; 
+                }
 
+                // Zabezpieczenie przed brakiem graczy (np. ktoś wyszedł w ostatniej sekudzie)
+                if (!data.entries || data.entries.length === 0) {
+                    transaction.update(jpRef, { startTime: null, status: 'open', winnerProcessing: false });
+                    return;
+                }
+
+                // Blokujemy stół na poziomie bazy
                 transaction.update(jpRef, { winnerProcessing: true });
 
                 let total = 0;
                 data.entries.forEach(e => total += e.amount);
+                
                 let randomPoint = Math.random() * total;
                 let winner = null;
                 let currentStack = 0;
                 
                 for(let e of data.entries) {
                     currentStack += e.amount;
-                    if(randomPoint <= currentStack) { winner = e; break; }
+                    if(randomPoint <= currentStack) { 
+                        winner = e; 
+                        break; 
+                    }
                 }
 
+                // Finalny zapis stanu losowania
                 transaction.update(jpRef, {
                     status: 'spinning',
                     winner: winner,
-                    winnerTotal: total 
+                    winnerTotal: total,
+                    winnerProcessing: false // Odblokowujemy flagę po ustawieniu zwycięzcy
                 });
             });
-            console.log(`✅ Losowanie zakończone dla: ${targetTier}`);
-        } catch (e) { 
-            // Ignorujemy błędy "Już wylosowano", logujemy inne
-            if (e !== "Już wylosowano!") console.log(`Info (${targetTier}):`, e); 
+            console.log(`🎰 Losowanie rozpoczęte na stole: ${targetTier}`);
+        } catch (e) {
+            // Logujemy błąd tylko jeśli nie jest to zwykły konflikt transakcji
+            console.error(`Błąd losowania (${targetTier}):`, e);
         }
     }
 
@@ -5174,6 +5188,7 @@ window.switchJackpotTier = (tier) => {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
