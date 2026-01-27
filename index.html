@@ -3622,12 +3622,14 @@ window.renderOffers = () => {
         
         window.playSound('coin');
 		// --- DISCORD START ---
-		const desc = document.getElementById('itemDesc').value;
+		// --- POPRAWIONY KOD DISCORDA ---
+        const desc = document.getElementById('itemDesc').value; // To już poprawiliśmy wcześniej
         const shortDesc = desc.length > 60 ? desc.substring(0, 60) + "..." : desc;
+        
         sendDiscordNotification(
             'handel', 
-            `Nowa Oferta: ${name}`, 
-            `**Cena:** ${price}\n**Opis:** ${shortDesc}\n\n[Przejdź do Targowiska](https://TWOJA-STRONA.pl)`, 
+            `Nowa Oferta: ${finalName}`,  // <--- BYŁO name, MA BYĆ finalName
+            `**Cena:** ${finalPrice}\n**Opis:** ${shortDesc}\n\n[Przejdź do Targowiska](https://TWOJA-STRONA.pl)`, // <--- BYŁO price, MA BYĆ finalPrice
             currentNick
         );
         // --- DISCORD END ---
@@ -5186,6 +5188,7 @@ function renderJackpotUI(data) {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
