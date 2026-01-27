@@ -3810,7 +3810,7 @@ window.renderOffers = () => {
             document.getElementById('itemDesc').value = statsPart.split('opis=')[1].split(';')[0].replaceAll('[br]', '\n');
         } else { document.getElementById('itemDesc').value = ""; }
     };
-		onSnapshot(query(collection(db, "oferty"), orderBy("date", "desc"), limit(20)), (snap) => {
+		onSnapshot(query(collection(db, "oferty"), orderBy("date", "desc"), limit(40)), (snap) => {
         allOffers = snap.docs.map(d => ({ id: d.id, ...d.data() }));
         updateUserFilterOptions();
         window.renderOffers();
@@ -5373,5 +5373,6 @@ function renderJackpotUI(data) {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
