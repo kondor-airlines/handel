@@ -2762,7 +2762,7 @@ const lootTable = {
     });
 
 // ZAKTUALIZOWANE RENDEROWANIE (Obsługa kolorów dla rzutów)
-    onSnapshot(query(collection(db, "chat"), orderBy("date", "asc"), limit(50)), (snap) => {
+    onSnapshot(query(collection(db, "chat"), orderBy("date", "asc"), limit(15)), (snap) => {
         const div = document.getElementById('chatMessages');
         div.innerHTML = "";
         snap.docs.forEach(d => {
@@ -3810,7 +3810,7 @@ window.renderOffers = () => {
             document.getElementById('itemDesc').value = statsPart.split('opis=')[1].split(';')[0].replaceAll('[br]', '\n');
         } else { document.getElementById('itemDesc').value = ""; }
     };
-    onSnapshot(query(collection(db, "oferty"), orderBy("date", "desc")), (snap) => {
+		onSnapshot(query(collection(db, "oferty"), orderBy("date", "desc"), limit(20)), (snapshot) => {
         allOffers = snap.docs.map(d => ({ id: d.id, ...d.data() }));
         updateUserFilterOptions();
         window.renderOffers();
@@ -5212,7 +5212,7 @@ function renderJackpotUI(data) {
 		console.log("--> Uruchamiam nasłuch historii!");
         if(historyUnsub) historyUnsub();
         
-        const q = query(collection(db, "jackpot_history"), orderBy("date", "desc"), limit(10));
+        const q = query(collection(db, "jackpot_history"), orderBy("date", "desc"), limit(5));
         
         historyUnsub = onSnapshot(q, (snap) => {
             const div = document.getElementById('jackpotHistoryList');
@@ -5373,3 +5373,4 @@ function renderJackpotUI(data) {
 <div id="toast-container"></div>
 </body>
 </html>
+
