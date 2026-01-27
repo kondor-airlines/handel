@@ -2761,15 +2761,31 @@ const lootTable = {
         if (e.key === 'Enter') sendChatMessage();
     });
 
-// ZAKTUALIZOWANE RENDEROWANIE (Obsługa kolorów dla rzutów)
+// ZAKTUALIZOWANE RENDEROWANIE (Kolory + Usuwanie)
     onSnapshot(query(collection(db, "chat"), orderBy("date", "asc"), limit(50)), (snap) => {
         const div = document.getElementById('chatMessages');
         div.innerHTML = "";
+        
         snap.docs.forEach(d => {
             const m = d.data();
             const time = new Date(m.date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
             
-            // Styl dla rzutu kością (Złoty tekst, kursywa)
+            // 1. Sprawdzamy autorstwa (Czy to ja?)
+            // Używamy d.id (ID dokumentu) do usuwania
+            const isMine = currentUser && (m.uid === currentUser.uid);
+            
+            // 2. Tworzymy przycisk usuwania
+            const deleteBtn = isMine 
+                ? `<span onclick="deleteChatMessage('${d.id}')" 
+                        style="cursor:pointer; margin-left:8px; opacity:0.5;" 
+                        title="Usuń wpis"
+                        onmouseover="this.style.opacity='1'" 
+                        onmouseout="this.style.opacity='0.5'">
+                    🗑️
+                  </span>` 
+                : "";
+            
+            // 3. Twój styl dla rzutów kością (zachowany)
             let msgStyle = "color: #eee;";
             let containerStyle = "";
             
@@ -2778,13 +2794,18 @@ const lootTable = {
                 containerStyle = "border-left: 3px solid var(--gold); background: rgba(255, 215, 0, 0.05);";
             }
 
+            // 4. Składamy HTML (Dodałem ${deleteBtn} obok czasu)
             div.innerHTML += `
                 <div class="chat-msg" style="${containerStyle}">
                     <div class="chat-top-row">
                         <span class="chat-nick">${window.escapeHtml(m.nick)}</span>
-                        <span class="chat-time">${time}</span>
+                        <span class="chat-time">
+                            ${time}
+                            ${deleteBtn}
+                        </span>
                     </div>
-                    <div class="chat-text" style="${msgStyle}">${m.text}</div>
+                    <div class="chat-text" style="${msgStyle}">
+                        ${m.text} </div>
                 </div>`;
         });
         div.scrollTop = div.scrollHeight;
@@ -5367,12 +5388,27 @@ function renderJackpotUI(data) {
             console.error("Błąd Discorda:", e);
         }
     }
+
+
+	window.deleteChatMessage = async (id) => {
+        if (!confirm("Usunąć ten wpis?")) return;
+
+        try {
+            await deleteDoc(doc(db, "chat", id)); // Usuwa dokument z bazy
+            window.playSound('click'); // Opcjonalny dźwięk
+        } catch (e) {
+            console.error(e);
+            alert("Błąd usuwania.");
+        }
+    };
+
 	
 </script>
 
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
