@@ -4952,210 +4952,251 @@ if (nowSynced > jackpotEndTime && !isFinalizing && !data.winnerProcessing) {
         window.playSound('click');
     };
 
-	// ============================================================
-// NOWY SILNIK JACKPOTA (WKLEJ NA DOLE PLIKU)
+// ============================================================
+// NOWY, KOMPLETNY SILNIK JACKPOTA (WERSJA AUTO-NAPRAWCZA)
 // ============================================================
 
-// 1. ZMIENNE GLOBALNE STANU (Upewnij się, że nie masz ich zadeklarowanych wyżej!)
-// Jeśli masz je na górze pliku, usuń 'let' stąd i zostaw same przypisania.
-window.isSpinning = false;
+// Zmienne stanu - resetujemy je na starcie, żeby nie było blokady
+window.isSpinning = false; 
 window.isFinalizing = false;
+// Zmienna pomocnicza, żeby nie odpalać animacji 5 razy dla tego samego zwycięzcy
+window.lastWinnerId = null; 
 
-// 2. GŁÓWNA PĘTLA NASŁUCHUJĄCA (Mózg operacji)
+// 1. GŁÓWNY NASŁUCH (SERCE GRY)
 window.startJackpotListener = () => {
-    if (jackpotUnsub) jackpotUnsub(); // Wyłącz stary nasłuch
+    // Zabijamy poprzedni nasłuch, jeśli istnieje
+    if (window.jackpotUnsub) window.jackpotUnsub();
     
-    // Resetujemy stan lokalny przy ponownym włączeniu
-    window.isSpinning = false;
-    window.isFinalizing = false;
-
+    console.log("🟢 Uruchamiam nasłuch Jackpota...");
     const jpRef = doc(db, "jackpot", "current");
 
-    jackpotUnsub = onSnapshot(jpRef, (docSnap) => {
+    window.jackpotUnsub = onSnapshot(jpRef, (docSnap) => {
         if (!docSnap.exists()) return;
         const data = docSnap.data();
-
-        // A) AKTUALIZACJA UI (Pula, czas, lista)
-        // ------------------------------------------------
+        
+        // --- A. AKTUALIZACJA UI (Zawsze się wykonuje) ---
         const total = (data.entries || []).reduce((acc, e) => acc + e.amount, 0);
         const totalDiv = document.getElementById('jackpotTotal');
         if (totalDiv) totalDiv.innerHTML = s_formatGold(total) + ' <span style="color:gold">G</span>';
 
-        renderJackpotList(data.entries || []); // Zakładam, że tę funkcję masz i ona działa ok
+        // Renderowanie listy graczy (tylko jeśli nie kręcimy, żeby nie migało)
+        if (!window.isSpinning && window.renderJackpotList) {
+            window.renderJackpotList(data.entries || []);
+        }
 
-        // B) LOGIKA CZASU I KRĘCENIA
-        // ------------------------------------------------
+        // --- B. OBSŁUGA CZASU ---
         const now = Date.now();
-        // Poprawka na czas serwera (jeśli masz timeOffset, użyj go, jeśli nie - użyj czasu lokalnego)
         const serverTime = now + (window.timeOffset || 0); 
-        
         let timeLeft = 0;
+        
         if (data.startTime) {
             const endTime = data.startTime.toMillis() + (60 * 1000); // 60 sekund runda
             timeLeft = Math.max(0, Math.ceil((endTime - serverTime) / 1000));
         }
 
         const timerDiv = document.getElementById('jackpotTimer');
-        
-        // SCENARIUSZ 1: TRWA RUNDA (ODLICZANIE)
-        if (data.status === 'open' && timeLeft > 0) {
-            if (timerDiv) {
-                timerDiv.innerText = `Losowanie za: ${timeLeft}s`;
-                timerDiv.style.color = timeLeft < 10 ? '#ff4444' : '#ccc';
+
+        // --- C. LOGIKA STANÓW (To naprawia zacinanie) ---
+
+        // STAN 1: ZWYCIĘZCA JUŻ JEST W BAZIE -> KRĘCIMY!
+        // (To naprawia problem, że trzeba klikać F5, żeby zobaczyć losowanie)
+        if (data.winnerEntry) {
+            if (timerDiv) timerDiv.innerText = "KRĘCIMY!";
+            
+            // Sprawdzamy, czy to nowy zwycięzca, czy ten sam co przed chwilą
+            // Żeby nie odpalać animacji w kółko
+            const thisWinnerId = data.winnerEntry.uid + data.winnerEntry.amount; // Unikalny klucz
+            
+            if (!window.isSpinning && window.lastWinnerId !== thisWinnerId) {
+                console.log("🎰 Wykryto zwycięzcę w bazie! Odpalam animację.");
+                window.lastWinnerId = thisWinnerId;
+                window.spinTheWheel(data.winnerEntry, data.entries);
             }
-            // Resetujemy flagi, bo runda jest otwarta
-            window.isSpinning = false; 
-        } 
+        }
         
-        // SCENARIUSZ 2: KONIEC CZASU -> FINALIZACJA
+        // STAN 2: CZAS SIĘ SKOŃCZYŁ -> LOSUJEMY
+        // (To naprawia problem "Zatrzymało się na LOSOWANIE...")
         else if (data.status === 'open' && timeLeft <= 0 && data.entries && data.entries.length >= 2) {
             if (timerDiv) timerDiv.innerText = "Losowanie...";
             
-            // Tylko jeden klient (ten z najmniejszym lagiem + losowe opóźnienie) powinien wysłać sygnał
-            if (!window.isFinalizing && !data.winnerProcessing) {
+            // Mechanizm losowego opóźnienia, żeby nie wszyscy naraz wysłali zapytanie
+            if (!window.isFinalizing) {
                 window.isFinalizing = true;
-                const randomDelay = Math.random() * 3000; // 0-3s losowego opóźnienia
+                const delay = Math.floor(Math.random() * 2000); 
+                console.log(`⏱️ Koniec czasu. Próba losowania za ${delay}ms...`);
                 
                 setTimeout(() => {
-                    finalizeJackpot().catch(err => {
-                        console.log("Ktoś inny już sfinalizował rundę.");
-                    });
-                }, randomDelay);
+                    finalizeJackpot();
+                }, delay);
             }
         }
 
-        // SCENARIUSZ 3: MAMY ZWYCIĘZCĘ -> KRĘCIMY!
-        // To naprawia LAG. Jak tylko w bazie pojawi się winnerEntry, zaczynamy kręcić.
-        else if (data.winnerEntry && !window.isSpinning) {
-            if (timerDiv) timerDiv.innerText = "KRĘCIMY!";
-            // Odpalamy animację
-            window.spinTheWheel(data.winnerEntry, data.entries);
+        // STAN 3: RUNDA TRWA
+        else if (data.status === 'open') {
+            if (timerDiv) {
+                timerDiv.innerText = `Czas: ${timeLeft}s`;
+                timerDiv.style.color = timeLeft < 10 ? '#ff4444' : '#ccc';
+            }
+            // Ważne: Odblokowujemy flagi, bo runda jest otwarta
+            window.isSpinning = false;
+            window.isFinalizing = false;
+            window.lastWinnerId = null;
+            
+            // Ukrywamy modal zwycięzcy jeśli wisi stary
+            const winnerModal = document.getElementById('jackpotWinnerModal');
+            if (winnerModal) winnerModal.style.display = 'none';
         }
-        
-        // SCENARIUSZ 4: OCZEKIWANIE NA GRACZY
-        else {
-             if (timerDiv) timerDiv.innerText = "Oczekiwanie na graczy...";
-        }
+    }, (error) => {
+        console.error("Błąd nasłuchu:", error);
     });
 };
 
-// 3. FUNKCJA KRĘCENIA (Poprawiona synchronizacja)
+// 2. FUNKCJA FINALIZACJI (Wybór zwycięzcy i zapis do bazy)
+// (Podmieniamy ją, bo Twoja stara mogła się zacinać)
+window.finalizeJackpot = async () => {
+    try {
+        await runTransaction(db, async (transaction) => {
+            const jpRef = doc(db, "jackpot", "current");
+            const sfDoc = await transaction.get(jpRef);
+            if (!sfDoc.exists()) throw "Dokument nie istnieje";
+            
+            const data = sfDoc.data();
+            
+            // Jeśli ktoś już wylosował, przerywamy
+            if (data.winnerEntry) return; 
+            if (data.status !== 'open') return;
+
+            const entries = data.entries;
+            const totalTickets = entries.reduce((acc, e) => acc + e.amount, 0);
+            
+            // Matematyka losowania
+            let randomTicket = Math.random() * totalTickets;
+            let currentTicket = 0;
+            let winner = null;
+
+            for (let entry of entries) {
+                currentTicket += entry.amount;
+                if (randomTicket <= currentTicket) {
+                    winner = entry;
+                    break;
+                }
+            }
+
+            // Zapisz zwycięzcę do bazy
+            // To jest moment, który odblokuje wszystkich klientów czekających na wynik
+            transaction.update(jpRef, {
+                status: 'closed', // Zamykamy przyjmowanie zakładów
+                winnerEntry: winner, // Zapisujemy kto wygrał
+                winnerProcessing: true
+            });
+        });
+        console.log("✅ Losowanie zakończone sukcesem.");
+    } catch (e) {
+        console.log("Losowanie obsłużone przez kogoś innego lub błąd:", e);
+    } finally {
+        // Zwalniamy blokadę po chwili (na wszelki wypadek)
+        setTimeout(() => { window.isFinalizing = false; }, 5000);
+    }
+};
+
+// 3. FUNKCJA KRĘCENIA (Animacja + Auto-Reset)
 window.spinTheWheel = async (winnerEntry, entries) => {
-    if (window.isSpinning) return; // Już się kręci
+    // Jeśli już kręcimy, nie przerywaj
+    if (window.isSpinning) return;
     window.isSpinning = true;
 
-    console.log("START ANIMACJI DLA:", winnerEntry.nick);
-
     const rail = document.getElementById('jackpotRail');
-    
-    // --- GENEROWANIE KART ---
+    if (!rail) return;
+
+    // A. Generujemy karty
     let cardsHtml = '';
+    // Tworzymy 100 kart, zwycięzca na 75
     for (let i = 0; i < 100; i++) {
         let entry = (i === 75) ? winnerEntry : entries[Math.floor(Math.random() * entries.length)];
-        // Zabezpieczenie na wypadek pustego entry (choć nie powinno wystąpić)
-        if(!entry) entry = winnerEntry; 
+        // Fallback gdyby entries było puste
+        if (!entry) entry = winnerEntry; 
 
         cardsHtml += `
             <div class="jackpot-card" style="border-bottom: 3px solid ${entry.color}">
                 <img src="${entry.avatar}" onerror="this.src='https://i.imgur.com/XqBdK43.png'">
                 <div class="jackpot-nick">${entry.nick}</div>
-                <div class="jackpot-chance">${((entry.amount / entries.reduce((a,b)=>a+b.amount,0))*100).toFixed(1)}%</div>
+                <div class="jackpot-chance">${((entry.amount / (entries.reduce((a,b)=>a+b.amount,0)||1))*100).toFixed(1)}%</div>
             </div>
         `;
     }
     rail.innerHTML = cardsHtml;
 
-    // --- PRZYGOTOWANIE DO RUCHU ---
+    // B. Reset pozycji
     rail.style.transition = 'none';
     rail.style.transform = 'translateX(0px)';
-    rail.offsetHeight; // Force reflow
+    rail.offsetHeight; // Force reflow (wymuszenie przerysowania)
 
-    // Obliczenia pozycji
+    // C. Obliczenia
     const cardWidth = 104; 
     const railCenter = document.querySelector('.jackpot-window').offsetWidth / 2;
     const randomOffset = Math.floor(Math.random() * 60) - 30;
     const targetX = (75 * cardWidth) - railCenter + (cardWidth / 2) + randomOffset;
 
-    // --- START RUCHU ---
+    // D. Start Animacji (z małym opóźnieniem)
     setTimeout(() => {
         rail.style.transition = 'transform 8s cubic-bezier(0.15, 0.85, 0.15, 1)';
         rail.style.transform = `translateX(-${targetX}px)`;
-        if(window.playSound) window.playSound('roll_start'); // Opcjonalnie dźwięk
+        if(window.playSound) window.playSound('roll_start');
     }, 50);
 
-    // --- KONIEC RUCHU I POKAZANIE WYNIKU ---
+    // E. Koniec Animacji i Pokazanie Wyniku
     setTimeout(() => {
-        // 1. Pokaż modal
         if(window.showWinnerModal) window.showWinnerModal(winnerEntry);
         if(window.playSound) window.playSound('win');
         
-        // 2. Ustaw "Bezpiecznik" na reset (Autopilot)
-        // Czekamy 6 sekund na podziwianie wyniku i czyścimy
+        // F. AUTOMATYCZNY RESET PO 6 SEKUNDACH (BEZ F5!)
+        console.log("⏳ Oczekiwanie na reset bazy...");
         setTimeout(() => {
-            console.log("Próba automatycznego resetu...");
-            window.resetJackpotVisuals(); 
+            forceDatabaseReset(); 
         }, 6000);
 
-    }, 8500); // 8.5 sekundy (zapas dla animacji 8s)
+    }, 8500); 
 };
 
-// 4. RESET I CZYSZCZENIE BAZY (Autopilot + Bezpiecznik)
-window.resetJackpotVisuals = async () => {
-    // A) Reset wizualny (Natychmiastowy)
+// 4. FUNKCJA RESETUJĄCA BAZĘ (Wymuszona)
+window.forceDatabaseReset = async () => {
+    // Wizualne czyszczenie
     const rail = document.getElementById('jackpotRail');
-    if (rail) {
-        rail.style.transition = 'none';
-        rail.style.transform = 'translateX(0px)';
-    }
-    const list = document.getElementById('jackpotEntries');
-    if (list) list.innerHTML = '';
+    if(rail) { rail.style.transition='none'; rail.style.transform='translateX(0px)'; }
     
-    const winnerModal = document.getElementById('jackpotWinnerModal');
-    if (winnerModal) winnerModal.style.display = 'none';
-
-    // Reset flag lokalnych
-    window.isSpinning = false;
-    window.isFinalizing = false;
-
-    // B) Reset BAZY DANYCH (Tryb: Kto pierwszy ten lepszy)
-    // Dzięki temu nie musisz klikać F5. Gra sama wyśle sygnał "Clean".
+    // Losowe opóźnienie, żeby nie zabić bazy jak 10 osób wyśle reset naraz
+    const delay = Math.floor(Math.random() * 3000);
     
-    const randomDelay = Math.floor(Math.random() * 2000); // Mały rozrzut, żeby nie zabić bazy
-
     setTimeout(async () => {
         try {
             const jpRef = doc(db, "jackpot", "current");
-            
-            // Używamy transakcji, żeby bezpiecznie zresetować
             await runTransaction(db, async (transaction) => {
                 const sfDoc = await transaction.get(jpRef);
                 if (!sfDoc.exists()) return;
-                
                 const data = sfDoc.data();
                 
-                // Jeśli status już jest 'open', to znaczy, że ktoś inny zresetował przed nami.
-                // Wtedy kończymy funkcję.
-                if (data.status === 'open' && !data.winnerEntry) {
-                    return; 
-                }
+                // Jeśli już otwarte, nic nie rób
+                if (data.status === 'open' && !data.winnerEntry) return;
 
-                // Jeśli status wciąż jest stary (mamy zwycięzcę w bazie), to czyścimy.
+                // RESETUJEMY DO CZYSTEJ GRY
                 transaction.update(jpRef, {
                     status: 'open',
                     entries: [],
                     startTime: null,
-                    winnerProcessing: false,
-                    winnerEntry: deleteField() // WAŻNE: Usuwamy pole zwycięzcy z bazy!
+                    winnerEntry: deleteField(), // WAŻNE: Usuwamy zwycięzcę!
+                    winnerProcessing: false
                 });
             });
-            console.log("Baza zresetowana pomyślnie.");
-            
-        } catch (e) {
-            console.log("Reset obsłużony przez innego klienta lub błąd:", e);
+            console.log("♻️ Baza zresetowana. Nowa runda!");
+        } catch(e) {
+            console.log("Reset zrobiony przez innego gracza.");
+        } finally {
+            // Ostateczne odblokowanie u klienta
+            window.isSpinning = false;
+            window.lastWinnerId = null;
         }
-    }, randomDelay);
+    }, delay);
 };
-	
 	
 	
 </script>
@@ -5163,6 +5204,7 @@ window.resetJackpotVisuals = async () => {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
