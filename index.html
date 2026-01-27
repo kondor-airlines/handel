@@ -3621,6 +3621,15 @@ window.renderOffers = () => {
         });
         
         window.playSound('coin');
+		// --- DISCORD START ---
+        const shortDesc = desc.length > 60 ? desc.substring(0, 60) + "..." : desc;
+        sendDiscordNotification(
+            'handel', 
+            `Nowa Oferta: ${name}`, 
+            `**Cena:** ${price}\n**Opis:** ${shortDesc}\n\n[Przejdź do Targowiska](https://TWOJA-STRONA.pl)`, 
+            currentNick
+        );
+        // --- DISCORD END ---
         window.alert("Dodano ofertę! ✅");
         
         // Reset formularza
@@ -4221,6 +4230,19 @@ window.saveFinalSplit = async () => {
             document.querySelectorAll('.boss-active, .team-active, .selected').forEach(el => el.classList.remove('boss-active', 'team-active', 'selected'));
             s_Bosses = []; s_Team = [];
             window.playSound('coin');
+
+			// Obliczamy sumę, żeby ładnie wyglądało na Discordzie
+        const totalValue = lootItems.reduce((sum, item) => sum + (parseFloat(item.value) || 0), 0);
+
+        // --- DISCORD START ---
+        sendDiscordNotification(
+            'podzial', 
+            `Nowy Podział Łupu!`, 
+            `**Mapa:** ${mapName}\n**Łączna wartość:** ${totalValue} złota\n**Liczba przedmiotów:** ${lootItems.length}\n\n[Przejdź do Podziałów](https://TWOJA-STRONA.pl)`, 
+            currentNick
+        );
+        // --- DISCORD END ---
+			
         }
     };
 
@@ -5107,12 +5129,63 @@ function renderJackpotUI(data) {
         });
         alert("☢️ ZRESETOWANO JACKPOT RĘCZNIE! ☢️");
     };
+
+	// --- POWIADOMIENIA DISCORD (2 KANAŁY) ---
+    async function sendDiscordNotification(type, title, details, author) {
+        // TU WKLEJ SWOJE LINKI:
+        const WEBHOOK_HANDEL = "https://discord.com/api/webhooks/1465769735185502479/f-BawOQxP6mXA5QL_p6yyFVgB2M8S8qyCEI9yZg0SmjNzcZrrdcIUn-nBeEdKYzuzCRu";
+        const WEBHOOK_PODZIALY = "https://discord.com/api/webhooks/1465769820812345477/z9-BUhTxCbeo_rzvJTjTpm8CzEi2bKHQ3ng-Rvvdyrjpdj2XEZoLpsLS_n1CJE-aemLh";
+
+        // Wybór odpowiedniego kanału i koloru
+        let targetUrl = "";
+        let color = 0;
+        let icon = "";
+
+        if (type === 'handel') {
+            targetUrl = WEBHOOK_HANDEL;
+            color = 3066993; // Zielony (Decimal)
+            icon = "⚖️";
+        } else if (type === 'podzial') {
+            targetUrl = WEBHOOK_PODZIALY;
+            color = 16766720; // Złoty (Decimal)
+            icon = "💰";
+        }
+
+        // Jeśli link jest pusty (nie ustawiony), przerywamy cicho
+        if (!targetUrl || targetUrl.includes("LINK_DO")) return;
+
+        const payload = {
+            username: "Targowisko Bot",
+            avatar_url: "https://cdn-icons-png.flaticon.com/512/3135/3135715.png",
+            embeds: [
+                {
+                    title: `${icon} ${title}`,
+                    description: details,
+                    color: color,
+                    footer: {
+                        text: `Dodał: ${author} • ${new Date().toLocaleTimeString()}`
+                    }
+                }
+            ]
+        };
+
+        try {
+            await fetch(targetUrl, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            });
+        } catch (e) {
+            console.error("Błąd wysyłania na Discorda:", e);
+        }
+    }
 	
 </script>
 
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
