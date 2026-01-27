@@ -5145,7 +5145,79 @@ window.startJackpotHistoryListener = () => {
 
 }; // <--- TU SIĘ KOŃCZY DEFINICJA FUNKCJI (Ważne!)
 
+// ============================================================
+// BRAKUJĄCE FUNKCJE (WKLEJ NA DOLE PLIKU, PRZED setTimeout)
+// ============================================================
 
+// 1. FUNKCJA KRĘCENIA KOŁEM (ANIMACJA)
+window.spinTheWheel = async (winnerEntry, entries) => {
+    if (window.isSpinning) return;
+    window.isSpinning = true;
+
+    console.log("🎰 START ANIMACJI DLA:", winnerEntry.nick);
+
+    const rail = document.getElementById('jackpotRail');
+    if (!rail) return;
+
+    // A. Generujemy karty
+    let cardsHtml = '';
+    for (let i = 0; i < 100; i++) {
+        let entry = (i === 75) ? winnerEntry : entries[Math.floor(Math.random() * entries.length)];
+        if (!entry) entry = winnerEntry; 
+
+        // Zabezpieczenie danych (Sanityzacja)
+        const safeNick = entry.nick || "Nieznajomy";
+        const safeAvatar = entry.avatar || "https://i.imgur.com/XqBdK43.png";
+        
+        // Oblicz szansę (zabezpieczenie przed dzieleniem przez zero)
+        const totalAmount = entries.reduce((a,b)=>a+b.amount,0) || 1;
+        const safeChance = ((entry.amount / totalAmount)*100).toFixed(1);
+
+        cardsHtml += `
+            <div class="jackpot-card" style="border-bottom: 3px solid ${entry.color || '#fff'}">
+                <img src="${safeAvatar}" onerror="this.src='https://i.imgur.com/XqBdK43.png'">
+                <div class="jackpot-nick">${safeNick}</div>
+                <div class="jackpot-chance">${safeChance}%</div>
+            </div>
+        `;
+    }
+    rail.innerHTML = cardsHtml;
+
+    // B. Reset pozycji
+    rail.style.transition = 'none';
+    rail.style.transform = 'translateX(0px)';
+    rail.offsetHeight; // Force reflow
+
+    // C. Obliczenia celu
+    const cardWidth = 104; 
+    const railCenter = document.querySelector('.jackpot-window').offsetWidth / 2;
+    const randomOffset = Math.floor(Math.random() * 60) - 30;
+    const targetX = (75 * cardWidth) - railCenter + (cardWidth / 2) + randomOffset;
+
+    // D. Start Animacji
+    setTimeout(() => {
+        rail.style.transition = 'transform 8s cubic-bezier(0.15, 0.85, 0.15, 1)';
+        rail.style.transform = `translateX(-${targetX}px)`;
+        if(window.playSound) window.playSound('roll_start');
+    }, 50);
+
+    // E. Koniec Animacji
+    setTimeout(() => {
+        // Pokaż wynik
+        if(window.showWinnerModal) window.showWinnerModal(winnerEntry);
+        else console.warn("Brak funkcji showWinnerModal!"); // Fallback
+        
+        if(window.playSound) window.playSound('win');
+        
+        // Auto-Reset Bazy
+        console.log("⏳ Oczekiwanie na reset bazy...");
+        setTimeout(() => {
+            if(window.forceDatabaseReset) window.forceDatabaseReset(); 
+        }, 6000);
+
+    }, 8500); 
+};
+	
 // --- A TO JEST START SKRYPTU (Musi być POZA funkcją) ---
 setTimeout(() => {
     console.log("🚀 Inicjalizacja skryptów Jackpota...");
@@ -5163,6 +5235,7 @@ setTimeout(() => {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
