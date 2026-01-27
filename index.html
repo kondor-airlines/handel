@@ -4951,12 +4951,115 @@ if (nowSynced > jackpotEndTime && !isFinalizing && !data.winnerProcessing) {
         
         window.playSound('click');
     };
+
+	window.resetJackpotVisuals = () => {
+    // 1. Reset paska z kartami
+    const rail = document.getElementById('jackpotRail');
+    if (rail) {
+        rail.style.transition = 'none'; // Wyłączamy animację
+        rail.style.transform = 'translateX(0px)'; // Wracamy na start
+    }
+
+    // 2. Wyczyszczenie listy graczy
+    const list = document.getElementById('jackpotEntries');
+    if (list) list.innerHTML = '';
+
+    // 3. Reset liczników
+    const totalDiv = document.getElementById('jackpotTotal');
+    if (totalDiv) totalDiv.innerHTML = '0 <span style="color:gold">G</span>';
+    
+    const timerDiv = document.getElementById('jackpotTimer');
+    if (timerDiv) timerDiv.innerText = 'Oczekiwanie...';
+
+    // 4. Ukrycie okna wygranej (jeśli wisi)
+    const winnerModal = document.getElementById('jackpotWinnerModal');
+    if (winnerModal) winnerModal.style.display = 'none';
+
+    // 5. Reset flagi (ważne!)
+    window.isSpinning = false;
+};
+
+	window.spinTheWheel = async (winnerEntry, entries) => {
+    // Zabezpieczenie przed podwójnym kręceniem
+    if (window.isSpinning) return;
+    window.isSpinning = true;
+
+    const rail = document.getElementById('jackpotRail');
+    
+    // 1. Generujemy pasek kart (zwycięzca ZAWSZE na 75. pozycji)
+    let cardsHtml = '';
+    // Generujemy 100 kart, żeby pasek był długi
+    for (let i = 0; i < 100; i++) {
+        let entry;
+        if (i === 75) {
+            // Tutaj MUSI być zwycięzca
+            entry = winnerEntry;
+        } else {
+            // Reszta losowo z puli graczy, żeby było kolorowo
+            entry = entries[Math.floor(Math.random() * entries.length)];
+        }
+        
+        // Tworzymy HTML karty
+        cardsHtml += `
+            <div class="jackpot-card" style="border-bottom: 3px solid ${entry.color}">
+                <img src="${entry.avatar}" onerror="this.src='https://i.imgur.com/XqBdK43.png'">
+                <div class="jackpot-nick">${entry.nick}</div>
+                <div class="jackpot-chance">${((entry.amount / entries.reduce((a,b)=>a+b.amount,0))*100).toFixed(1)}%</div>
+            </div>
+        `;
+    }
+    rail.innerHTML = cardsHtml;
+
+    // 2. Resetujemy pozycję "na start" (bez animacji)
+    rail.style.transition = 'none';
+    rail.style.transform = 'translateX(0px)';
+
+    // Odtwarzamy dźwięk startu (jeśli masz)
+    window.playSound('roll_start'); // upewnij się, że masz taki dźwięk lub usuń tę linię
+
+    // 3. Wymuszamy przerysowanie przeglądarki (ważny trik!)
+    rail.offsetHeight; 
+
+    // 4. Obliczamy pozycję zwycięzcy (75. karta)
+    // Karta ma np. 100px szerokości + marginesy. 
+    // Zakładamy szerokość karty ok. 104px (dostosuj jeśli masz inną w CSS)
+    const cardWidth = 104; 
+    // Chcemy, żeby 75. karta była na środku. 
+    // Przesuwamy o: (75 * szerokość) - (połowa ekranu) + (połowa karty) + losowy "jitter" wewnątrz karty
+    const railCenter = document.querySelector('.jackpot-window').offsetWidth / 2;
+    const randomOffset = Math.floor(Math.random() * 60) - 30; // Żeby nie stawało zawsze idealnie co do piksela
+    const targetX = (75 * cardWidth) - railCenter + (cardWidth / 2) + randomOffset;
+
+    // 5. START ANIMACJI (z małym opóźnieniem 50ms, żeby oko zarejestrowało start)
+    setTimeout(() => {
+        // Czas trwania animacji: 8 sekund (cubic-bezier dla efektu zwalniania)
+        rail.style.transition = 'transform 8s cubic-bezier(0.15, 0.85, 0.15, 1)';
+        rail.style.transform = `translateX(-${targetX}px)`;
+        
+        // Dźwięk tykania (opcjonalnie)
+        // window.playSound('ticking'); 
+    }, 50);
+
+    // 6. KONIEC ANIMACJI (za 8.5 sekundy - 8s animacji + 0.5s zapasu)
+    setTimeout(() => {
+        // Pokaż modal zwycięzcy
+        showWinnerModal(winnerEntry);
+        window.playSound('win');
+        
+        // Czekamy chwilę, żeby ludzie zobaczyli kto wygrał i czyścimy stół
+        setTimeout(() => {
+            resetJackpotVisuals(); // Teraz ta funkcja już istnieje!
+        }, 5000); // 5 sekund gapienia się na wynik
+
+    }, 8500); 
+};
 	
 </script>
 
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
