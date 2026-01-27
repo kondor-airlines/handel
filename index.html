@@ -4600,7 +4600,6 @@ function startSplitHistory() {
             }
             const data = docSnap.data();
             
-            // Synchronizacja czasu
             if(docSnap.readTime) {
                 timeOffset = docSnap.readTime.toMillis() - new Date().getTime(); 
             }
@@ -4608,12 +4607,10 @@ function startSplitHistory() {
             renderJackpotUI(data);
             const timerEl = document.getElementById('jackpotTimer');
 
-            // Reset flagi lokalnej, gdy nowa runda jest czysta
             if (data.status === 'open' && !data.winnerProcessing) {
                 isFinalizingLocal = false; 
             }
 
-            // Obsługa timera w UI
             if(data.status === 'open' && data.startTime) {
                 let startMillis = 0;
                 if (typeof data.startTime.toMillis === 'function') startMillis = data.startTime.toMillis();
@@ -4633,19 +4630,29 @@ function startSplitHistory() {
                 timerEl.style.display = 'none';
             }
 
-            // Wykrycie startu losowania
-            if(data.status === 'spinning' && !document.getElementById('jackpotStrip').classList.contains('spinning')) {
+            // --- ZMIANA TUTAJ ---
+            // Sprawdzamy czy trwa kręcenie. Przekazujemy timestamp startu do funkcji spinTheWheel
+            if(data.status === 'spinning') {
                 timerEl.style.display = 'none';
-                spinTheWheel(data.winner, data.entries);
+                // Wyciągamy czas startu kręcenia
+                let spinStartMillis = 0;
+                if (data.spinStartTime) {
+                    if (typeof data.spinStartTime.toMillis === 'function') spinStartMillis = data.spinStartTime.toMillis();
+                    else if (data.spinStartTime.seconds) spinStartMillis = data.spinStartTime.seconds * 1000;
+                    else spinStartMillis = new Date(data.spinStartTime).getTime();
+                }
+                
+                // Jeśli nie ma klasy spinning (nowe wejście) LUB jeśli modal był zamknięty
+                if (!document.getElementById('jackpotStrip').classList.contains('spinning')) {
+                    spinTheWheel(data.winner, data.entries, spinStartMillis);
+                }
             }
             
-            // Wykrycie końca (otwarcie nowej rundy)
             if(data.status === 'open' && document.getElementById('jackpotStrip').classList.contains('spun')) {
                  resetJackpotVisuals();
             }
         });
         
-        // Pętla odliczająca czas
         if(jpTimerInterval) clearInterval(jpTimerInterval);
         
         jpTimerInterval = setInterval(() => {
@@ -4662,33 +4669,23 @@ function startSplitHistory() {
              } else {
                  timerEl.innerText = "LOSOWANIE...";
                  
-                 // === INTELIGENTNY SYSTEM KOLEJKOWANIA ===
+                 // System kolejkowania (Admin First)
                  if (diff > -8000 && !isFinalizingLocal) {
-                     isFinalizingLocal = true; // Blokada
-                     
-                     // Domyślne opóźnienie dla zwykłego gracza (długie: 5-8 sekund)
+                     isFinalizingLocal = true; 
                      let minDelay = 5000;
                      let maxDelay = 8000;
 
-                     // Jeśli to Admin, opóźnienie jest minimalne (0-2 sekundy)
-                     // Admin ma pierwszeństwo "strzału"
                      if (typeof currentNick !== 'undefined' && currentNick === ADMIN_NICK) {
                          minDelay = 0;
                          maxDelay = 2000;
                      }
-
                      const randomDelay = Math.floor(Math.random() * (maxDelay - minDelay + 1) + minDelay);
-                     console.log(`⏱️ Planowane losowanie za ${randomDelay}ms (Rola: ${minDelay === 0 ? 'Admin' : 'Gracz'})`);
                      
                      setTimeout(() => {
-                         // Pobieramy świeży stan przed próbą zapisu
                          getDoc(doc(db, "jackpot", "current")).then(snap => {
                              const d = snap.data();
-                             // Strzelamy tylko, jeśli runda wciąż jest 'open' i nikt jej nie mieli
                              if(d && d.status === 'open' && !d.winnerProcessing) {
                                  finalizeJackpot();
-                             } else {
-                                 console.log("ℹ️ Ktoś inny (np. Admin) już rozpoczął losowanie. Anuluję moje zapytanie.");
                              }
                          });
                      }, randomDelay);
@@ -4737,10 +4734,9 @@ function startSplitHistory() {
         try {
             await runTransaction(db, async (transaction) => {
                 const sfDoc = await transaction.get(jpRef);
-                if (!sfDoc.exists()) throw "Brak dokumentu";
+                if (!sfDoc.exists()) throw "Dokument nie istnieje!";
                 const data = sfDoc.data();
 
-                // Jeśli status się zmienił w międzyczasie -> anuluj
                 if (data.status !== 'open' || data.winnerProcessing) {
                     throw "Runda zakończona przez innego gracza."; 
                 }
@@ -4764,12 +4760,12 @@ function startSplitHistory() {
                 transaction.update(jpRef, {
                     status: 'spinning',
                     winner: winner,
-                    winnerTotal: total 
+                    winnerTotal: total,
+                    spinStartTime: serverTimestamp() // <--- KLUCZOWA NOWOŚĆ: Znacznik czasu startu
                 });
             });
             console.log("✅ Pomyślnie przeprowadzono losowanie.");
         } catch (e) {
-            // Ignorujemy błędy wyścigu (to normalne)
             if (typeof e === 'string' && e.includes("Runda zakończona")) {
                 console.log("ℹ️ Losowanie obsługiwane przez inny wątek.");
             } else {
@@ -4777,20 +4773,25 @@ function startSplitHistory() {
             }
         }
     }
-    function spinTheWheel(winner, entries) {
+    function spinTheWheel(winner, entries, spinStartMillis) {
         const strip = document.getElementById('jackpotStrip');
         const rail = document.querySelector('.jackpot-rail');
+        
+        // Zabezpieczenie przed podwójnym odpaleniem
+        if (strip.classList.contains('spinning')) return;
         strip.classList.add('spinning');
         
         const CARD_WIDTH = 80; 
         const MARGIN = 4;      
         const FULL_CARD = CARD_WIDTH + MARGIN; 
         const WINNER_INDEX = 75; 
+        const ANIMATION_DURATION = 8500; // 8.5 sekundy całkowity czas
         
         strip.innerHTML = "";
         strip.style.transition = "none";
         strip.style.transform = "translateX(0px)";
 
+        // Generowanie kart
         let cardsHtml = "";
         for(let i=0; i < 100; i++) {
             let entry;
@@ -4807,38 +4808,58 @@ function startSplitHistory() {
             `;
         }
         strip.innerHTML = cardsHtml;
-
         document.getElementById('jackpotControls').style.display = 'none';
 
-        setTimeout(() => {
-            const containerWidth = rail.offsetWidth;
-            const centerPosition = - (WINNER_INDEX * FULL_CARD) + (containerWidth / 2) - (FULL_CARD / 2);
-            const jitter = Math.floor(Math.random() * 50) - 25; 
-            const finalPosition = centerPosition + jitter;
+        // --- OBLICZANIE CZASU I POZYCJI ---
+        const now = new Date().getTime();
+        // Jeśli spinStartMillis nie podano (stara wersja bazy), użyj 'teraz'
+        const startTime = spinStartMillis || now; 
+        
+        const elapsed = now - startTime; // Ile czasu już minęło
+        let remaining = ANIMATION_DURATION - elapsed; // Ile zostało do końca
 
-            strip.style.transition = "transform 8s cubic-bezier(0.15, 0, 0.10, 1)"; 
+        // Obliczamy pozycję docelową
+        const containerWidth = rail.offsetWidth;
+        const centerPosition = - (WINNER_INDEX * FULL_CARD) + (containerWidth / 2) - (FULL_CARD / 2);
+        // Dodajemy losowy jitter (musi być deterministyczny dla spójności, ale tutaj dla uproszczenia losowy jest ok, bo wynik i tak jest znany)
+        const jitter = 0; // Wyłączamy jitter przy synchronizacji, żeby każdy widział to samo miejsce
+        const finalPosition = centerPosition + jitter;
+
+        if (remaining <= 0) {
+            // Czas już minął - pokaż wynik NATYCHMIAST bez animacji
             strip.style.transform = `translateX(${finalPosition}px)`;
-            window.playSound('coin'); 
-        }, 100);
+            finishSpin();
+        } else {
+            // Czas jeszcze jest - uruchom animację, ale szybciej
+            // Małe opóźnienie dla przeglądarki, żeby zarejestrowała zmianę
+            setTimeout(() => {
+                // Cubic-bezier dla płynności, ale czas trwania to "remaining"
+                strip.style.transition = `transform ${remaining}ms cubic-bezier(0.15, 0, 0.10, 1)`; 
+                strip.style.transform = `translateX(${finalPosition}px)`;
+                
+                // Dźwięk tylko jeśli zostało sporo czasu (żeby nie hałasować przy szybkim przewijaniu)
+                if (remaining > 2000) window.playSound('coin'); 
+            }, 50);
 
-        setTimeout(async () => {
-            strip.classList.add('spun');
-            showWinnerScreen(winner, entries);    
-            
-            // Auto-reset (tylko zwycięzca lub admin resetuje bazę po 10s)
-            // Zmieniono warunek na bezpieczniejszy
-            if (currentUser && (currentUser.uid === winner.uid || currentNick === ADMIN_NICK)) {
-                setTimeout(async () => {
-                    // Sprawdzamy czy nadal 'spinning', żeby nie zepsuć nowej gry
-                    const check = await getDoc(doc(db, "jackpot", "current"));
-                    if(check.exists() && check.data().status === 'spinning') {
-                        await setDoc(doc(db, "jackpot", "current"), {
-                            status: 'open', entries: [], startTime: null, winner: null, winnerProcessing: false
-                        });
-                    }
-                }, 10000);
-            }
-        }, 8500);
+            // Ustawiamy timer końca
+            setTimeout(finishSpin, remaining);
+        }
+
+        function finishSpin() {
+             strip.classList.add('spun');
+             showWinnerScreen(winner, entries);    
+             
+             if (currentUser && (currentUser.uid === winner.uid || currentNick === ADMIN_NICK)) {
+                 setTimeout(async () => {
+                     const check = await getDoc(doc(db, "jackpot", "current"));
+                     if(check.exists() && check.data().status === 'spinning') {
+                         await setDoc(doc(db, "jackpot", "current"), {
+                             status: 'open', entries: [], startTime: null, winner: null, winnerProcessing: false
+                         });
+                     }
+                 }, 10000); // 10s gapienia się na wynik
+             }
+        }
     }
 
 		function showWinnerScreen(winner, entries) {
@@ -5017,6 +5038,7 @@ function startSplitHistory() {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
