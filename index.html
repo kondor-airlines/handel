@@ -4496,6 +4496,7 @@ function startSplitHistory() {
 
     // Zmienne Jackpot
     let jackpotUnsub = null;
+	let historyUnsub = null;
     let jpTimerInterval = null;
     let jackpotEndTime = 0;
     let timeOffset = 0;
@@ -4956,6 +4957,7 @@ if (nowSynced > jackpotEndTime && !isFinalizing && !data.winnerProcessing) {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
