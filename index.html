@@ -3622,6 +3622,7 @@ window.renderOffers = () => {
         
         window.playSound('coin');
 		// --- DISCORD START ---
+		const desc = document.getElementById('offerDesc').value;
         const shortDesc = desc.length > 60 ? desc.substring(0, 60) + "..." : desc;
         sendDiscordNotification(
             'handel', 
@@ -5185,6 +5186,7 @@ function renderJackpotUI(data) {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
