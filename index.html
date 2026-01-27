@@ -4853,23 +4853,15 @@ function startSplitHistory() {
                 }
             });
         }
-        
-        console.log("Zwycięzca:", winner.nick);
-        console.log("Lista dłużników:", debts);
         // -------------------------
 
-        // Renderowanie listy
+        // Renderowanie listy dla "Tu i Teraz"
         let debtorsListHtml = "";
         const sortedDebtors = Object.keys(debts).sort((a,b) => debts[b] - debts[a]);
         
         if (sortedDebtors.length > 0) {
             debtorsListHtml += `<div style="margin-top:15px; border-top:1px dashed #555; padding-top:10px;">`;
             debtorsListHtml += `<div style="color:#aaa; font-size:0.8em; margin-bottom:5px; text-transform:uppercase;">Do odebrania od:</div>`;
-            
-            // --- TUTAJ JEST ZMIANA (SCROLL) ---
-            // Dodajemy kontener o maksymalnej wysokości 150px z suwakiem
-            debtorsListHtml += `<div style="max-height: 150px; overflow-y: auto; padding-right: 5px;">`; 
-            
             sortedDebtors.forEach(nick => {
                 debtorsListHtml += `
                     <div style="display:flex; justify-content:space-between; border-bottom:1px solid rgba(255,255,255,0.05); padding:4px 0;">
@@ -4877,13 +4869,9 @@ function startSplitHistory() {
                         <span style="color:#ff6666; font-weight:bold;">${s_formatGold(debts[nick])}</span>
                     </div>`;
             });
-            
-            debtorsListHtml += `</div>`; // Zamykamy scrolla
-            debtorsListHtml += `</div>`; // Zamykamy kontener główny
+            debtorsListHtml += `</div>`;
         } else {
-            debtorsListHtml += `<div style="color:#888; font-size:0.8em; margin-top:15px; font-style:italic; border-top:1px dashed #444; padding-top:5px;">
-                (W puli były tylko Twoje wpłaty)
-            </div>`;
+            debtorsListHtml = `<div style="color:#666; font-size:0.8em; margin-top:10px;">(Wygrałeś własne wpłaty)</div>`;
         }
 
         document.getElementById('winAmount').innerHTML = `
@@ -4900,17 +4888,17 @@ function startSplitHistory() {
                 date: new Date().toISOString()
             });
 
-            const debtsToSave = debts || {}; 
-
+            // NOWOŚĆ: Zapisujemy obiekt 'debts' do historii!
             addDoc(collection(db, "jackpot_history"), {
                 nick: winner.nick,
                 amount: totalStr,
                 avatar: winner.avatar,
                 date: new Date().toISOString(),
-                debts: debtsToSave
+                debts: debts // <-- TO JEST KLUCZOWE
             });
         }
     }
+
     function resetJackpotVisuals() {
         document.getElementById('jackpotStrip').style.transition = 'none';
         document.getElementById('jackpotStrip').style.transform = 'translateX(0)';
