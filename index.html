@@ -4952,33 +4952,71 @@ if (nowSynced > jackpotEndTime && !isFinalizing && !data.winnerProcessing) {
         window.playSound('click');
     };
 
-	window.resetJackpotVisuals = () => {
-    // 1. Reset paska z kartami
+	window.resetJackpotVisuals = async () => {
+    // 1. Reset wizualny (to co widzi gracz u siebie)
     const rail = document.getElementById('jackpotRail');
     if (rail) {
-        rail.style.transition = 'none'; // Wyłączamy animację
-        rail.style.transform = 'translateX(0px)'; // Wracamy na start
+        rail.style.transition = 'none';
+        rail.style.transform = 'translateX(0px)';
     }
 
-    // 2. Wyczyszczenie listy graczy
     const list = document.getElementById('jackpotEntries');
     if (list) list.innerHTML = '';
 
-    // 3. Reset liczników
     const totalDiv = document.getElementById('jackpotTotal');
     if (totalDiv) totalDiv.innerHTML = '0 <span style="color:gold">G</span>';
     
     const timerDiv = document.getElementById('jackpotTimer');
     if (timerDiv) timerDiv.innerText = 'Oczekiwanie...';
 
-    // 4. Ukrycie okna wygranej (jeśli wisi)
     const winnerModal = document.getElementById('jackpotWinnerModal');
     if (winnerModal) winnerModal.style.display = 'none';
 
-    // 5. Reset flagi (ważne!)
     window.isSpinning = false;
-};
+    window.isFinalizing = false;
 
+    // 2. RESET BAZY DANYCH (Tryb Autopilota)
+    // Zamiast sprawdzać "Czy jestem adminem?", robimy to bezpieczną transakcją.
+    // Dzięki temu pierwszy gracz (ktokolwiek), którego przeglądarka zadziała, wyczyści stół dla wszystkich.
+    
+    // Ustawiamy losowe opóźnienie (0-3 sekundy), żeby 50 graczy nie uderzyło w bazę w tej samej milisekundzie.
+    const randomDelay = Math.floor(Math.random() * 3000);
+
+    setTimeout(async () => {
+        try {
+            const jpRef = doc(db, "jackpot", "current");
+            
+            await runTransaction(db, async (transaction) => {
+                const sfDoc = await transaction.get(jpRef);
+                if (!sfDoc.exists()) return; // Dokument nie istnieje? Nic nie robimy.
+                
+                const data = sfDoc.data();
+
+                // KLUCZOWE: Sprawdzamy, czy ktoś inny już nie zresetował stołu przed nami.
+                // Jeśli status to 'open', znaczy że ktoś był szybszy -> przerywamy (nie nadpisujemy).
+                if (data.status === 'open') {
+                    return; 
+                }
+
+                // Jeśli status to nadal 'closed' lub coś innego -> My jesteśmy "serwerem" w tym momencie.
+                // Czyścimy stół.
+                transaction.update(jpRef, {
+                    status: 'open',       // Otwieramy stół
+                    entries: [],          // Czyścimy graczy
+                    startTime: null,      // Resetujemy zegar
+                    winnerProcessing: false
+                });
+            });
+            console.log("Próba resetu (Autopilot) zakończona.");
+            
+        } catch (e) {
+            // Jeśli wyskoczy błąd, to zazwyczaj oznacza, że transakcja innej osoby już przeszła.
+            // Ignorujemy to, bo cel został osiągnięty.
+            console.log("Ktoś inny już zresetował stół lub wystąpił błąd sieci.", e);
+        }
+    }, randomDelay);
+};
+	
 	window.spinTheWheel = async (winnerEntry, entries) => {
     // Zabezpieczenie przed podwójnym kręceniem
     if (window.isSpinning) return;
@@ -5059,6 +5097,7 @@ if (nowSynced > jackpotEndTime && !isFinalizing && !data.winnerProcessing) {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
