@@ -3810,10 +3810,35 @@ window.renderOffers = () => {
             document.getElementById('itemDesc').value = statsPart.split('opis=')[1].split(';')[0].replaceAll('[br]', '\n');
         } else { document.getElementById('itemDesc').value = ""; }
     };
-		onSnapshot(query(collection(db, "oferty"), orderBy("date", "desc"), limit(20)), (snapshot) => {
-        allOffers = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-        updateUserFilterOptions();
-        window.renderOffers();
+// --- POPRAWIONA SEKCJA OFERT (HANDEL) ---
+    // 1. Zapytanie z limitem (oszczędzanie bazy)
+    const qOffers = query(collection(db, "oferty"), orderBy("date", "desc"), limit(20));
+
+    // 2. Nasłuchiwanie (Pamiętaj o słowie 'snap' w nawiasie!)
+    onSnapshot(qOffers, (snap) => {
+        const div = document.getElementById('marketList'); // Upewnij się, że masz takie ID w HTML
+        if (!div) return;
+
+        div.innerHTML = "";
+        
+        if (snap.empty) {
+            div.innerHTML = "<div style='text-align:center; padding:20px; color:#666;'>Brak ofert na rynku.</div>";
+            return;
+        }
+
+        snap.docs.forEach(doc => {
+            const item = doc.data();
+            
+            // Tutaj wstawiasz swój kod renderujący ofertę (HTML)
+            // Poniżej przykładowy prosty wygląd:
+            div.innerHTML += `
+                <div class="market-item" style="border:1px solid #444; margin-bottom:10px; padding:10px; background:rgba(0,0,0,0.3);">
+                    <div style="color:var(--gold); font-weight:bold;">${window.escapeHtml(item.item || "Przedmiot")}</div>
+                    <div style="font-size:0.9em;">Cena: ${item.price || 0}</div>
+                    <div style="font-size:0.8em; color:#888;">Sprzedawca: ${window.escapeHtml(item.nick || "Anonim")}</div>
+                    </div>
+            `;
+        });
     });
     window.alert = function(message) {
         const container = document.getElementById('toast-container');
@@ -5413,6 +5438,7 @@ function renderJackpotUI(data) {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
