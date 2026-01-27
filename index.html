@@ -922,62 +922,6 @@
         border-color: var(--gold); font-size: 1.2em;
     }
 
-	/* --- ZAKŁADKI JACKPOTA --- */
-        .jp-tabs {
-            display: flex;
-            background: #000;
-            border-bottom: 1px solid #333;
-        }
-        .jp-tab {
-            flex: 1;
-            padding: 15px;
-            text-align: center;
-            cursor: pointer;
-            font-family: 'Montserrat', sans-serif;
-            font-weight: bold;
-            text-transform: uppercase;
-            font-size: 0.9em;
-            color: #666;
-            transition: 0.3s;
-            border-bottom: 3px solid transparent;
-        }
-        .jp-tab:hover { background: #111; color: #aaa; }
-        
-        .jp-tab.active-low { color: #2ecc71; border-bottom-color: #2ecc71; background: rgba(46, 204, 113, 0.05); }
-        .jp-tab.active-mid { color: #f1c40f; border-bottom-color: #f1c40f; background: rgba(241, 196, 15, 0.05); }
-        .jp-tab.active-high { color: #e74c3c; border-bottom-color: #e74c3c; background: rgba(231, 76, 60, 0.05); animation: pulseTab 2s infinite; }
-
-        @keyframes pulseTab { 0% { text-shadow: 0 0 5px rgba(231, 76, 60, 0); } 50% { text-shadow: 0 0 15px rgba(231, 76, 60, 0.5); } 100% { text-shadow: 0 0 5px rgba(231, 76, 60, 0); } }
-
-        /* --- POPRAWKI MOBILNE (RWD) --- */
-        .jp-grid-container {
-            padding: 20px;
-            display: grid;
-            grid-template-columns: 1fr 1fr; /* Komputer: 2 kolumny */
-            gap: 20px;
-            height: 380px; /* Stała wysokość na PC */
-        }
-
-        @media (max-width: 768px) {
-            .jackpot-modal-window {
-                width: 100% !important;
-                height: 100% !important;
-                border-radius: 0 !important;
-                border: none !important;
-            }
-            .jp-grid-container {
-                display: flex;
-                flex-direction: column; /* Telefon: Pionowo */
-                height: auto !important; /* Wysokość automatyczna */
-                overflow-y: auto; /* Przewijanie całego środka */
-                padding-bottom: 80px; /* Miejsce na dole */
-            }
-            /* Ramki wewnątrz */
-            .jp-inner-box {
-                min-height: 250px; /* Minimalna wysokość list na telefonie */
-            }
-        }
-
 @keyframes pulseGold { 0% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(255, 215, 0, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0); } }
 		
         @keyframes rise {
@@ -1601,47 +1545,65 @@
     </div>
 </div>
 
-<div id="jackpotModal" class="jackpot-modal-window" style="display: none; position: fixed; z-index: 10060; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.95); align-items: center; justify-content: center; backdrop-filter: blur(5px);">
-    <div style="background: #111; border: 2px solid var(--gold); border-radius: 12px; width: 95%; max-width: 800px; display:flex; flex-direction:column; overflow:hidden; box-shadow: 0 0 50px rgba(255, 215, 0, 0.2); max-height: 95vh;">
+	<div id="jackpotModal" style="display: none; position: fixed; z-index: 10060; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.95); align-items: center; justify-content: center; backdrop-filter: blur(5px);">
+
+		<div id="historyDetailsModal" style="display: none; position: fixed; z-index: 10070; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.9); align-items: center; justify-content: center; backdrop-filter: blur(3px);">
+    <div style="background: #1a1a1a; padding: 25px; border: 2px solid var(--gold); border-radius: 12px; width: 90%; max-width: 400px; position:relative; display:flex; flex-direction:column; gap:15px;">
+        <button onclick="document.getElementById('historyDetailsModal').style.display='none'" style="position:absolute; top:10px; right:15px; background:none; border:none; color:#888; font-size:1.5em; cursor:pointer;">✕</button>
         
-        <div style="background: linear-gradient(90deg, #222, #000); padding: 10px 15px; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #333;">
-            <div style="display:flex; align-items:center; gap:10px;">
-                <span style="font-size:1.5em;">🎰</span>
-                <div>
-                    <h3 style="color:var(--gold); margin:0; font-family:'MedievalSharp'; line-height:1;">Klanowy JACKPOT</h3>
-                </div>
+        <h3 style="color:var(--gold); font-family:'MedievalSharp'; margin:0; text-align:center;">Podsumowanie Rundy</h3>
+        
+        <div style="text-align:center;">
+            <div style="font-size:0.9em; color:#aaa;">Zwycięzca:</div>
+            <div style="display:flex; align-items:center; justify-content:center; gap:10px; margin-top:5px;">
+                <img id="histDetAvatar" src="" style="width:40px; height:40px; border-radius:50%; border:2px solid var(--gold);">
+                <span id="histDetNick" style="font-weight:bold; font-size:1.2em; color:#fff;">...</span>
             </div>
-            <div id="jackpotTimer" style="font-family:'MedievalSharp'; font-size:1.5em; color:#fff; text-shadow:0 0 10px red; display:none;">60.00</div>
-            <button onclick="document.getElementById('jackpotModal').style.display='none'" style="background:none; border:none; color:#888; font-size:1.5em; cursor:pointer;">✕</button>
+            <div id="histDetAmount" style="font-size:1.5em; color:var(--green); font-weight:bold; margin-top:5px;">...</div>
         </div>
 
-        <div class="jp-tabs">
-            <div class="jp-tab active-low" onclick="switchJackpotTier('low')" id="tab-low">🟢 LOW (1m-100m)</div>
-            <div class="jp-tab" onclick="switchJackpotTier('medium')" id="tab-medium">🟡 MEDIUM (1m-500m)</div>
-            <div class="jp-tab" onclick="switchJackpotTier('high')" id="tab-high">🔴 NO LIMIT (max 10g)</div>
+        <div style="border-top:1px dashed #444; padding-top:10px;">
+            <div style="color:#ff6666; font-size:0.8em; text-transform:uppercase; margin-bottom:10px; text-align:center;">Lista do oddania:</div>
+            <div id="histDetList" style="max-height:200px; overflow-y:auto; display:flex; flex-direction:column; gap:5px;"></div>
+        </div>
+    </div>
+</div>
+		
+    <div style="background: #111; border: 2px solid var(--gold); border-radius: 12px; width: 95%; max-width: 700px; display:flex; flex-direction:column; overflow:hidden; box-shadow: 0 0 50px rgba(255, 215, 0, 0.2);">
+        
+        <div style="background: linear-gradient(90deg, #222, #000); padding: 15px; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #333;">
+            <div style="display:flex; align-items:center; gap:10px;">
+                <span style="font-size:2em;">🎰</span>
+                <div>
+                    <h3 style="color:var(--gold); margin:0; font-family:'MedievalSharp'; line-height:1;">Klanowy JACKPOT</h3>
+                    <small style="color:#777;">Pula zgarnia wszystko!</small>
+                </div>
+            </div>
+            <div id="jackpotTimer" style="font-family:'MedievalSharp'; font-size:2em; color:#fff; text-shadow:0 0 10px red; display:none;">60.00</div>
+            <button onclick="document.getElementById('jackpotModal').style.display='none'" style="background:none; border:none; color:#888; font-size:1.5em; cursor:pointer;">✕</button>
         </div>
 
         <div class="jackpot-rail">
             <div class="jackpot-pointer">▼</div>
-            <div class="jackpot-strip" id="jackpotStrip"></div>
+            <div class="jackpot-strip" id="jackpotStrip">
+                </div>
         </div>
 
-        <div class="jp-grid-container">
+<div style="padding: 20px; display:grid; grid-template-columns: 1fr 1fr; gap:20px; height: 350px;">
             
             <div>
                 <div style="background:rgba(255,255,255,0.05); padding:15px; border-radius:8px; margin-bottom:15px; text-align:center;">
-                    <div style="color:#aaa; font-size:0.8em; text-transform:uppercase;">Aktualna Pula (<span id="poolLabel">LOW</span>)</div>
+                    <div style="color:#aaa; font-size:0.8em; text-transform:uppercase;">Aktualna Pula</div>
                     <div id="jackpotTotalPool" style="font-size:1.8em; color:var(--green); font-weight:bold; text-shadow:0 0 15px rgba(46, 204, 113, 0.4);">0</div>
                 </div>
 
                 <div id="jackpotControls">
-                    <label style="color:#888; font-size:0.8em;" id="limitLabel">Limit wpłaty: 1m - 100m</label>
+                    <label style="color:#888; font-size:0.8em;">Stawka (1m - 10g):</label>
                     <div style="display:flex; gap:5px; margin-top:5px;">
-                        <input type="text" id="jackpotBetAmount" placeholder="np. 50m" style="flex:1;">
-                        <button id="joinBtn" onclick="joinJackpot()" class="action-btn" style="flex:1; background:linear-gradient(to bottom, #ffd700, #b8860b); color:black; font-size:0.9em;">WCHODZĘ! 💰</button>
+                        <input type="text" id="jackpotBetAmount" placeholder="np. 50m, 1.2g" style="flex:1;">
+                        <button onclick="joinJackpot()" class="action-btn" style="flex:1; background:linear-gradient(to bottom, #ffd700, #b8860b); color:black; font-size:0.9em;">WCHODZĘ! 💰</button>
                     </div>
                 </div>
-                
                 <div id="jackpotWinnerDisplay" style="display:none; text-align:center; padding:20px;">
                     <h2 style="color:var(--gold); margin:0;">WYGRYWA:</h2>
                     <div id="winnerNick" style="font-size:1.5em; font-weight:bold; color:#fff;">...</div>
@@ -1651,14 +1613,14 @@
 
             <div style="display:flex; flex-direction:column; gap:10px; height:100%; overflow:hidden;">
                 
-                <div class="jp-inner-box" style="background:rgba(0,0,0,0.3); border:1px solid #333; border-radius:8px; display:flex; flex-direction:column; flex:1; min-height:0; overflow:hidden;">
+                <div style="background:rgba(0,0,0,0.3); border:1px solid #333; border-radius:8px; display:flex; flex-direction:column; flex:1; min-height: 0; overflow:hidden;">
                     <div style="padding:8px; border-bottom:1px solid #333; font-weight:bold; color:#aaa; font-size:0.7em; background:rgba(0,0,0,0.2); flex-shrink: 0;">
                         OBECNA RUNDA
                     </div>
                     <div id="jackpotPlayersList" style="overflow-y:auto; padding:5px; flex-grow: 1;"></div>
                 </div>
 
-                <div class="jp-inner-box" style="background:rgba(0,0,0,0.3); border:1px solid #333; border-radius:8px; display:flex; flex-direction:column; flex:1; min-height:0; overflow:hidden;">
+                <div style="background:rgba(0,0,0,0.3); border:1px solid #333; border-radius:8px; display:flex; flex-direction:column; flex:1; min-height: 0; overflow:hidden;">
                     <div style="padding:8px; border-bottom:1px solid #333; font-weight:bold; color:#aaa; font-size:0.7em; background:rgba(0,0,0,0.2); flex-shrink: 0;">
                         OSTATNI ZWYCIĘZCY
                     </div>
@@ -1669,7 +1631,6 @@
 
             </div>
         </div>
-    </div>
 </div>
 	
 <script type="module">
@@ -4537,141 +4498,160 @@ function startSplitHistory() {
     let jackpotEndTime = 0;
     let timeOffset = 0;
 
-	let currentTier = 'low'; // Domyślny pokój
-    let isBettingProcessing = false; // Blokada spamu
-    
-    // Konfiguracja limitów dla każdego pokoju
-    const TIER_CONFIG = {
-        low:    { min: 1000000, max: 100000000,  label: "LOW (1m - 100m)", db: "jackpot_low", hist: "history_low" },
-        medium: { min: 1000000, max: 500000000,  label: "MEDIUM (1m - 500m)", db: "jackpot_medium", hist: "history_medium" },
-        high:   { min: 1000000, max: 10000000000, label: "NON-LIMIT (Max 10g)", db: "jackpot_high", hist: "history_high" }
-    };
-
 		window.openJackpot = () => {
         document.getElementById('jackpotModal').style.display = 'flex';
-        // Zawsze otwieraj na Low przy starcie, albo zapamiętaj ostatni
-        switchJackpotTier('low'); 
+        startJackpotListener();
+        startJackpotHistoryListener(); // <--- Nowa funkcja
     };
 
-window.joinJackpot = async () => {
+		window.joinJackpot = async () => {
         if(!currentUser) return alert("Zaloguj się!");
-        
-        // ANTY-SPAM: Jeśli już trwa wysyłanie, zablokuj
-        if(isBettingProcessing) return; 
-        
         const input = document.getElementById('jackpotBetAmount');
         const amount = parseGold(input.value);
-        const conf = TIER_CONFIG[currentTier]; // Pobierz limity aktualnego pokoju
 
-        // Sprawdzenie limitów pojedynczej wpłaty
-        if(amount < conf.min) return alert(`Za mało! W tym pokoju minimum to ${s_formatGold(conf.min)}.`);
-        if(amount > conf.max) return alert(`Za dużo! W tym pokoju maksimum to ${s_formatGold(conf.max)}.`);
-
-        // Blokujemy przycisk na chwilę
-        isBettingProcessing = true;
-        const btn = document.getElementById('joinBtn');
-        const originalText = btn.innerText;
-        btn.innerText = "⏳...";
-        btn.style.opacity = "0.5";
-
-        try {
-            // Używamy dynamicznej nazwy kolekcji (jackpot_low, jackpot_medium itd.)
-            const jpRef = doc(db, conf.db, "current"); 
-            const snap = await getDoc(jpRef);
-            
-            let data = { status: 'open', entries: [], startTime: null };
-            if(snap.exists()) data = snap.data();
-
-            // Limit łączny (zawsze 10g na osobę, dla bezpieczeństwa)
-            let myTotalInRound = 0;
-            if (data.entries) {
-                data.entries.forEach(e => { if (e.uid === currentUser.uid) myTotalInRound += e.amount; });
-            }
-            if ((myTotalInRound + amount) > 10000000000) {
-                throw "Osiągnąłeś globalny limit 10g na rundę.";
-            }
-
-            // ... (logika czasu bez zmian, tylko skrócona dla czytelności) ...
-            const now = new Date().getTime();
-            let isStuck = false;
-            if (data.startTime) {
-                let startMillis = (data.startTime.toMillis ? data.startTime.toMillis() : (data.startTime.seconds ? data.startTime.seconds*1000 : new Date(data.startTime).getTime()));
-                if ((now - startMillis) > 90000) isStuck = true;
-            }
-
-            if(data.status !== 'open' && !isStuck) throw "Runda trwa! Poczekaj.";
-            if (isStuck) { data.entries = []; data.startTime = null; data.status = 'open'; }
-
-            const newEntry = {
-                uid: currentUser.uid,
-                nick: currentNick,
-                avatar: currentUser.photoURL,
-                amount: amount,
-                color: getRandomColor()
-            };
-
-            const newEntries = [...(data.entries || []), newEntry];
-            const uniquePlayers = new Set(newEntries.map(e => e.uid)).size;
-            let newStartTime = data.startTime;
-
-            if (uniquePlayers >= 2 && !data.startTime) newStartTime = serverTimestamp(); 
-            else if (isStuck && uniquePlayers < 2) newStartTime = null;
-
-            await setDoc(jpRef, { 
-                entries: newEntries,
-                status: 'open',
-                winnerProcessing: false,
-                startTime: newStartTime
-            }, { merge: true });
-
-            input.value = "";
-            window.playSound('coin');
-
-        } catch (error) {
-            alert("Błąd: " + error);
-        } finally {
-            // Odblokuj przycisk po 1 sekudzie (dodatkowe zabezpieczenie przed double-click)
-            setTimeout(() => {
-                isBettingProcessing = false;
-                btn.innerText = originalText;
-                btn.style.opacity = "1";
-            }, 1000);
+        // --- 1. TWARDE LIMITY (1m - 10g) ---
+        if(amount < 1000000) {
+            return alert("🚫 Za mało! Minimum wpłaty to 1m.");
         }
+        if(amount > 10000000000) {
+            return alert("🚫 Za dużo! Maksymalnie możesz wpłacić 10g jednorazowo.");
+        }
+        // -----------------------------------
+
+        const jpRef = doc(db, "jackpot", "current");
+        const snap = await getDoc(jpRef);
+        
+        let data = { status: 'open', entries: [], startTime: null };
+        if(snap.exists()) data = snap.data();
+
+        // --- 2. SPRAWDZANIE LIMITU ŁĄCZNEGO (MAX 10g NA OSOBĘ) ---
+        let myTotalInRound = 0;
+        
+        if (data.entries) {
+            data.entries.forEach(e => {
+                if (e.uid === currentUser.uid) {
+                    myTotalInRound += e.amount;
+                }
+            });
+        }
+
+        const MAX_TOTAL_LIMIT = 10000000000; // 10g Łącznie
+
+        if ((myTotalInRound + amount) > MAX_TOTAL_LIMIT) {
+            const left = MAX_TOTAL_LIMIT - myTotalInRound;
+            // Jeśli gracz ma już 10g, left będzie 0
+            if (left <= 0) {
+                return alert("🚫 Osiągnąłeś już limit 10g w tej rundzie!");
+            }
+            return alert(`🚫 Przekroczysz limit 10g!\nWpłaciłeś już: ${s_formatGold(myTotalInRound)}.\nMożesz dołożyć maksymalnie: ${s_formatGold(left)}.`);
+        }
+        // ---------------------------------------------------------
+
+        // Zabezpieczenie przed zacięciem
+        const now = new Date().getTime();
+        let isStuck = false;
+        
+        if (data.startTime) {
+            let startMillis = 0;
+            if (data.startTime.toMillis) startMillis = data.startTime.toMillis();
+            else if (data.startTime.seconds) startMillis = data.startTime.seconds * 1000;
+            else startMillis = new Date(data.startTime).getTime();
+
+            if ((now - startMillis) > 90000) { 
+                isStuck = true;
+                console.warn("Reset zaciętej gry.");
+            }
+        }
+
+        if(data.status !== 'open' && !isStuck) return alert("Runda trwa! Poczekaj na wynik.");
+
+        if (isStuck) {
+            data.entries = [];
+            data.startTime = null;
+            data.status = 'open';
+        }
+
+        const newEntry = {
+            uid: currentUser.uid,
+            nick: currentNick,
+            avatar: currentUser.photoURL,
+            amount: amount,
+            color: getRandomColor()
+        };
+
+        const newEntries = [...(data.entries || []), newEntry];
+        
+        // Start gry (2 graczy = start)
+        const uniquePlayers = new Set(newEntries.map(e => e.uid)).size;
+        let newStartTime = data.startTime;
+
+        if (uniquePlayers >= 2 && !data.startTime) {
+            newStartTime = serverTimestamp(); 
+        } 
+        else if (isStuck && uniquePlayers < 2) {
+            newStartTime = null;
+        }
+
+        await setDoc(jpRef, { 
+            entries: newEntries,
+            status: 'open',
+            winnerProcessing: false,
+            startTime: newStartTime
+        }, { merge: true });
+
+        input.value = "";
+        window.playSound('coin');
     };
 
     function startJackpotListener() {
         if(jackpotUnsub) jackpotUnsub();
         
-        const conf = TIER_CONFIG[currentTier]; // Pobierz konfig dla obecnego pokoju
-        
-        // Nasłuchujemy odpowiedniej kolekcji (jackpot_low, jackpot_medium lub jackpot_high)
-        jackpotUnsub = onSnapshot(doc(db, conf.db, "current"), (docSnap) => {
-            if(!docSnap.exists()) {
-                // Jeśli dokument nie istnieje, tworzymy go (pierwsze odpalenie)
-                renderJackpotUI({entries: []});
-                return;
-            }
+        jackpotUnsub = onSnapshot(doc(db, "jackpot", "current"), (docSnap) => {
+            if(!docSnap.exists()) return; 
             const data = docSnap.data();
             
+            // 1. Synchronizacja czasu (Obliczanie Offsetu)
             if(docSnap.readTime) {
-                timeOffset = docSnap.readTime.toMillis() - new Date().getTime(); 
+                const serverTime = docSnap.readTime.toMillis();
+                const localTime = new Date().getTime();
+                timeOffset = serverTime - localTime; 
             }
 
             renderJackpotUI(data);
+
             const timerEl = document.getElementById('jackpotTimer');
 
+            // 2. Obsługa Czasu (PANCERNA LOGIKA)
             if(data.status === 'open' && data.startTime) {
-                // ... (logika czasu taka sama jak wcześniej) ...
-                let startMillis = (data.startTime.toMillis ? data.startTime.toMillis() : (data.startTime.seconds ? data.startTime.seconds*1000 : new Date(data.startTime).getTime()));
+                let startMillis = 0;
+
+                // Firebase czasem zwraca Timestamp, czasem obiekt {seconds, nanoseconds}, a czasem Date
+                if (typeof data.startTime.toMillis === 'function') {
+                    startMillis = data.startTime.toMillis();
+                } 
+                else if (data.startTime.seconds) {
+                    startMillis = data.startTime.seconds * 1000;
+                }
+                else {
+                    startMillis = new Date(data.startTime).getTime();
+                }
+
+                // Jeśli startMillis jest poprawny (nie 0 i nie NaN)
                 if (startMillis > 0) {
                     jackpotEndTime = startMillis + (JP_GAME_TIME * 1000);
                     timerEl.style.display = 'block';
+                } else {
+                    // Czekamy na serwer (sytuacja "Start...")
+                    timerEl.style.display = 'block';
+                    timerEl.innerText = "START...";
+                    jackpotEndTime = 0;
                 }
             } else {
                 jackpotEndTime = 0;
                 timerEl.style.display = 'none';
             }
 
+            // 3. Obsługa Stanów Gry
             if(data.status === 'spinning' && !document.getElementById('jackpotStrip').classList.contains('spinning')) {
                 timerEl.style.display = 'none';
                 spinTheWheel(data.winner, data.entries);
@@ -4682,26 +4662,32 @@ window.joinJackpot = async () => {
             }
         });
         
-        // Interwał timera bez zmian...
+        // 4. Interwał odświeżania (niezależny od bazy)
         if(jpTimerInterval) clearInterval(jpTimerInterval);
+        
         jpTimerInterval = setInterval(() => {
              if (!jackpotEndTime) return;
+
+             // Obliczamy czas z uwzględnieniem różnicy zegarów (Offset)
              const nowSynced = new Date().getTime() + timeOffset;
              const diff = jackpotEndTime - nowSynced; 
+
              const timerEl = document.getElementById('jackpotTimer');
 
              if (diff > 0) {
                  let seconds = diff / 1000;
-                 if (seconds > JP_GAME_TIME) seconds = JP_GAME_TIME;
+                 if (seconds > JP_GAME_TIME) seconds = JP_GAME_TIME; // Wizualna korekta
                  timerEl.innerText = seconds.toFixed(2) + "s";
              } else {
                  timerEl.innerText = "LOSOWANIE...";
+                 
+                 // Trigger losowania (tylko raz, gdy czas minie)
                  if (diff > -2000 && diff < 0) {
-                     // Sprawdź dokument w aktualnym pokoju
-                     const conf = TIER_CONFIG[currentTier];
-                     getDoc(doc(db, conf.db, "current")).then(snap => {
+                     getDoc(doc(db, "jackpot", "current")).then(snap => {
                          const d = snap.data();
-                         if(d && d.status === 'open' && !d.winnerProcessing) finalizeJackpot();
+                         if(d && d.status === 'open' && !d.winnerProcessing) {
+                             finalizeJackpot(d);
+                         }
                      });
                  }
              }
@@ -4742,38 +4728,50 @@ window.joinJackpot = async () => {
         });
     }
 
-async function finalizeJackpot() {
-        const conf = TIER_CONFIG[currentTier];
-        const jpRef = doc(db, conf.db, "current"); // Dynamiczna ścieżka
+    async function finalizeJackpot() {
+        const jpRef = doc(db, "jackpot", "current");
 
         try {
             await runTransaction(db, async (transaction) => {
                 const sfDoc = await transaction.get(jpRef);
                 if (!sfDoc.exists()) throw "Dokument nie istnieje!";
+
                 const data = sfDoc.data();
 
-                if (data.status !== 'open' || data.winnerProcessing) throw "Już wylosowano!";
+                // PANCERNE SPRAWDZENIE:
+                if (data.status !== 'open' || data.winnerProcessing) {
+                    throw "Już wylosowano!"; // To przerywa transakcję
+                }
 
+                // Oznaczamy, że MY przetwarzamy
                 transaction.update(jpRef, { winnerProcessing: true });
 
                 let total = 0;
                 data.entries.forEach(e => total += e.amount);
                 let randomPoint = Math.random() * total;
+                
                 let winner = null;
                 let currentStack = 0;
                 
                 for(let e of data.entries) {
                     currentStack += e.amount;
-                    if(randomPoint <= currentStack) { winner = e; break; }
+                    if(randomPoint <= currentStack) {
+                        winner = e;
+                        break;
+                    }
                 }
 
+                // Zapisujemy wynik - UPEWNIJ SIĘ ŻE TU SĄ KLAMRY { }
                 transaction.update(jpRef, {
                     status: 'spinning',
                     winner: winner,
                     winnerTotal: total 
                 });
             });
-        } catch (e) { console.log(e); }
+            console.log("Pomyślnie przeprowadzono losowanie.");
+        } catch (e) {
+            console.log("Losowanie anulowane (ktoś był szybszy lub błąd): ", e);
+        }
     }
 
     function spinTheWheel(winner, entries) {
@@ -4864,10 +4862,6 @@ async function finalizeJackpot() {
         if (sortedDebtors.length > 0) {
             debtorsListHtml += `<div style="margin-top:15px; border-top:1px dashed #555; padding-top:10px;">`;
             debtorsListHtml += `<div style="color:#aaa; font-size:0.8em; margin-bottom:5px; text-transform:uppercase;">Do odebrania od:</div>`;
-            
-            // Scroll dla długiej listy
-            debtorsListHtml += `<div style="max-height: 150px; overflow-y: auto; padding-right: 5px;">`; 
-            
             sortedDebtors.forEach(nick => {
                 debtorsListHtml += `
                     <div style="display:flex; justify-content:space-between; border-bottom:1px solid rgba(255,255,255,0.05); padding:4px 0;">
@@ -4875,9 +4869,7 @@ async function finalizeJackpot() {
                         <span style="color:#ff6666; font-weight:bold;">${s_formatGold(debts[nick])}</span>
                     </div>`;
             });
-            
-            debtorsListHtml += `</div>`; 
-            debtorsListHtml += `</div>`; 
+            debtorsListHtml += `</div>`;
         } else {
             debtorsListHtml = `<div style="color:#666; font-size:0.8em; margin-top:10px;">(Wygrałeś własne wpłaty)</div>`;
         }
@@ -4889,8 +4881,6 @@ async function finalizeJackpot() {
         
         // Zapis do bazy (Zwycięzca)
         if(currentUser && currentUser.uid === winner.uid) { 
-             
-             // 1. Czat
              addDoc(collection(db, "chat"), {
                 nick: "System Jackpot",
                 text: `🎰 ${winner.nick} rozbił bank! Zgarnia: ${totalStr}!`,
@@ -4898,29 +4888,17 @@ async function finalizeJackpot() {
                 date: new Date().toISOString()
             });
 
-            // 2. Historia (POPRAWIONE: Zapisujemy tylko raz do właściwego pokoju)
-            const conf = TIER_CONFIG[currentTier]; 
-            const debtsToSave = debts || {}; 
-
-            addDoc(collection(db, conf.hist), {
+            // NOWOŚĆ: Zapisujemy obiekt 'debts' do historii!
+            addDoc(collection(db, "jackpot_history"), {
                 nick: winner.nick,
                 amount: totalStr,
                 avatar: winner.avatar,
                 date: new Date().toISOString(),
-                debts: debtsToSave
+                debts: debts // <-- TO JEST KLUCZOWE
             });
-            
-            // 3. Reset gry (po 10 sekundach)
-            setTimeout(async () => {
-                 await setDoc(doc(db, conf.db, "current"), {
-                    status: 'open', entries: [], startTime: null, winner: null, winnerProcessing: false
-                });
-            }, 10000);
         }
     }
-			
-        
-    
+
     function resetJackpotVisuals() {
         document.getElementById('jackpotStrip').style.transition = 'none';
         document.getElementById('jackpotStrip').style.transform = 'translateX(0)';
@@ -4941,25 +4919,26 @@ async function finalizeJackpot() {
     function startJackpotHistoryListener() {
         if(historyUnsub) historyUnsub();
         
-        const conf = TIER_CONFIG[currentTier];
-        // Pobieramy historię z odpowiedniej kolekcji (history_low, history_medium...)
-        const q = query(collection(db, conf.hist), orderBy("date", "desc"), limit(10));
+        const q = query(collection(db, "jackpot_history"), orderBy("date", "desc"), limit(10));
         
         historyUnsub = onSnapshot(q, (snap) => {
             const div = document.getElementById('jackpotHistoryList');
             div.innerHTML = "";
-            window.jackpotHistoryData = [];
+            window.jackpotHistoryData = []; // Reset magazynu
             
             if(snap.empty) {
-                div.innerHTML = "<div style='text-align:center; color:#444; padding:10px; font-size:0.8em;'>Brak historii w tym pokoju.</div>";
+                div.innerHTML = "<div style='text-align:center; color:#444; padding:10px; font-size:0.8em;'>Brak historii.</div>";
                 return;
             }
 
             let index = 0;
             snap.forEach(d => {
                 const h = d.data();
-                window.jackpotHistoryData.push(h);
+                window.jackpotHistoryData.push(h); // Zapisujemy dane do tablicy
+                
                 const date = new Date(h.date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                
+                // Dodajemy onclick z indeksem
                 div.innerHTML += `
                     <div onclick="openHistoryDetails(${index})" style="cursor:pointer; display:flex; justify-content:space-between; align-items:center; padding:8px; border-bottom:1px solid rgba(255,255,255,0.05); font-size:0.85em; transition:0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.05)'" onmouseout="this.style.background='transparent'">
                         <div style="display:flex; align-items:center; gap:8px;">
@@ -4970,7 +4949,8 @@ async function finalizeJackpot() {
                             <div style="color:var(--green); font-weight:bold;">${h.amount}</div>
                             <div style="color:#555; font-size:0.8em;">${date}</div>
                         </div>
-                    </div>`;
+                    </div>
+                `;
                 index++;
             });
         });
@@ -5026,33 +5006,9 @@ async function finalizeJackpot() {
         
         window.playSound('click');
     };
-
-	window.switchJackpotTier = (tier) => {
-        currentTier = tier;
-        
-        // 1. Zmiana wyglądu zakładek
-        document.querySelectorAll('.jp-tab').forEach(t => t.className = 'jp-tab');
-        let activeClass = (tier === 'low') ? 'active-low' : (tier === 'medium') ? 'active-mid' : 'active-high';
-        document.getElementById(`tab-${tier}`).classList.add(activeClass);
-
-        // 2. Aktualizacja napisów limitów
-        const conf = TIER_CONFIG[tier];
-        document.getElementById('poolLabel').innerText = tier.toUpperCase();
-        document.getElementById('limitLabel').innerText = `Limit: ${s_formatGold(conf.min)} - ${s_formatGold(conf.max)}`;
-
-        // 3. Reset widoku
-        resetJackpotVisuals();
-        document.getElementById('jackpotTotalPool').innerText = "0";
-        document.getElementById('jackpotPlayersList').innerHTML = "<div style='padding:10px;text-align:center;color:#666'>Wczytywanie pokoju...</div>";
-
-        // 4. Przełączenie nasłuchiwania bazy (Kluczowe!)
-        startJackpotListener(); 
-        startJackpotHistoryListener();
-    };
 	
 </script>
 
 <div id="toast-container"></div>
 </body>
 </html>
-
