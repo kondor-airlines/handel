@@ -4244,15 +4244,14 @@ window.saveFinalSplit = async () => {
         // Wybieramy losowy obrazek złota lub itemka z podziału
         const splitIcon = itemImg || "https://micc.garmory-cdn.cloud/obrazki/itemy/zlo/zloto8.gif";
         
-        sendDiscordNotification(
-            'podzial',
-            `Nowy Podział: ${item}`,
-            `${s_formatGold(total)} złota`,
-            `**Tryb:** ${description}\n**Ekipa:** ${s_Team.length} os. (+Szef)`,
-            currentNick,
-            splitIcon, // Obrazek przedmiotu/złota
-            "https://micc.garmory-cdn.cloud/obrazki/npc/kob/tunia.gif" // Ikonka bota dla podziałów (np. Tunia)
-        );
+		// --- POPRAWIONY KOD DISCORDA (Bez lootItems) ---
+            sendDiscordNotification(
+                'podzial', 
+                `Nowy Podział: ${item}`, 
+                `**Kwota:** ${s_formatGold(total)}\n**Tryb:** ${description}\n**Ekipa:** ${s_Team.length} os. (+Szef)\n\n[Przejdź do Podziałów](https://kondor-airlines.web.app)`, 
+                currentNick
+            );
+            // -----------------------------------------------
 			
         }
     };
@@ -5200,3 +5199,4 @@ function renderJackpotUI(data) {
 <div id="toast-container"></div>
 </body>
 </html>
+
