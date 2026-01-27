@@ -4508,14 +4508,6 @@ function startSplitHistory() {
     window.escapeHtml = (text) => text ? text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;") : "";
     window.isValidImageUrl = (url) => url && /^https?:\/\/[^<>"]+\.(jpeg|jpg|gif|png|webp|bmp)$/i.test(url);
 
-    function s_formatGold(n) {
-        if (n === undefined || n === null || isNaN(n)) return "0";
-        if (n >= 1000000000) return (n/1000000000).toFixed(2) + 'G';
-        if (n >= 1000000) return (n/1000000).toFixed(1) + 'm';
-        if (n >= 1000) return (n/1000).toFixed(0) + 'k';
-        return n.toLocaleString();
-    }
-
     function getRandomColor() {
         const colors = ['#e74c3c', '#3498db', '#2ecc71', '#9b59b6', '#f1c40f', '#e67e22'];
         return colors[Math.floor(Math.random() * colors.length)];
@@ -4964,6 +4956,7 @@ if (nowSynced > jackpotEndTime && !isFinalizing && !data.winnerProcessing) {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
