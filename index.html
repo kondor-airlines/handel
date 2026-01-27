@@ -4952,92 +4952,109 @@ if (nowSynced > jackpotEndTime && !isFinalizing && !data.winnerProcessing) {
         window.playSound('click');
     };
 
-	window.resetJackpotVisuals = async () => {
-    // 1. Reset wizualny (to co widzi gracz u siebie)
-    const rail = document.getElementById('jackpotRail');
-    if (rail) {
-        rail.style.transition = 'none';
-        rail.style.transform = 'translateX(0px)';
-    }
+	// ============================================================
+// NOWY SILNIK JACKPOTA (WKLEJ NA DOLE PLIKU)
+// ============================================================
 
-    const list = document.getElementById('jackpotEntries');
-    if (list) list.innerHTML = '';
+// 1. ZMIENNE GLOBALNE STANU (Upewnij się, że nie masz ich zadeklarowanych wyżej!)
+// Jeśli masz je na górze pliku, usuń 'let' stąd i zostaw same przypisania.
+window.isSpinning = false;
+window.isFinalizing = false;
 
-    const totalDiv = document.getElementById('jackpotTotal');
-    if (totalDiv) totalDiv.innerHTML = '0 <span style="color:gold">G</span>';
+// 2. GŁÓWNA PĘTLA NASŁUCHUJĄCA (Mózg operacji)
+window.startJackpotListener = () => {
+    if (jackpotUnsub) jackpotUnsub(); // Wyłącz stary nasłuch
     
-    const timerDiv = document.getElementById('jackpotTimer');
-    if (timerDiv) timerDiv.innerText = 'Oczekiwanie...';
-
-    const winnerModal = document.getElementById('jackpotWinnerModal');
-    if (winnerModal) winnerModal.style.display = 'none';
-
+    // Resetujemy stan lokalny przy ponownym włączeniu
     window.isSpinning = false;
     window.isFinalizing = false;
 
-    // 2. RESET BAZY DANYCH (Tryb Autopilota)
-    // Zamiast sprawdzać "Czy jestem adminem?", robimy to bezpieczną transakcją.
-    // Dzięki temu pierwszy gracz (ktokolwiek), którego przeglądarka zadziała, wyczyści stół dla wszystkich.
-    
-    // Ustawiamy losowe opóźnienie (0-3 sekundy), żeby 50 graczy nie uderzyło w bazę w tej samej milisekundzie.
-    const randomDelay = Math.floor(Math.random() * 3000);
+    const jpRef = doc(db, "jackpot", "current");
 
-    setTimeout(async () => {
-        try {
-            const jpRef = doc(db, "jackpot", "current");
-            
-            await runTransaction(db, async (transaction) => {
-                const sfDoc = await transaction.get(jpRef);
-                if (!sfDoc.exists()) return; // Dokument nie istnieje? Nic nie robimy.
-                
-                const data = sfDoc.data();
+    jackpotUnsub = onSnapshot(jpRef, (docSnap) => {
+        if (!docSnap.exists()) return;
+        const data = docSnap.data();
 
-                // KLUCZOWE: Sprawdzamy, czy ktoś inny już nie zresetował stołu przed nami.
-                // Jeśli status to 'open', znaczy że ktoś był szybszy -> przerywamy (nie nadpisujemy).
-                if (data.status === 'open') {
-                    return; 
-                }
+        // A) AKTUALIZACJA UI (Pula, czas, lista)
+        // ------------------------------------------------
+        const total = (data.entries || []).reduce((acc, e) => acc + e.amount, 0);
+        const totalDiv = document.getElementById('jackpotTotal');
+        if (totalDiv) totalDiv.innerHTML = s_formatGold(total) + ' <span style="color:gold">G</span>';
 
-                // Jeśli status to nadal 'closed' lub coś innego -> My jesteśmy "serwerem" w tym momencie.
-                // Czyścimy stół.
-                transaction.update(jpRef, {
-                    status: 'open',       // Otwieramy stół
-                    entries: [],          // Czyścimy graczy
-                    startTime: null,      // Resetujemy zegar
-                    winnerProcessing: false
-                });
-            });
-            console.log("Próba resetu (Autopilot) zakończona.");
-            
-        } catch (e) {
-            // Jeśli wyskoczy błąd, to zazwyczaj oznacza, że transakcja innej osoby już przeszła.
-            // Ignorujemy to, bo cel został osiągnięty.
-            console.log("Ktoś inny już zresetował stół lub wystąpił błąd sieci.", e);
+        renderJackpotList(data.entries || []); // Zakładam, że tę funkcję masz i ona działa ok
+
+        // B) LOGIKA CZASU I KRĘCENIA
+        // ------------------------------------------------
+        const now = Date.now();
+        // Poprawka na czas serwera (jeśli masz timeOffset, użyj go, jeśli nie - użyj czasu lokalnego)
+        const serverTime = now + (window.timeOffset || 0); 
+        
+        let timeLeft = 0;
+        if (data.startTime) {
+            const endTime = data.startTime.toMillis() + (60 * 1000); // 60 sekund runda
+            timeLeft = Math.max(0, Math.ceil((endTime - serverTime) / 1000));
         }
-    }, randomDelay);
+
+        const timerDiv = document.getElementById('jackpotTimer');
+        
+        // SCENARIUSZ 1: TRWA RUNDA (ODLICZANIE)
+        if (data.status === 'open' && timeLeft > 0) {
+            if (timerDiv) {
+                timerDiv.innerText = `Losowanie za: ${timeLeft}s`;
+                timerDiv.style.color = timeLeft < 10 ? '#ff4444' : '#ccc';
+            }
+            // Resetujemy flagi, bo runda jest otwarta
+            window.isSpinning = false; 
+        } 
+        
+        // SCENARIUSZ 2: KONIEC CZASU -> FINALIZACJA
+        else if (data.status === 'open' && timeLeft <= 0 && data.entries && data.entries.length >= 2) {
+            if (timerDiv) timerDiv.innerText = "Losowanie...";
+            
+            // Tylko jeden klient (ten z najmniejszym lagiem + losowe opóźnienie) powinien wysłać sygnał
+            if (!window.isFinalizing && !data.winnerProcessing) {
+                window.isFinalizing = true;
+                const randomDelay = Math.random() * 3000; // 0-3s losowego opóźnienia
+                
+                setTimeout(() => {
+                    finalizeJackpot().catch(err => {
+                        console.log("Ktoś inny już sfinalizował rundę.");
+                    });
+                }, randomDelay);
+            }
+        }
+
+        // SCENARIUSZ 3: MAMY ZWYCIĘZCĘ -> KRĘCIMY!
+        // To naprawia LAG. Jak tylko w bazie pojawi się winnerEntry, zaczynamy kręcić.
+        else if (data.winnerEntry && !window.isSpinning) {
+            if (timerDiv) timerDiv.innerText = "KRĘCIMY!";
+            // Odpalamy animację
+            window.spinTheWheel(data.winnerEntry, data.entries);
+        }
+        
+        // SCENARIUSZ 4: OCZEKIWANIE NA GRACZY
+        else {
+             if (timerDiv) timerDiv.innerText = "Oczekiwanie na graczy...";
+        }
+    });
 };
-	
-	window.spinTheWheel = async (winnerEntry, entries) => {
-    // Zabezpieczenie przed podwójnym kręceniem
-    if (window.isSpinning) return;
+
+// 3. FUNKCJA KRĘCENIA (Poprawiona synchronizacja)
+window.spinTheWheel = async (winnerEntry, entries) => {
+    if (window.isSpinning) return; // Już się kręci
     window.isSpinning = true;
+
+    console.log("START ANIMACJI DLA:", winnerEntry.nick);
 
     const rail = document.getElementById('jackpotRail');
     
-    // 1. Generujemy pasek kart (zwycięzca ZAWSZE na 75. pozycji)
+    // --- GENEROWANIE KART ---
     let cardsHtml = '';
-    // Generujemy 100 kart, żeby pasek był długi
     for (let i = 0; i < 100; i++) {
-        let entry;
-        if (i === 75) {
-            // Tutaj MUSI być zwycięzca
-            entry = winnerEntry;
-        } else {
-            // Reszta losowo z puli graczy, żeby było kolorowo
-            entry = entries[Math.floor(Math.random() * entries.length)];
-        }
-        
-        // Tworzymy HTML karty
+        let entry = (i === 75) ? winnerEntry : entries[Math.floor(Math.random() * entries.length)];
+        // Zabezpieczenie na wypadek pustego entry (choć nie powinno wystąpić)
+        if(!entry) entry = winnerEntry; 
+
         cardsHtml += `
             <div class="jackpot-card" style="border-bottom: 3px solid ${entry.color}">
                 <img src="${entry.avatar}" onerror="this.src='https://i.imgur.com/XqBdK43.png'">
@@ -5048,55 +5065,105 @@ if (nowSynced > jackpotEndTime && !isFinalizing && !data.winnerProcessing) {
     }
     rail.innerHTML = cardsHtml;
 
-    // 2. Resetujemy pozycję "na start" (bez animacji)
+    // --- PRZYGOTOWANIE DO RUCHU ---
     rail.style.transition = 'none';
     rail.style.transform = 'translateX(0px)';
+    rail.offsetHeight; // Force reflow
 
-    // Odtwarzamy dźwięk startu (jeśli masz)
-    window.playSound('roll_start'); // upewnij się, że masz taki dźwięk lub usuń tę linię
-
-    // 3. Wymuszamy przerysowanie przeglądarki (ważny trik!)
-    rail.offsetHeight; 
-
-    // 4. Obliczamy pozycję zwycięzcy (75. karta)
-    // Karta ma np. 100px szerokości + marginesy. 
-    // Zakładamy szerokość karty ok. 104px (dostosuj jeśli masz inną w CSS)
+    // Obliczenia pozycji
     const cardWidth = 104; 
-    // Chcemy, żeby 75. karta była na środku. 
-    // Przesuwamy o: (75 * szerokość) - (połowa ekranu) + (połowa karty) + losowy "jitter" wewnątrz karty
     const railCenter = document.querySelector('.jackpot-window').offsetWidth / 2;
-    const randomOffset = Math.floor(Math.random() * 60) - 30; // Żeby nie stawało zawsze idealnie co do piksela
+    const randomOffset = Math.floor(Math.random() * 60) - 30;
     const targetX = (75 * cardWidth) - railCenter + (cardWidth / 2) + randomOffset;
 
-    // 5. START ANIMACJI (z małym opóźnieniem 50ms, żeby oko zarejestrowało start)
+    // --- START RUCHU ---
     setTimeout(() => {
-        // Czas trwania animacji: 8 sekund (cubic-bezier dla efektu zwalniania)
         rail.style.transition = 'transform 8s cubic-bezier(0.15, 0.85, 0.15, 1)';
         rail.style.transform = `translateX(-${targetX}px)`;
-        
-        // Dźwięk tykania (opcjonalnie)
-        // window.playSound('ticking'); 
+        if(window.playSound) window.playSound('roll_start'); // Opcjonalnie dźwięk
     }, 50);
 
-    // 6. KONIEC ANIMACJI (za 8.5 sekundy - 8s animacji + 0.5s zapasu)
+    // --- KONIEC RUCHU I POKAZANIE WYNIKU ---
     setTimeout(() => {
-        // Pokaż modal zwycięzcy
-        showWinnerModal(winnerEntry);
-        window.playSound('win');
+        // 1. Pokaż modal
+        if(window.showWinnerModal) window.showWinnerModal(winnerEntry);
+        if(window.playSound) window.playSound('win');
         
-        // Czekamy chwilę, żeby ludzie zobaczyli kto wygrał i czyścimy stół
+        // 2. Ustaw "Bezpiecznik" na reset (Autopilot)
+        // Czekamy 6 sekund na podziwianie wyniku i czyścimy
         setTimeout(() => {
-            resetJackpotVisuals(); // Teraz ta funkcja już istnieje!
-        }, 5000); // 5 sekund gapienia się na wynik
+            console.log("Próba automatycznego resetu...");
+            window.resetJackpotVisuals(); 
+        }, 6000);
 
-    }, 8500); 
+    }, 8500); // 8.5 sekundy (zapas dla animacji 8s)
 };
+
+// 4. RESET I CZYSZCZENIE BAZY (Autopilot + Bezpiecznik)
+window.resetJackpotVisuals = async () => {
+    // A) Reset wizualny (Natychmiastowy)
+    const rail = document.getElementById('jackpotRail');
+    if (rail) {
+        rail.style.transition = 'none';
+        rail.style.transform = 'translateX(0px)';
+    }
+    const list = document.getElementById('jackpotEntries');
+    if (list) list.innerHTML = '';
+    
+    const winnerModal = document.getElementById('jackpotWinnerModal');
+    if (winnerModal) winnerModal.style.display = 'none';
+
+    // Reset flag lokalnych
+    window.isSpinning = false;
+    window.isFinalizing = false;
+
+    // B) Reset BAZY DANYCH (Tryb: Kto pierwszy ten lepszy)
+    // Dzięki temu nie musisz klikać F5. Gra sama wyśle sygnał "Clean".
+    
+    const randomDelay = Math.floor(Math.random() * 2000); // Mały rozrzut, żeby nie zabić bazy
+
+    setTimeout(async () => {
+        try {
+            const jpRef = doc(db, "jackpot", "current");
+            
+            // Używamy transakcji, żeby bezpiecznie zresetować
+            await runTransaction(db, async (transaction) => {
+                const sfDoc = await transaction.get(jpRef);
+                if (!sfDoc.exists()) return;
+                
+                const data = sfDoc.data();
+                
+                // Jeśli status już jest 'open', to znaczy, że ktoś inny zresetował przed nami.
+                // Wtedy kończymy funkcję.
+                if (data.status === 'open' && !data.winnerEntry) {
+                    return; 
+                }
+
+                // Jeśli status wciąż jest stary (mamy zwycięzcę w bazie), to czyścimy.
+                transaction.update(jpRef, {
+                    status: 'open',
+                    entries: [],
+                    startTime: null,
+                    winnerProcessing: false,
+                    winnerEntry: deleteField() // WAŻNE: Usuwamy pole zwycięzcy z bazy!
+                });
+            });
+            console.log("Baza zresetowana pomyślnie.");
+            
+        } catch (e) {
+            console.log("Reset obsłużony przez innego klienta lub błąd:", e);
+        }
+    }, randomDelay);
+};
+	
+	
 	
 </script>
 
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
