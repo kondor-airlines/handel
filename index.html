@@ -4729,86 +4729,125 @@ function startSplitHistory() {
     startJackpotHistoryListener(); // <--- Usuń "if(window...)" i wywołaj bezpośrednio
 };
 
-		window.joinJackpot = async () => {
-        if(!currentUser) return alert("Zaloguj się!");
+		// --- TRYB OFFLINE (BEZ BAZY DANYCH) ---
+    
+    // Lokalna lista graczy (zastępuje bazę)
+    window.offlinePlayers = []; 
+
+    // Funkcja do aktualizacji widoku (rysowanie koła i listy)
+    window.updateOfflineUI = () => {
+        // Podmieniamy globalną zmienną używaną przez drawWheel
+        // (zakładam, że w Twoim kodzie nazywa się jackpotPlayers)
+        jackpotPlayers = window.offlinePlayers; 
         
-        if(isBettingProcessing) return; // Blokada klikania
+        drawWheel(); // Rysuje koło
+        renderJackpotList(); // Rysuje listę pod kołem (jeśli masz taką funkcję)
+    };
 
-        const input = document.getElementById('jackpotBetAmount');
-        const amount = parseGold(input.value);
+    // 1. DOŁĄCZANIE (OFFLINE)
+    window.joinJackpot = async () => {
+        const amountInput = document.getElementById('jackpotAmount');
+        const amount = parseInt(amountInput.value);
 
-        // Limity (1m - 10g)
-        if(amount < 1000000) return alert("🚫 Za mało! Minimum wpłaty to 1m.");
-        if(amount > 10000000000) return alert("🚫 Za dużo! Max 10g.");
+        if (isNaN(amount) || amount <= 0) return alert("Podaj kwotę!");
 
-        isBettingProcessing = true;
-        const btn = document.querySelector('#jackpotControls button'); // Znajdź przycisk
-        const originalText = btn ? btn.innerText : "WCHODZĘ!";
-        if(btn) { btn.innerText = "⏳..."; btn.style.opacity = "0.5"; }
+        // Obliczanie biletów (lokalnie)
+        const currentTotal = window.offlinePlayers.length > 0 
+            ? window.offlinePlayers[window.offlinePlayers.length - 1].ticketEnd 
+            : 0;
 
-        const jpRef = doc(db, "jackpot", "current");
+        const myTickets = Math.floor(amount / 1000); // 1 bilet za 1k (przykładowo)
+        
+        if (myTickets < 1) return alert("Minimum 1k złota!");
 
-        try {
-            // Pobierz stan, aby sprawdzić limity przed próbą zapisu
-            const snap = await getDoc(jpRef);
-            let data = { status: 'open', entries: [], startTime: null };
-            if(snap.exists()) data = snap.data();
+        const newPlayer = {
+            id: "local_" + Date.now(),
+            nick: currentNick || "Ja", // Twój nick
+            amount: amount,
+            ticketStart: currentTotal + 1,
+            ticketEnd: currentTotal + myTickets,
+            color: '#'+(Math.random()*0xFFFFFF<<0).toString(16) // Losowy kolor
+        };
 
-            // Sprawdź czy runda otwarta
-            const now = new Date().getTime();
-            let isStuck = false;
-            if (data.startTime) {
-                 let startMillis = (data.startTime.toMillis ? data.startTime.toMillis() : (data.startTime.seconds ? data.startTime.seconds*1000 : new Date(data.startTime).getTime()));
-                 if ((now - startMillis) > 90000) isStuck = true; // 90s timeout
-            }
+        window.offlinePlayers.push(newPlayer);
+        amountInput.value = "";
+        
+        window.playSound('coin');
+        window.updateOfflineUI(); // Odśwież koło
+    };
 
-            if(data.status !== 'open' && !isStuck) throw "Runda trwa! Poczekaj na wynik.";
+    // 2. DODAWANIE BOTA (Żebyś miał z kim grać)
+    window.addBot = () => {
+        const botNames = ["Stachu", "Zdzichu", "Mirek", "Geralt", "Yennefer", "Smok"];
+        const randomName = botNames[Math.floor(Math.random() * botNames.length)];
+        const randomGold = Math.floor(Math.random() * 50) * 10000 + 10000; // 10k - 500k
 
-            // Sprawdź limit 10g na gracza
-            let myTotal = 0;
-            if(data.entries) data.entries.forEach(e => { if(e.uid === currentUser.uid) myTotal += e.amount; });
+        const currentTotal = window.offlinePlayers.length > 0 
+            ? window.offlinePlayers[window.offlinePlayers.length - 1].ticketEnd 
+            : 0;
+        
+        const tickets = Math.floor(randomGold / 1000);
+
+        const bot = {
+            id: "bot_" + Date.now(),
+            nick: randomName + " (BOT)",
+            amount: randomGold,
+            ticketStart: currentTotal + 1,
+            ticketEnd: currentTotal + tickets,
+            color: '#'+(Math.random()*0xFFFFFF<<0).toString(16)
+        };
+
+        window.offlinePlayers.push(bot);
+        window.playSound('click');
+        window.updateOfflineUI();
+    };
+
+	// 3. KRĘCENIE KOŁEM (OFFLINE)
+    window.spinWheel = async () => {
+        if (window.offlinePlayers.length < 2) return alert("Potrzeba min. 2 graczy! (Dodaj bota)");
+        if (isSpinning) return;
+
+        isSpinning = true;
+        const wheel = document.getElementById('wheel');
+        
+        // --- LOSOWANIE ---
+        const lastPlayer = window.offlinePlayers[window.offlinePlayers.length - 1];
+        const totalTickets = lastPlayer.ticketEnd;
+        const winningTicket = Math.floor(Math.random() * totalTickets) + 1;
+
+        // Szukanie zwycięzcy
+        let winner = window.offlinePlayers.find(p => winningTicket >= p.ticketStart && winningTicket <= p.ticketEnd);
+
+        // Obliczanie kąta (żeby trafiło w kolor zwycięzcy)
+        // To jest uproszczona wersja - po prostu kręci się długo
+        const deg = 3600 + Math.floor(Math.random() * 360); 
+
+        wheel.style.transition = "transform 6s cubic-bezier(0.1, 0.7, 0.1, 1)"; // Płynne hamowanie
+        wheel.style.transform = `rotate(${deg}deg)`;
+        
+        window.playSound('spin');
+
+        // Czekamy na koniec animacji
+        setTimeout(() => {
+            isSpinning = false;
+            wheel.style.transition = "none";
+            wheel.style.transform = `rotate(${deg % 360}deg)`;
             
-            if((myTotal + amount) > 10000000000) {
-                throw `Limit 10g na rundę! Masz już: ${s_formatGold(myTotal)}`;
-            }
-
-            // Tworzymy wpis
-            const newEntry = {
-                uid: currentUser.uid,
-                nick: currentNick,
-                avatar: currentUser.photoURL,
-                amount: amount,
-                color: getRandomColor()
-            };
-
-            const newEntries = [...(data.entries || []), newEntry];
-            const uniquePlayers = new Set(newEntries.map(e => e.uid)).size;
+            window.playSound('win');
             
-            let newStartTime = data.startTime;
-            if (isStuck) { newStartTime = null; data.status = 'open'; } // Reset zacięcia
-            else if (uniquePlayers >= 2 && !data.startTime) {
-                newStartTime = serverTimestamp(); // Start zegara
+            // Obliczamy szansę procentową
+            const chance = ((winner.ticketEnd - winner.ticketStart + 1) / totalTickets * 100).toFixed(1);
+
+            // Wyświetlamy wynik
+            alert(`🎰 JACKPOT OFFLINE 🎰\n\n🏆 Wygrał: ${winner.nick}\n💰 Zgarnął: ${totalTickets * 1000} złota\n📈 Szansa: ${chance}%`);
+
+            // Czyścimy grę po wygranej
+            if(confirm("Gramy od nowa?")) {
+                window.offlinePlayers = [];
+                window.updateOfflineUI();
             }
 
-            // Zapis do bazy
-            await setDoc(jpRef, { 
-                entries: newEntries,
-                status: 'open',
-                winnerProcessing: false,
-                startTime: newStartTime
-            }, { merge: true });
-
-            input.value = "";
-            window.playSound('coin');
-
-        } catch (error) {
-            alert(error); // Wyświetl błąd (np. o limicie)
-        } finally {
-            setTimeout(() => {
-                isBettingProcessing = false;
-                if(btn) { btn.innerText = originalText; btn.style.opacity = "1"; }
-            }, 500);
-        }
+        }, 6000); // 6 sekund kręcenia
     };
 
 	// 3. LISTENER (SERCE GRY)
@@ -5374,6 +5413,7 @@ function renderJackpotUI(data) {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
