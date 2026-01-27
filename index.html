@@ -4498,6 +4498,10 @@ function startSplitHistory() {
     let jackpotEndTime = 0;
     let timeOffset = 0;
 
+	// Zmienne blokujące (Anty-Spam)
+    let isBettingProcessing = false; 
+    let isFinalizingLocal = false;
+	
 		window.openJackpot = () => {
         document.getElementById('jackpotModal').style.display = 'flex';
         startJackpotListener();
@@ -4506,132 +4510,110 @@ function startSplitHistory() {
 
 		window.joinJackpot = async () => {
         if(!currentUser) return alert("Zaloguj się!");
+        
+        if(isBettingProcessing) return; // Blokada klikania
+
         const input = document.getElementById('jackpotBetAmount');
         const amount = parseGold(input.value);
 
-        // --- 1. TWARDE LIMITY (1m - 10g) ---
-        if(amount < 1000000) {
-            return alert("🚫 Za mało! Minimum wpłaty to 1m.");
-        }
-        if(amount > 10000000000) {
-            return alert("🚫 Za dużo! Maksymalnie możesz wpłacić 10g jednorazowo.");
-        }
-        // -----------------------------------
+        // Limity (1m - 10g)
+        if(amount < 1000000) return alert("🚫 Za mało! Minimum wpłaty to 1m.");
+        if(amount > 10000000000) return alert("🚫 Za dużo! Max 10g.");
+
+        isBettingProcessing = true;
+        const btn = document.querySelector('#jackpotControls button'); // Znajdź przycisk
+        const originalText = btn ? btn.innerText : "WCHODZĘ!";
+        if(btn) { btn.innerText = "⏳..."; btn.style.opacity = "0.5"; }
 
         const jpRef = doc(db, "jackpot", "current");
-        const snap = await getDoc(jpRef);
-        
-        let data = { status: 'open', entries: [], startTime: null };
-        if(snap.exists()) data = snap.data();
 
-        // --- 2. SPRAWDZANIE LIMITU ŁĄCZNEGO (MAX 10g NA OSOBĘ) ---
-        let myTotalInRound = 0;
-        
-        if (data.entries) {
-            data.entries.forEach(e => {
-                if (e.uid === currentUser.uid) {
-                    myTotalInRound += e.amount;
-                }
-            });
-        }
+        try {
+            // Pobierz stan, aby sprawdzić limity przed próbą zapisu
+            const snap = await getDoc(jpRef);
+            let data = { status: 'open', entries: [], startTime: null };
+            if(snap.exists()) data = snap.data();
 
-        const MAX_TOTAL_LIMIT = 10000000000; // 10g Łącznie
-
-        if ((myTotalInRound + amount) > MAX_TOTAL_LIMIT) {
-            const left = MAX_TOTAL_LIMIT - myTotalInRound;
-            // Jeśli gracz ma już 10g, left będzie 0
-            if (left <= 0) {
-                return alert("🚫 Osiągnąłeś już limit 10g w tej rundzie!");
+            // Sprawdź czy runda otwarta
+            const now = new Date().getTime();
+            let isStuck = false;
+            if (data.startTime) {
+                 let startMillis = (data.startTime.toMillis ? data.startTime.toMillis() : (data.startTime.seconds ? data.startTime.seconds*1000 : new Date(data.startTime).getTime()));
+                 if ((now - startMillis) > 90000) isStuck = true; // 90s timeout
             }
-            return alert(`🚫 Przekroczysz limit 10g!\nWpłaciłeś już: ${s_formatGold(myTotalInRound)}.\nMożesz dołożyć maksymalnie: ${s_formatGold(left)}.`);
-        }
-        // ---------------------------------------------------------
 
-        // Zabezpieczenie przed zacięciem
-        const now = new Date().getTime();
-        let isStuck = false;
-        
-        if (data.startTime) {
-            let startMillis = 0;
-            if (data.startTime.toMillis) startMillis = data.startTime.toMillis();
-            else if (data.startTime.seconds) startMillis = data.startTime.seconds * 1000;
-            else startMillis = new Date(data.startTime).getTime();
+            if(data.status !== 'open' && !isStuck) throw "Runda trwa! Poczekaj na wynik.";
 
-            if ((now - startMillis) > 90000) { 
-                isStuck = true;
-                console.warn("Reset zaciętej gry.");
+            // Sprawdź limit 10g na gracza
+            let myTotal = 0;
+            if(data.entries) data.entries.forEach(e => { if(e.uid === currentUser.uid) myTotal += e.amount; });
+            
+            if((myTotal + amount) > 10000000000) {
+                throw `Limit 10g na rundę! Masz już: ${s_formatGold(myTotal)}`;
             }
+
+            // Tworzymy wpis
+            const newEntry = {
+                uid: currentUser.uid,
+                nick: currentNick,
+                avatar: currentUser.photoURL,
+                amount: amount,
+                color: getRandomColor()
+            };
+
+            const newEntries = [...(data.entries || []), newEntry];
+            const uniquePlayers = new Set(newEntries.map(e => e.uid)).size;
+            
+            let newStartTime = data.startTime;
+            if (isStuck) { newStartTime = null; data.status = 'open'; } // Reset zacięcia
+            else if (uniquePlayers >= 2 && !data.startTime) {
+                newStartTime = serverTimestamp(); // Start zegara
+            }
+
+            // Zapis do bazy
+            await setDoc(jpRef, { 
+                entries: newEntries,
+                status: 'open',
+                winnerProcessing: false,
+                startTime: newStartTime
+            }, { merge: true });
+
+            input.value = "";
+            window.playSound('coin');
+
+        } catch (error) {
+            alert(error); // Wyświetl błąd (np. o limicie)
+        } finally {
+            setTimeout(() => {
+                isBettingProcessing = false;
+                if(btn) { btn.innerText = originalText; btn.style.opacity = "1"; }
+            }, 500);
         }
-
-        if(data.status !== 'open' && !isStuck) return alert("Runda trwa! Poczekaj na wynik.");
-
-        if (isStuck) {
-            data.entries = [];
-            data.startTime = null;
-            data.status = 'open';
-        }
-
-        const newEntry = {
-            uid: currentUser.uid,
-            nick: currentNick,
-            avatar: currentUser.photoURL,
-            amount: amount,
-            color: getRandomColor()
-        };
-
-        const newEntries = [...(data.entries || []), newEntry];
-        
-        // Start gry (2 graczy = start)
-        const uniquePlayers = new Set(newEntries.map(e => e.uid)).size;
-        let newStartTime = data.startTime;
-
-        if (uniquePlayers >= 2 && !data.startTime) {
-            newStartTime = serverTimestamp(); 
-        } 
-        else if (isStuck && uniquePlayers < 2) {
-            newStartTime = null;
-        }
-
-        await setDoc(jpRef, { 
-            entries: newEntries,
-            status: 'open',
-            winnerProcessing: false,
-            startTime: newStartTime
-        }, { merge: true });
-
-        input.value = "";
-        window.playSound('coin');
     };
-
-// Dodaj tę zmienną na samej górze skryptu (obok let jackpotUnsub):
-    let isFinalizingLocal = false; 
 
     function startJackpotListener() {
         if(jackpotUnsub) jackpotUnsub();
         
-        const conf = TIER_CONFIG[currentTier]; 
-        
-        jackpotUnsub = onSnapshot(doc(db, conf.db, "current"), (docSnap) => {
+        jackpotUnsub = onSnapshot(doc(db, "jackpot", "current"), (docSnap) => {
             if(!docSnap.exists()) {
                 renderJackpotUI({entries: []});
                 return;
             }
             const data = docSnap.data();
             
+            // Synchronizacja czasu
             if(docSnap.readTime) {
-                const serverTime = docSnap.readTime.toMillis();
-                const localTime = new Date().getTime();
-                timeOffset = serverTime - localTime; 
+                timeOffset = docSnap.readTime.toMillis() - new Date().getTime(); 
             }
 
             renderJackpotUI(data);
             const timerEl = document.getElementById('jackpotTimer');
 
-            // Reset flagi lokalnej, jeśli runda jest znowu otwarta i czysta
+            // Reset flagi lokalnej, gdy nowa runda
             if (data.status === 'open' && !data.winnerProcessing) {
                 isFinalizingLocal = false; 
             }
 
+            // Obsługa timera w UI
             if(data.status === 'open' && data.startTime) {
                 let startMillis = 0;
                 if (typeof data.startTime.toMillis === 'function') startMillis = data.startTime.toMillis();
@@ -4651,16 +4633,19 @@ function startSplitHistory() {
                 timerEl.style.display = 'none';
             }
 
+            // Wykrycie startu losowania
             if(data.status === 'spinning' && !document.getElementById('jackpotStrip').classList.contains('spinning')) {
                 timerEl.style.display = 'none';
                 spinTheWheel(data.winner, data.entries);
             }
             
+            // Wykrycie końca (otwarcie nowej rundy)
             if(data.status === 'open' && document.getElementById('jackpotStrip').classList.contains('spun')) {
                  resetJackpotVisuals();
             }
         });
         
+        // Pętla odliczająca czas (z opóźnieniem losowania)
         if(jpTimerInterval) clearInterval(jpTimerInterval);
         
         jpTimerInterval = setInterval(() => {
@@ -4677,24 +4662,23 @@ function startSplitHistory() {
              } else {
                  timerEl.innerText = "LOSOWANIE...";
                  
-                 // --- POPRAWKA TUTAJ ---
-                 // 1. Sprawdzamy czy już nie próbujemy finalizować lokalnie
+                 // === FIX BŁĘDU 400 (Bad Request) ===
+                 // Sprawdzamy, czy czas minął i czy my już nie próbujemy finalizować
                  if (diff > -5000 && !isFinalizingLocal) {
-                     isFinalizingLocal = true; // Blokujemy kolejne próby u tego klienta
+                     isFinalizingLocal = true; // Blokada dla tego klienta
                      
-                     // 2. Losowe opóźnienie od 0 do 2000ms
-                     // To rozładuje "tłok" w bazie danych
-                     const randomDelay = Math.floor(Math.random() * 2000);
+                     // Losowe opóźnienie 0-3 sekundy
+                     const randomDelay = Math.floor(Math.random() * 3000);
                      
                      setTimeout(() => {
-                         const conf = TIER_CONFIG[currentTier];
-                         getDoc(doc(db, conf.db, "current")).then(snap => {
+                         // Pobieramy świeży stan przed próbą zapisu
+                         getDoc(doc(db, "jackpot", "current")).then(snap => {
                              const d = snap.data();
-                             // Sprawdzamy ponownie tuż przed strzałem
+                             // Jeśli nadal jest open i nikt nie przetwarza -> strzelamy
                              if(d && d.status === 'open' && !d.winnerProcessing) {
                                  finalizeJackpot();
                              } else {
-                                 console.log("Ktoś inny już rozpoczął losowanie.");
+                                 console.log("ℹ️ Ktoś inny już rozpoczął losowanie.");
                              }
                          });
                      }, randomDelay);
@@ -4737,17 +4721,15 @@ function startSplitHistory() {
     }
 
     async function finalizeJackpot() {
-        const conf = TIER_CONFIG[currentTier];
-        const jpRef = doc(db, conf.db, "current");
+        const jpRef = doc(db, "jackpot", "current");
 
         try {
             await runTransaction(db, async (transaction) => {
                 const sfDoc = await transaction.get(jpRef);
-                if (!sfDoc.exists()) throw "Dokument nie istnieje!";
-
+                if (!sfDoc.exists()) throw "Brak dokumentu";
                 const data = sfDoc.data();
 
-                // To wyrzuca błąd, jeśli ktoś nas ubiegł. To DOBRZE.
+                // Jeśli status się zmienił w międzyczasie -> anuluj
                 if (data.status !== 'open' || data.winnerProcessing) {
                     throw "Runda zakończona przez innego gracza."; 
                 }
@@ -4774,17 +4756,16 @@ function startSplitHistory() {
                     winnerTotal: total 
                 });
             });
-            console.log("✅ Pomyślnie przeprowadzono losowanie (jesteś serwerem).");
+            console.log("✅ Pomyślnie przeprowadzono losowanie.");
         } catch (e) {
-            // Ignorujemy błędy o tym, że już wylosowano - to normalne w trybie multiplayer
+            // Ignorujemy błędy wyścigu (to normalne)
             if (typeof e === 'string' && e.includes("Runda zakończona")) {
-                console.log("ℹ️ Losowanie już trwa (obsłużone przez kogoś innego).");
+                console.log("ℹ️ Losowanie obsługiwane przez inny wątek.");
             } else {
-                console.warn("⚠️ Błąd transakcji Jackpota:", e);
+                console.warn("⚠️ Info:", e);
             }
         }
     }
-
     function spinTheWheel(winner, entries) {
         const strip = document.getElementById('jackpotStrip');
         const rail = document.querySelector('.jackpot-rail');
@@ -4831,17 +4812,19 @@ function startSplitHistory() {
 
         setTimeout(async () => {
             strip.classList.add('spun');
-			showWinnerScreen(winner, entries);    
-			
+            showWinnerScreen(winner, entries);    
+            
+            // Auto-reset (tylko zwycięzca lub admin resetuje bazę po 10s)
+            // Zmieniono warunek na bezpieczniejszy
             if (currentUser && (currentUser.uid === winner.uid || currentNick === ADMIN_NICK)) {
                 setTimeout(async () => {
-                    await setDoc(doc(db, "jackpot", "current"), {
-                        status: 'open',
-                        entries: [],
-                        startTime: null,
-                        winner: null,
-                        winnerProcessing: false
-                    });
+                    // Sprawdzamy czy nadal 'spinning', żeby nie zepsuć nowej gry
+                    const check = await getDoc(doc(db, "jackpot", "current"));
+                    if(check.exists() && check.data().status === 'spinning') {
+                        await setDoc(doc(db, "jackpot", "current"), {
+                            status: 'open', entries: [], startTime: null, winner: null, winnerProcessing: false
+                        });
+                    }
                 }, 10000);
             }
         }, 8500);
@@ -5023,4 +5006,5 @@ function startSplitHistory() {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
