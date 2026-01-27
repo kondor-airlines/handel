@@ -4503,9 +4503,23 @@ function startSplitHistory() {
     let isFinalizingLocal = false;
 	
 		window.openJackpot = () => {
-        document.getElementById('jackpotModal').style.display = 'flex';
+        const modal = document.getElementById('jackpotModal');
+        const strip = document.getElementById('jackpotStrip');
+        
+        // 1. Otwórz okno
+        modal.style.display = 'flex';
+        
+        // 2. SZTUCZKA: Usuwamy flagę 'spinning' przy otwarciu.
+        // Dzięki temu, jeśli gra trwa, Listener "zauważy", że animacja nie działa
+        // i wymusi jej ponowne uruchomienie (z funkcją nadganiania czasu).
+        if (strip) {
+            strip.classList.remove('spinning');
+            strip.style.transition = 'none'; // Resetujemy CSS
+        }
+
+        // 3. Startujemy nasłuchy
         startJackpotListener();
-        startJackpotHistoryListener(); // <--- Nowa funkcja
+        if(window.startJackpotHistoryListener) startJackpotHistoryListener();
     };
 
 		window.joinJackpot = async () => {
@@ -4808,28 +4822,29 @@ function renderJackpotUI(data) {
             }
         }
     }
-    function spinTheWheel(winner, entries, spinStartMillis) {
+		function spinTheWheel(winner, entries, spinStartMillis) {
         const strip = document.getElementById('jackpotStrip');
         const rail = document.querySelector('.jackpot-rail');
         
-        // Jeśli już kręci, nie przerywaj
-        if (strip.classList.contains('spinning')) return;
+        // Zabezpieczenie: Jeśli animacja już "fizycznie" jedzie, to nie przerywaj
+        // Ale jeśli tylko klasa jest, a transform stoi (bo wróciłeś do okna), to jedziemy dalej
+        if (strip.classList.contains('spinning') && strip.style.transition !== 'none') return;
+        
         strip.classList.add('spinning');
         
         const CARD_WIDTH = 80; 
         const MARGIN = 4;      
         const FULL_CARD = CARD_WIDTH + MARGIN; 
         const WINNER_INDEX = 75; 
-        const ANIMATION_DURATION = 8500; 
+        const ANIMATION_DURATION = 8500; // Czas trwania animacji (ms)
         
-        // Generujemy karty
+        // 1. Generowanie kart (Standard)
         let cardsHtml = "";
         for(let i=0; i < 100; i++) {
             let entry;
             if(i === WINNER_INDEX) {
                 entry = winner; 
             } else {
-                // Zabezpieczenie przed pustą tablicą entries
                 if (entries && entries.length > 0) {
                     entry = entries[Math.floor(Math.random() * entries.length)];
                 } else {
@@ -4846,35 +4861,40 @@ function renderJackpotUI(data) {
         strip.innerHTML = cardsHtml;
         document.getElementById('jackpotControls').style.display = 'none';
 
-        // --- SYNCHRONIZACJA CZASU ---
+        // 2. MATEMATYKA CZASU (To naprawia zatrzymywanie)
         const now = new Date().getTime();
-        const startTime = spinStartMillis || now; 
-        const elapsed = now - startTime;
-        let remaining = ANIMATION_DURATION - elapsed;
+        const startTime = spinStartMillis || now; // Pobieramy czas startu z serwera
+        const elapsed = now - startTime;          // Ile czasu już minęło
+        let remaining = ANIMATION_DURATION - elapsed; // Ile czasu zostało
 
-        // Oblicz pozycję
         const containerWidth = rail.offsetWidth;
         const centerPosition = - (WINNER_INDEX * FULL_CARD) + (containerWidth / 2) - (FULL_CARD / 2);
-        // Usunięty losowy jitter dla pewności trafienia
-        const finalPosition = centerPosition; 
+        const finalPosition = centerPosition; // Celujemy w środek
 
-        // Jeśli czas minął lub gracz wszedł b. późno -> pokaż od razu
+        // A. Resetujemy pasek na pozycję startową (0px) bez animacji
+        strip.style.transition = "none";
+        strip.style.transform = "translateX(0px)";
+        
+        // Wymuszamy "Reflow" (przeglądarka musi przeliczyć pozycję 0 zanim puści animację)
+        void strip.offsetWidth; 
+
+        // B. Decyzja co robić w zależności od czasu
         if (remaining <= 50) {
-            strip.style.transition = "none";
+            // Czas już minął? Pokaż wynik od razu (Teleport)
             strip.style.transform = `translateX(${finalPosition}px)`;
             finishSpin();
         } else {
-            // Reset pozycji na start
-            strip.style.transition = "none";
-            strip.style.transform = "translateX(0px)";
-            
-            // Start animacji
+            // Czas jeszcze jest? Puść animację, ale SZYBCIEJ (Fast-Forward)
+            // Ustawiamy czas trwania na tyle, ile zostało (remaining)
             setTimeout(() => {
                 strip.style.transition = `transform ${remaining}ms cubic-bezier(0.15, 0, 0.10, 1)`; 
                 strip.style.transform = `translateX(${finalPosition}px)`;
+                
+                // Dźwięk tylko jeśli zostało sporo czasu (żeby nie hałasować przy szybkim przewijaniu)
                 if (remaining > 2000) window.playSound('coin'); 
             }, 50);
 
+            // Ustawiamy timer końca
             setTimeout(finishSpin, remaining);
         }
 
@@ -4882,35 +4902,21 @@ function renderJackpotUI(data) {
              strip.classList.add('spun');
              showWinnerScreen(winner, entries);    
              
-             // --- NOWY MECHANIZM RESETU (DEMOKRACJA) ---
-             // Czekamy 12 sekund od końca losowania.
-             // Każdy, kto ma włączoną stronę, spróbuje zresetować stół.
-             // Dzięki temu gra nie zależy tylko od jednej osoby.
-             
+             // Auto-reset (Demokracja - każdy próbuje wyczyścić stół po 12s)
              setTimeout(async () => {
                  try {
-                     // Sprawdzamy stan bazy przed próbą resetu
                      const checkRef = doc(db, "jackpot", "current");
                      await runTransaction(db, async (transaction) => {
                          const sfDoc = await transaction.get(checkRef);
                          if (!sfDoc.exists()) return;
-                         
-                         // Jeśli status to nadal 'spinning', to znaczy, że nikt jeszcze nie zresetował
+                         // Czyścimy tylko jeśli status to nadal 'spinning'
                          if (sfDoc.data().status === 'spinning') {
                              transaction.update(checkRef, {
-                                 status: 'open', 
-                                 entries: [], 
-                                 startTime: null, 
-                                 winner: null, 
-                                 winnerProcessing: false,
-                                 spinStartTime: null
+                                 status: 'open', entries: [], startTime: null, winner: null, winnerProcessing: false, spinStartTime: null
                              });
                          }
                      });
-                     console.log("Próba automatycznego resetu stołu.");
-                 } catch (e) {
-                     // Ignorujemy błędy - pewnie ktoś inny już zresetował
-                 }
+                 } catch (e) {}
              }, 12000); 
         }
     }
@@ -5105,6 +5111,7 @@ function renderJackpotUI(data) {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
