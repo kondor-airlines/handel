@@ -5019,19 +5019,6 @@ function renderJackpotUI(data) {
                 date: new Date().toISOString(),
                 debts: debts // <-- TO JEST KLUCZOWE
             });
-
-			// --- DISCORD JACKPOT ---
-                    // winnerName, winAmount i percent to zmienne, które powinny być w tej okolicy kodu
-                    // Jeśli u Ciebie nazywają się inaczej, popraw je (np. winner.nick, currentPot)
-                    
-                    sendDiscordNotification(
-                        'jackpot', 
-                        `JACKPOT ROZBITY!`, 
-                        `🏆 **Zwycięzca:** ${winnerName}\n💰 **Wygrana:** ${winAmount}\n📈 **Szansa:** ${percent}%`, 
-                        "System"
-                    );
-                    // -----------------------
-			
         }
     }
 
@@ -5166,36 +5153,36 @@ function renderJackpotUI(data) {
 
         let targetUrl = "";
         let color = 0;
-        let icon = "";
-
+        
         if (type === 'handel') {
             targetUrl = WEBHOOK_HANDEL;
             color = 3066993; // Zielony
-            icon = "⚖️";
-        } 
-        else if (type === 'podzial') {
+        } else if (type === 'podzial') {
             targetUrl = WEBHOOK_PODZIALY;
             color = 16766720; // Złoty
-            icon = "💰";
-        } 
-        else if (type === 'jackpot') {
-            targetUrl = WEBHOOK_PODZIALY; // Używamy kanału Skarbiec dla Jackpota
-            color = 10181046; // Fioletowy
-            icon = "🎰";
         }
 
-        if (!targetUrl || targetUrl.includes("TU_WKLEJ")) return;
+        if (!targetUrl || targetUrl.includes("TU_TWOJ")) return;
+
+        // Jeśli obrazek itemka to Base64 (wgrany z dysku), Discord go nie wyświetli.
+        // Wyświetlamy go tylko jeśli to link (http...).
+        const safeItemImg = (imgItem && imgItem.startsWith('http')) ? imgItem : "";
+        const safeMobImg = (imgMob && imgMob.startsWith('http')) ? imgMob : "https://cdn-icons-png.flaticon.com/512/3135/3135715.png"; // Domyślna ikonka jak brak moba
 
         const payload = {
             username: "Targowisko Bot",
-            avatar_url: "https://cdn-icons-png.flaticon.com/512/3135/3135715.png",
+            avatar_url: safeMobImg, // Avatar bota zmieni się na potwora/źródło
             embeds: [
                 {
-                    title: `${icon} ${title}`,
-                    description: details,
+                    title: title,
+                    description: `**Cena:** ${price}\n\n${desc}\n\n[Przejdź do Targowiska](https://kondor-airlines.github.io/handel/)`,
                     color: color,
+                    thumbnail: {
+                        url: safeItemImg // Obrazek przedmiotu jako miniaturka po prawej
+                    },
                     footer: {
-                        text: `Data: ${new Date().toLocaleTimeString()}`
+                        text: `Wystawił: ${author} • ${new Date().toLocaleTimeString()}`,
+                        icon_url: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/pyt.gif" // Mała ikonka w stopce
                     }
                 }
             ]
@@ -5217,12 +5204,3 @@ function renderJackpotUI(data) {
 <div id="toast-container"></div>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
