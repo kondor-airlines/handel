@@ -4608,114 +4608,98 @@ function startSplitHistory() {
         }
     };
 
-	// 3. LISTENER (SERCE GRY)
-    function startJackpotListener() {
-        if(jackpotUnsub) jackpotUnsub();
+	window.startJackpotListener = () => {
+    // 1. Zabijamy stary nasłuch
+    if (window.jackpotUnsub) window.jackpotUnsub();
+    
+    // Resetujemy flagi
+    window.isSpinning = false;
+    window.isFinalizing = false;
+    window.lastWinnerId = null;
+
+    console.log("🟢 Startuję główny nasłuch Jackpota...");
+    const jpRef = doc(db, "jackpot", "current");
+
+    window.jackpotUnsub = onSnapshot(jpRef, (docSnap) => {
+        if (!docSnap.exists()) return;
+        const data = docSnap.data();
+
+        // --- A. AKTUALIZACJA Puli i Listy ---
+        // Bezpieczne pobieranie elementów
+        const totalDiv = document.getElementById('jackpotTotal');
+        const timerDiv = document.getElementById('jackpotTimer'); // To tu był błąd!
+
+        const total = (data.entries || []).reduce((acc, e) => acc + e.amount, 0);
         
-        jackpotUnsub = onSnapshot(doc(db, "jackpot", "current"), (docSnap) => {
-            if(!docSnap.exists()) {
-                renderJackpotUI({entries: []});
-                return;
-            }
-            const data = docSnap.data();
+        // Sprawdzamy czy element istnieje zanim użyjemy innerHTML
+        if (totalDiv) {
+            totalDiv.innerHTML = s_formatGold(total) + ' <span style="color:gold">G</span>';
+        }
+
+        // Renderujemy listę tylko jeśli nie kręcimy (żeby nie migało)
+        if (!window.isSpinning && window.renderJackpotList) {
+            window.renderJackpotList(data.entries || []);
+        }
+
+        // --- B. OBSŁUGA CZASU ---
+        const now = Date.now();
+        const serverTime = now + (window.timeOffset || 0); 
+        let timeLeft = 0;
+        
+        if (data.startTime) {
+            const endTime = data.startTime.toMillis() + (60 * 1000);
+            timeLeft = Math.max(0, Math.ceil((endTime - serverTime) / 1000));
+        }
+
+        // --- C. LOGIKA STANÓW ---
+
+        // 1. MAMY ZWYCIĘZCĘ -> KRĘCIMY
+        if (data.winnerEntry) {
+            if (timerDiv) timerDiv.innerText = "KRĘCIMY!"; // Bezpieczne użycie
             
-            if(docSnap.readTime) {
-                timeOffset = docSnap.readTime.toMillis() - new Date().getTime(); 
+            const thisWinnerId = data.winnerEntry.uid + data.winnerEntry.amount;
+            if (!window.isSpinning && window.lastWinnerId !== thisWinnerId) {
+                window.lastWinnerId = thisWinnerId;
+                window.spinTheWheel(data.winnerEntry, data.entries);
             }
-
-            renderJackpotUI(data);
-            const timerEl = document.getElementById('jackpotTimer');
-
-            if (data.status === 'open' && !data.winnerProcessing) {
-                isFinalizingLocal = false; 
+        }
+        
+        // 2. KONIEC CZASU -> FINALIZACJA
+        else if (data.status === 'open' && timeLeft <= 0 && data.entries && data.entries.length >= 2) {
+            if (timerDiv) timerDiv.innerText = "Losowanie..."; // Bezpieczne użycie
+            
+            if (!window.isFinalizing) {
+                window.isFinalizing = true;
+                const delay = Math.floor(Math.random() * 2000); 
+                setTimeout(() => { finalizeJackpot(); }, delay);
             }
+        }
 
-            if(data.status === 'open' && data.startTime) {
-                let startMillis = 0;
-                if (typeof data.startTime.toMillis === 'function') startMillis = data.startTime.toMillis();
-                else if (data.startTime.seconds) startMillis = data.startTime.seconds * 1000;
-                else startMillis = new Date(data.startTime).getTime();
-
-                if (startMillis > 0) {
-                    jackpotEndTime = startMillis + (JP_GAME_TIME * 1000);
-                    timerEl.style.display = 'block';
+        // 3. RUNDA TRWA
+        else if (data.status === 'open') {
+            if (timerDiv) {
+                if (data.entries.length < 2) {
+                    timerDiv.innerText = "Oczekiwanie na 2. gracza...";
+                    timerDiv.style.color = "#ccc";
                 } else {
-                    timerEl.style.display = 'block';
-                    timerEl.innerText = "START...";
-                    jackpotEndTime = 0;
-                }
-            } else {
-                jackpotEndTime = 0;
-                timerEl.style.display = 'none';
-            }
-
-            // === OBSŁUGA LOSOWANIA (NAPRAWA ZATRZYMYWANIA) ===
-            if(data.status === 'spinning') {
-                timerEl.style.display = 'none';
-                
-                // 1. Pobieramy czas startu z bazy
-                let spinStartMillis = 0;
-                if (data.spinStartTime) {
-                    if (typeof data.spinStartTime.toMillis === 'function') spinStartMillis = data.spinStartTime.toMillis();
-                    else if (data.spinStartTime.seconds) spinStartMillis = data.spinStartTime.seconds * 1000;
-                    else spinStartMillis = new Date(data.spinStartTime).getTime();
-                } else {
-                    // Fallback dla starych wpisów - użyj "teraz"
-                    spinStartMillis = new Date().getTime();
-                }
-                
-                // 2. Jeśli u nas pasek NIE kręci, to odpalamy funkcję
-                // Funkcja spinTheWheel sama obliczy ile czasu zostało!
-                if (!document.getElementById('jackpotStrip').classList.contains('spinning')) {
-                    spinTheWheel(data.winner, data.entries, spinStartMillis);
+                    timerDiv.innerText = `Czas: ${timeLeft}s`;
+                    timerDiv.style.color = timeLeft < 10 ? '#ff4444' : '#ccc';
                 }
             }
             
-            if(data.status === 'open' && document.getElementById('jackpotStrip').classList.contains('spun')) {
-                 resetJackpotVisuals();
-            }
-        });
-        
-        if(jpTimerInterval) clearInterval(jpTimerInterval);
-        
-        jpTimerInterval = setInterval(() => {
-             if (!jackpotEndTime) return;
+            // Resetujemy flagi blokujące, jeśli runda jest otwarta
+            window.isSpinning = false;
+            window.isFinalizing = false;
+            
+            // Ukrywamy modal wygranej (bezpiecznie)
+            const winnerModal = document.getElementById('jackpotWinnerModal');
+            if (winnerModal) winnerModal.style.display = 'none';
+        }
 
-             const nowSynced = new Date().getTime() + timeOffset;
-             const diff = jackpotEndTime - nowSynced; 
-             const timerEl = document.getElementById('jackpotTimer');
-
-             if (diff > 0) {
-                 let seconds = diff / 1000;
-                 if (seconds > JP_GAME_TIME) seconds = JP_GAME_TIME;
-                 timerEl.innerText = seconds.toFixed(2) + "s";
-             } else {
-                 timerEl.innerText = "LOSOWANIE...";
-                 
-                 // PRIORYTET DLA ADMINA (Zapobiega błędom 400)
-                 if (diff > -8000 && !isFinalizingLocal) {
-                     isFinalizingLocal = true; 
-                     let minDelay = 5000; // Gracze czekają 5-8s
-                     let maxDelay = 8000;
-
-                     if (typeof currentNick !== 'undefined' && currentNick === ADMIN_NICK) {
-                         minDelay = 0;    // Admin strzela od razu
-                         maxDelay = 2000;
-                     }
-                     const randomDelay = Math.floor(Math.random() * (maxDelay - minDelay + 1) + minDelay);
-                     
-                     setTimeout(() => {
-                         getDoc(doc(db, "jackpot", "current")).then(snap => {
-                             const d = snap.data();
-                             if(d && d.status === 'open' && !d.winnerProcessing) {
-                                 finalizeJackpot();
-                             }
-                         });
-                     }, randomDelay);
-                 }
-             }
-        }, 50);
-    }
+    }, (error) => {
+        console.error("Błąd głównego nasłuchu:", error);
+    });
+};
 	
 function renderJackpotUI(data) {
         const list = document.getElementById('jackpotPlayersList');
@@ -5113,13 +5097,13 @@ function renderJackpotUI(data) {
     listDiv.innerHTML = html;
 };
 
-// --- DEFINICJA FUNKCJI HISTORII (Wklej na dole pliku) ---
+// --- DEFINICJA FUNKCJI HISTORII ---
 window.startJackpotHistoryListener = () => {
     // 1. Zabij stary nasłuch, jeśli istnieje
     if (window.historyUnsub) window.historyUnsub();
 
     const historyDiv = document.getElementById('jackpotHistoryList'); 
-    if (!historyDiv) return; // Jeśli nie ma elementu w HTML, przerwij cicho
+    if (!historyDiv) return; 
 
     console.log("📜 Uruchamiam nasłuch historii...");
 
@@ -5136,7 +5120,6 @@ window.startJackpotHistoryListener = () => {
 
         snapshot.forEach((doc) => {
             const h = doc.data();
-            // Bezpieczne formatowanie daty
             let timeStr = "--:--";
             if (h.timestamp) {
                 const date = h.timestamp.toDate();
@@ -5160,20 +5143,27 @@ window.startJackpotHistoryListener = () => {
         console.error("Błąd historii:", error);
     });
 
-	// Uruchamiamy nasłuch dopiero tutaj, na samym końcu, gdy wszystko jest załadowane
+}; // <--- TU SIĘ KOŃCZY DEFINICJA FUNKCJI (Ważne!)
+
+
+// --- A TO JEST START SKRYPTU (Musi być POZA funkcją) ---
 setTimeout(() => {
-   if(window.startJackpotHistoryListener) {
-       window.startJackpotHistoryListener();
-   }
+    console.log("🚀 Inicjalizacja skryptów Jackpota...");
+    
+    // Odpalamy główny nasłuch
+    if(window.startJackpotListener) window.startJackpotListener();
+    
+    // Odpalamy historię
+    if(window.startJackpotHistoryListener) window.startJackpotHistoryListener();
+    
 }, 1000);
-	
-};
 	
 </script>
 
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
