@@ -4682,14 +4682,9 @@ function startSplitHistory() {
                  timerEl.innerText = "LOSOWANIE...";
                  
                  // Trigger losowania (tylko raz, gdy czas minie)
-                 if (diff > -2000 && diff < 0) {
-                     getDoc(doc(db, "jackpot", "current")).then(snap => {
-                         const d = snap.data();
-                         if(d && d.status === 'open' && !d.winnerProcessing) {
-                             finalizeJackpot(d);
-                         }
-                     });
-                 }
+                 if (diff <= 0 && data.status === 'open' && !data.winnerProcessing) {
+    			finalizeJackpot();
+				}
              }
         }, 50);
     }
@@ -5024,3 +5019,4 @@ function startSplitHistory() {
 <div id="toast-container"></div>
 </body>
 </html>
+
