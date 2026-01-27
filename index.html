@@ -1661,7 +1661,6 @@
     let currentUser = null;
     let currentNick = null;
     // ... dalej reszta Twojego kodu (let allOffers = []; itd.)
-    let allOffers = [];
     let inboxMessages = [];
     let activeUsers = {};
     let currentFilters = { type: 'all', cat: 'all' };
@@ -4490,20 +4489,12 @@ function startSplitHistory() {
     }
 
 // --- KONFIGURACJA ---
-    const ADMIN_NICK = "Stachu Drzymała"; 
-    const ADMIN_UID = "9rFgcWVJwBWyykHf6nuIwyGFrPR2"; 
     const JP_GAME_TIME = 60; // Czas rundy w sekundach
 
     // Zmienne globalne
-    let currentUser = null;
-    let currentNick = null;
     let allOffers = [];
-    let activeUsers = {};
-    let currentFilters = { type: 'all', cat: 'all' };
-    let composeTarget = {};
-    let isMuted = false;
 
-    // Zmienne Jackpota
+    // Zmienne Jackpot
     let jackpotUnsub = null;
     let jpTimerInterval = null;
     let jackpotEndTime = 0;
@@ -4955,6 +4946,7 @@ function startSplitHistory() {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
