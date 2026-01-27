@@ -337,25 +337,8 @@
         #karczmaPanel { position: fixed; top: 0; right: -350px; width: 320px; height: 100vh; background: rgba(10, 10, 10, 0.95); border-left: 2px solid var(--gold); backdrop-filter: blur(10px); z-index: 20000; transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1); display: flex; flex-direction: column; }
         #karczmaPanel.open { right: 0; box-shadow: -10px 0 50px rgba(0,0,0,0.8); }
         .chat-header { padding: 20px; background: linear-gradient(90deg, #332b00, transparent); border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center; }
-        /* Styl dla kontenera wiadomości */
-		.chat-messages {
-		    height: 300px;           /* Stała wysokość */
-		    overflow-y: auto;        /* Pasek przewijania */
-		    background: rgba(0, 0, 0, 0.2);
-		    border: 1px solid #444;
-		    padding: 10px;
-		    margin-bottom: 10px;
-		    display: flex;
-		    flex-direction: column;
-		    gap: 5px;
-		}
-		
-		/* Styl pojedynczej wiadomości */
-		.chat-msg {
-		    padding: 5px;
-		    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-		    font-size: 0.9em;
-		}
+        .chat-messages { flex-grow: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 12px; }
+        .chat-msg { font-size: 0.85em; padding: 10px; border-radius: 8px; background: rgba(255,255,255,0.05); border: 1px solid #333; display: flex; flex-direction: column; gap: 5px; }
         .chat-top-row { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 4px; margin-bottom: 2px; }
         .chat-nick { color: var(--gold); font-weight: bold; }
         .chat-time { font-size: 0.85em; color: #666; }
@@ -2745,149 +2728,48 @@ const lootTable = {
         p.classList.toggle('open');
     };
 
-    // --- 1. FUNKCJA WYSYŁANIA WIADOMOŚCI ---
     window.sendChatMessage = async () => {
         const inp = document.getElementById('chatInput');
         const txt = inp.value.trim();
-        
-        if (!currentUser) return alert("Zaloguj się, aby pisać!");
-        if (!txt) return;
-
-        try {
-            await addDoc(collection(db, "chat"), {
-                nick: currentNick,
-                uid: currentUser.uid, // <--- WAŻNE: Zapisujemy Twoje ID, żebyś mógł potem usunąć
-                text: txt, // Zabezpieczymy przy wyświetlaniu
-                type: 'msg',
-                date: new Date().toISOString()
-            });
-            inp.value = ""; // Czyścimy pole
-        } catch (e) {
-            console.error("Błąd wysyłania:", e);
-        }
-    };
-
-    // --- 2. FUNKCJA RZUTU KOŚCIĄ ---
-    window.rollDice = async () => {
-        if (!currentUser) return alert("Zaloguj się!");
-        const result = Math.floor(Math.random() * 100) + 1;
+        if (!txt || !currentUser) return;
         
         await addDoc(collection(db, "chat"), {
             nick: currentNick,
-            uid: currentUser.uid, // <--- Tutaj też ID
-            text: `🎲 rzucił(a) kośćmi: ${result}/100`,
-            type: 'roll',
+            text: window.escapeHtml(txt),
+            type: 'msg', // Zwykła wiadomość
             date: new Date().toISOString()
         });
-        window.playSound('coin'); 
+        inp.value = "";
     };
 
-    // --- 3. FUNKCJA USUWANIA (Musi być globalna window.) ---
-    window.deleteChatMessage = async (id) => {
-        if (!confirm("Usunąć tę wiadomość?")) return;
-        try {
-            await deleteDoc(doc(db, "chat", id));
-        } catch (e) {
-            console.error(e);
-            alert("Błąd usuwania (może brak uprawnień?).");
-        }
-    };
-
-    // --- 4. ODBIERANIE I WYŚWIETLANIE (RENDER) ---
-    // Ten fragment musi być poza funkcjami, żeby działał "w tle"
-// --- 4. ODBIERANIE I WYŚWIETLANIE (RENDER) ---
-    // Ten fragment musi być poza funkcjami, żeby działał "w tle"
-    const qChat = query(collection(db, "chat"), orderBy("date", "asc"), limit(50));
-    
-    onSnapshot(qChat, (snap) => {
-        const div = document.getElementById('chatMessages'); // To jest Twoje ID z HTML
-        if (!div) return; // Zabezpieczenie
-
-        div.innerHTML = ""; // Czyścimy przed nowym renderem
-
-        snap.docs.forEach(docSnap => {
-            const m = docSnap.data();
-            const time = new Date(m.date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-            
-            // SPRAWDZAMY CZY TO MOJA WIADOMOŚĆ
-            // Porównujemy ID autora wiadomości (m.uid) z ID zalogowanego (currentUser.uid)
-            const isMine = currentUser && (m.uid === currentUser.uid);
-
-            // TWORZYMY PRZYCISK KOSZA
-            const deleteBtn = isMine 
-                ? `<span onclick="deleteChatMessage('${docSnap.id}')" 
-                        style="cursor:pointer; margin-left:8px; opacity:0.5; font-size:1.1em;" 
-                        title="Usuń" 
-                        onmouseover="this.style.opacity='1'" 
-                        onmouseout="this.style.opacity='0.5'">
-                    🗑️
-                   </span>` 
-                : "";
-
-            // STYLE DLA RZUTU KOŚCIĄ
-            let textStyle = "color:#ccc;"; 
-            let boxStyle = "";
-            
-            if (m.type === 'roll') {
-                textStyle = "color:var(--gold); font-weight:bold; font-style:italic;";
-                boxStyle = "border-left: 2px solid var(--gold); background: rgba(255, 215, 0, 0.05);";
-            }
-
-            // BEZPIECZNY TEKST (Zamiast escapeHtml)
-            // Zamieniamy znaki specjalne, żeby nikt nie popsuł strony kodem HTML
-            let safeText = m.text
-                .replace(/&/g, "&amp;")
-                .replace(/</g, "&lt;")
-                .replace(/>/g, "&gt;");
-
-            // RYSOWANIE WIADOMOŚCI
-            div.innerHTML += `
-                <div class="chat-msg" style="${boxStyle}">
-                    <div style="display:flex; justify-content:space-between; font-size:0.8em; color:#666; margin-bottom:2px;">
-                        <span><b style="color:${m.type === 'roll' ? 'var(--gold)' : '#fff'}">${m.nick}</b></span>
-                        <span>${time} ${deleteBtn}</span>
-                    </div>
-                    <div style="${textStyle}; word-wrap: break-word;">
-                        ${safeText}
-                    </div>
-                </div>
-            `;
+    // NOWOŚĆ: Funkcja rzutu kością
+    window.rollDice = async () => {
+        if (!currentUser) return alert("Zaloguj się!");
+        const result = Math.floor(Math.random() * 100) + 1; // Losuje 1-100
+        
+        await addDoc(collection(db, "chat"), {
+            nick: currentNick,
+            text: `🎲 rzucił(a) kośćmi i uzyskał(a) wynik: ${result}/100`,
+            type: 'roll', // Specjalny typ wiadomości
+            date: new Date().toISOString()
         });
-
-        // Przewijanie na sam dół (żeby widzieć najnowsze)
-        div.scrollTop = div.scrollHeight;
-    });
+        window.playSound('coin'); // Dźwięk monet przy rzucie
+    };
     
     // NASŁUCH ENTER W CZACIE
     document.getElementById('chatInput').addEventListener('keypress', function (e) {
         if (e.key === 'Enter') sendChatMessage();
     });
 
-// ZAKTUALIZOWANE RENDEROWANIE (Kolory + Usuwanie)
+// ZAKTUALIZOWANE RENDEROWANIE (Obsługa kolorów dla rzutów)
     onSnapshot(query(collection(db, "chat"), orderBy("date", "asc"), limit(50)), (snap) => {
         const div = document.getElementById('chatMessages');
         div.innerHTML = "";
-        
         snap.docs.forEach(d => {
             const m = d.data();
             const time = new Date(m.date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
             
-            // 1. Sprawdzamy autorstwa (Czy to ja?)
-            // Używamy d.id (ID dokumentu) do usuwania
-            const isMine = currentUser && (m.uid === currentUser.uid);
-            
-            // 2. Tworzymy przycisk usuwania
-            const deleteBtn = isMine 
-                ? `<span onclick="deleteChatMessage('${d.id}')" 
-                        style="cursor:pointer; margin-left:8px; opacity:0.5;" 
-                        title="Usuń wpis"
-                        onmouseover="this.style.opacity='1'" 
-                        onmouseout="this.style.opacity='0.5'">
-                    🗑️
-                  </span>` 
-                : "";
-            
-            // 3. Twój styl dla rzutów kością (zachowany)
+            // Styl dla rzutu kością (Złoty tekst, kursywa)
             let msgStyle = "color: #eee;";
             let containerStyle = "";
             
@@ -2896,18 +2778,13 @@ const lootTable = {
                 containerStyle = "border-left: 3px solid var(--gold); background: rgba(255, 215, 0, 0.05);";
             }
 
-            // 4. Składamy HTML (Dodałem ${deleteBtn} obok czasu)
             div.innerHTML += `
                 <div class="chat-msg" style="${containerStyle}">
                     <div class="chat-top-row">
                         <span class="chat-nick">${window.escapeHtml(m.nick)}</span>
-                        <span class="chat-time">
-                            ${time}
-                            ${deleteBtn}
-                        </span>
+                        <span class="chat-time">${time}</span>
                     </div>
-                    <div class="chat-text" style="${msgStyle}">
-                        ${m.text} </div>
+                    <div class="chat-text" style="${msgStyle}">${m.text}</div>
                 </div>`;
         });
         div.scrollTop = div.scrollHeight;
@@ -5490,29 +5367,12 @@ function renderJackpotUI(data) {
             console.error("Błąd Discorda:", e);
         }
     }
-
-
-	// --- 3. FUNKCJA USUWANIA (Musi być globalna window.) ---
-    window.deleteChatMessage = async (id) => {
-        if (!confirm("Usunąć tę wiadomość?")) return;
-        try {
-            await deleteDoc(doc(db, "chat", id));
-        } catch (e) {
-            console.error(e);
-            alert("Błąd usuwania (może brak uprawnień?).");
-        }
-    };
-
 	
 </script>
 
 <div id="toast-container"></div>
 </body>
 </html>
-
-
-
-
 
 
 
