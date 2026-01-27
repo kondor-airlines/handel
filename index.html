@@ -2849,34 +2849,58 @@ window.toggleSpecialFields = () => {
     else if (type === 'kupie') document.getElementById('field-buy').style.display = 'block';
     else if (type === 'zamienie') document.getElementById('field-trade').style.display = 'block';
     else if (type === 'gold') document.getElementById('field-gold').style.display = 'grid';
-   else if (type === 'chest') {
-            document.getElementById('chestBundleContainer').style.display = 'block';
-            // Resetujemy widok ceny (domyślnie pokaż, chyba że wybrano Kupię)
-            window.toggleChestPrice(); 
-            if(document.getElementById('chestRowsArea').innerHTML === "") window.addChestRow();
+    // 7. Logika dla "SKRZYNKI" (POPRAWIONA)
+        else if (type === 'chest') {
+            const rows = document.querySelectorAll('.chest-row');
+            if (rows.length === 0) return alert("Dodaj przynajmniej jedną skrzynkę!");
+            
+            const chestAction = document.getElementById('chestAction').value;
+            const chestTotalInput = document.getElementById('chestPrice');
+            const chestTotalPrice = chestTotalInput ? chestTotalInput.value.trim() : "";
+
+            let chestSummary = [];
+            let imagesArray = [];
+            
+            for (let row of rows) {
+                const select = row.querySelector('.chest-select');
+                const qty = row.querySelector('.chest-qty').value;
+                const singlePrice = row.querySelector('.chest-row-price').value.trim();
+                
+                if (!select.value || qty < 1) return alert("Uzupełnij nazwy i ilość skrzynek!");
+                
+                let rowText = `${qty}x ${select.value.replace('Skrzynia ', '')}`;
+                
+                if (chestAction === 'Sprzedam' && singlePrice) {
+                    rowText += ` (${singlePrice})`;
+                }
+                
+                chestSummary.push(rowText);
+                
+                const u = select.options[select.selectedIndex].dataset.img;
+                if(u) imagesArray.push(u);
+            }
+
+            finalName = `${chestAction}: ` + chestSummary.join(', ');
+            finalImg = imagesArray.join('|'); // To zostanie naprawione w funkcji Discorda (Krok 1)
+            
+            if (chestAction === 'Kupię') {
+                finalPrice = "Do dogadania";
+            } else {
+                finalPrice = chestTotalPrice || "Patrz opis"; 
+            }
+
+            finalSource = "Skrzynki Herosów";
+            
+            // --- TUTAJ ZMIANA: Ustawiamy obrazek pierwszej skrzynki jako awatar źródła ---
+            if (imagesArray.length > 0) {
+                finalSourceImg = imagesArray[0]; 
+            } else {
+                finalSourceImg = "https://micc.garmory-cdn.cloud/obrazki/itemy/neu/skrzynia_zamknieta.gif";
+            }
+            // --------------------------------------------------------------------------
+            
+            finalBonding = "bound";
         }
-
-    // --- Obsługa pól standardowych ---
-    const hideSource = ['gold', 'exp', 'other', 'chest'].includes(type);
-    const displayStyle = hideSource ? 'none' : 'block';
-
-    ['sourceCategory', 'itemSource', 'itemSelect', 'sourceSearch', 'itemSearch', 'itemBonding'].forEach(id => {
-        const el = document.getElementById(id);
-        if(el) el.style.display = displayStyle;
-    });
-
-    // --- NOWOŚĆ: Obsługa opcji "Obojętne" w kłódce (TEGO BRAKOWAŁO) ---
-    const bondingSel = document.getElementById('itemBonding');
-    const anyOption = bondingSel.querySelector('option[value="any"]');
-    
-    if (type === 'kupie') {
-        // Przy kupnie pokazujemy opcję "Obojętne"
-        anyOption.style.display = 'block'; 
-    } else {
-        // W każdym innym przypadku (np. Sprzedam) ukrywamy ją i resetujemy jeśli była wybrana
-        anyOption.style.display = 'none';
-        if (bondingSel.value === 'any') bondingSel.value = 'bound';
-    }
     // --------------------------------------------------
 
     // Autouzupełnianie ikon i nazw
@@ -5147,7 +5171,7 @@ function renderJackpotUI(data) {
         const WEBHOOK_HANDEL = "https://discord.com/api/webhooks/1465769735185502479/f-BawOQxP6mXA5QL_p6yyFVgB2M8S8qyCEI9yZg0SmjNzcZrrdcIUn-nBeEdKYzuzCRu";
         const WEBHOOK_PODZIALY = "https://discord.com/api/webhooks/1465769820812345477/z9-BUhTxCbeo_rzvJTjTpm8CzEi2bKHQ3ng-Rvvdyrjpdj2XEZoLpsLS_n1CJE-aemLh";
 
-        let targetUrl = "";
+       let targetUrl = "";
         let color = 0;
         
         if (type === 'handel') {
@@ -5160,25 +5184,38 @@ function renderJackpotUI(data) {
 
         if (!targetUrl || targetUrl.includes("TU_TWOJ")) return;
 
-        // Jeśli obrazek itemka to Base64 (wgrany z dysku), Discord go nie wyświetli.
-        // Wyświetlamy go tylko jeśli to link (http...).
-        const safeItemImg = (imgItem && imgItem.startsWith('http')) ? imgItem : "";
-        const safeMobImg = (imgMob && imgMob.startsWith('http')) ? imgMob : "https://cdn-icons-png.flaticon.com/512/3135/3135715.png"; // Domyślna ikonka jak brak moba
+        // --- NAPRAWA OBRAZKÓW ---
+        
+        // 1. Jeśli obrazków jest wiele (oddzielone |), bierzemy tylko pierwszy
+        let safeItemImg = "";
+        if (imgItem) {
+            safeItemImg = imgItem.split('|')[0]; // Bierze pierwszy link przed kreską
+            if (!safeItemImg.startsWith('http')) safeItemImg = ""; // Zabezpieczenie przed base64
+        }
+
+        // 2. Jeśli brakuje obrazka moba (np. przy skrzynkach), dajemy ikonę "Lootu/Worka"
+        let safeMobImg = "";
+        if (imgMob && imgMob.startsWith('http')) {
+            safeMobImg = imgMob;
+        } else {
+            // Domyślna ikona dla skrzynek/innych bez moba
+            safeMobImg = "https://micc.garmory-cdn.cloud/obrazki/itemy/neu/worek.gif"; 
+        }
 
         const payload = {
             username: "Targowisko Bot",
-            avatar_url: safeMobImg, // Avatar bota zmieni się na potwora/źródło
+            avatar_url: safeMobImg, // To pokaże się jako "Twarz" bota przy wiadomości
             embeds: [
                 {
                     title: title,
-                    description: `**Cena:** ${price}\n\n${desc}\n\n[Przejdź do Targowiska](https://kondor-airlines.github.io/handel/)`,
+                    description: `**Cena:** ${price}\n\n${desc}\n\n[Przejdź do Targowiska](https://kondor-airlines.web.app)`, // Tu wpisz swój adres
                     color: color,
                     thumbnail: {
-                        url: safeItemImg // Obrazek przedmiotu jako miniaturka po prawej
+                        url: safeItemImg // To pokaże się jako duży obrazek po prawej
                     },
                     footer: {
                         text: `Wystawił: ${author} • ${new Date().toLocaleTimeString()}`,
-                        icon_url: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/pyt.gif" // Mała ikonka w stopce
+                        icon_url: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/pyt.gif"
                     }
                 }
             ]
@@ -5200,6 +5237,7 @@ function renderJackpotUI(data) {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
