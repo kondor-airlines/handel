@@ -4507,18 +4507,6 @@ function startSplitHistory() {
     // --- FUNKCJE POMOCNICZE ---
     window.escapeHtml = (text) => text ? text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;") : "";
     window.isValidImageUrl = (url) => url && /^https?:\/\/[^<>"]+\.(jpeg|jpg|gif|png|webp|bmp)$/i.test(url);
-    
-    function parseGold(str) {
-        if(!str) return 0;
-        str = str.toString().toLowerCase().replace(',', '.').replace(/\s/g, '');
-        let multiplier = 1;
-        if (str.endsWith('g')) multiplier = 1000000000;
-        else if (str.endsWith('m')) multiplier = 1000000;
-        else if (str.endsWith('k')) multiplier = 1000;
-        const num = parseFloat(str);
-        if (isNaN(num)) return 0;
-        return Math.floor(num * multiplier);
-    }
 
     function s_formatGold(n) {
         if (n === undefined || n === null || isNaN(n)) return "0";
@@ -4579,7 +4567,7 @@ function startSplitHistory() {
         startJackpotHistoryListener();
     };
 
-    window.joinJackpot = async () => {
+   window.joinJackpot = async () => {
         if(!currentUser) return alert("Zaloguj się!");
         if(isBettingProcessing) return;
 
@@ -4592,39 +4580,51 @@ function startSplitHistory() {
         const jpRef = doc(db, "jackpot", "current");
 
         try {
-            const snap = await getDoc(jpRef);
-            let data = { status: 'open', entries: [], startTime: null };
-            if(snap.exists()) data = snap.data();
+            await runTransaction(db, async (transaction) => {
+                const jpDoc = await transaction.get(jpRef);
+                if (!jpDoc.exists()) throw "Błąd inicjalizacji Jackpota!";
+                
+                const data = jpDoc.data();
+                
+                // Sprawdzamy, czy można jeszcze obstawiać
+                if (data.status !== 'open' && !data.winnerProcessing) {
+                    throw "Runda jest już zamknięta lub trwa losowanie!";
+                }
 
-            if(data.status !== 'open' && !data.winnerProcessing) return alert("Runda trwa!");
+                // Przygotowujemy nowy wpis
+                const newEntry = { 
+                    uid: currentUser.uid, 
+                    nick: currentNick, 
+                    avatar: currentUser.photoURL, 
+                    amount: amount, 
+                    color: getRandomColor() 
+                };
 
-            const newEntry = { 
-                uid: currentUser.uid, 
-                nick: currentNick, 
-                avatar: currentUser.photoURL, 
-                amount: amount, 
-                color: getRandomColor() 
-            };
-            const newEntries = [...(data.entries || []), newEntry];
-            const uniquePlayers = new Set(newEntries.map(e => e.uid)).size;
-            
-            let newStartTime = data.startTime;
-            if (uniquePlayers >= 2 && !data.startTime) {
-                newStartTime = serverTimestamp(); // Używamy serverTimestamp dla spójności
-            }
+                const currentEntries = data.entries || [];
+                const newEntries = [...currentEntries, newEntry];
+                
+                // Logika startu czasu (jeśli to drugi unikalny gracz)
+                let updateData = { entries: newEntries };
+                const uniquePlayers = new Set(newEntries.map(e => e.uid)).size;
 
-            await setDoc(jpRef, { 
-                entries: newEntries, 
-                status: 'open', 
-                startTime: newStartTime,
-                winnerProcessing: false 
-            }, { merge: true });
+                if (uniquePlayers >= 2 && !data.startTime) {
+                    updateData.startTime = serverTimestamp(); 
+                }
 
+                // Zapisujemy bezpiecznie w transakcji
+                transaction.update(jpRef, updateData);
+            });
+
+            // Sukces
             input.value = "";
             window.playSound('coin');
+            alert("Zakład przyjęty! Powodzenia! 🍀");
+
         } catch(e) {
-            console.error(e);
-            alert("Błąd: " + e.message);
+            console.error("Błąd Jackpota:", e);
+            // Jeśli e jest obiektem błędu, wypisz message, jeśli stringiem - wypisz go wprost
+            const msg = typeof e === 'object' ? e.message : e;
+            alert("Nie udało się obstawić: " + msg);
         } finally {
             isBettingProcessing = false;
         }
@@ -4655,13 +4655,31 @@ function startSplitHistory() {
                 
                 const nowSynced = new Date().getTime() + timeOffset;
                 // Jeśli czas minął i nikt jeszcze nie losuje -> uruchom
-                if (nowSynced > jackpotEndTime && !isFinalizing && !data.winnerProcessing) {
-                    isFinalizing = true;
-                    finalizeJackpot().finally(() => { 
-                        // Małe opóźnienie blokady
-                        setTimeout(() => isFinalizing = false, 5000); 
-                    });
-                }
+                // NOWY KOD (wklej to w to samo miejsce):
+if (nowSynced > jackpotEndTime && !isFinalizing && !data.winnerProcessing) {
+    // Losowe opóźnienie od 0 do 5 sekund, żeby rozładować tłok
+    const randomDelay = Math.random() * 5000;
+    
+    // Ustawiamy flagę lokalnie od razu, żeby ten klient nie próbował kolejkować kolejnych
+    isFinalizing = true;
+
+    setTimeout(() => {
+        // Po odczekaniu sprawdzamy jeszcze raz, czy ktoś inny już nie zamknął rundy
+        // (Wtedy status w bazie zmieniłby się na 'spinning' albo 'winnerProcessing' = true)
+        // Ale ponieważ mamy nasłuch realtime, zmienna `data` wewnątrz tego scope może być stara.
+        // Dlatego po prostu wywołujemy finalizeJackpot - transakcja w środku i tak odrzuci, jeśli runda już nie jest 'open'.
+        
+        finalizeJackpot().then(() => {
+             console.log("Próba zakończenia rundy wykonana.");
+        }).catch(err => {
+             console.log("Ktoś inny już zakończył rundę lub wystąpił błąd:", err);
+        }).finally(() => {
+             // Odblokuj możliwość próby za 10 sekund (na wypadek błędu)
+             setTimeout(() => isFinalizing = false, 10000);
+        });
+        
+    }, randomDelay);
+}
             } else {
                 jackpotEndTime = 0;
             }
@@ -4946,6 +4964,7 @@ function startSplitHistory() {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
