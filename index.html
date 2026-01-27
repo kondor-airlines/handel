@@ -4518,9 +4518,10 @@ function startSplitHistory() {
         }
 
         // 3. Startujemy nasłuchy
-        startJackpotListener();
-        if(window.startJackpotHistoryListener) startJackpotHistoryListener();
-    };
+// 3. Startujemy nasłuchy
+    startJackpotListener();
+    startJackpotHistoryListener(); // <--- Usuń "if(window...)" i wywołaj bezpośrednio
+};
 
 		window.joinJackpot = async () => {
         if(!currentUser) return alert("Zaloguj się!");
@@ -5002,6 +5003,7 @@ function renderJackpotUI(data) {
     window.jackpotHistoryData = []; // Magazyn na dane
 
     function startJackpotHistoryListener() {
+		console.log("--> Uruchamiam nasłuch historii!");
         if(historyUnsub) historyUnsub();
         
         const q = query(collection(db, "jackpot_history"), orderBy("date", "desc"), limit(10));
@@ -5111,6 +5113,7 @@ function renderJackpotUI(data) {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
