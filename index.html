@@ -1526,7 +1526,19 @@
 
             <div class="split-section">
     <span class="split-label">4. Wybierz uczestników:</span>
+
+
+				<div style="display:flex; gap:10px; margin-bottom:15px; padding-bottom:10px; border-bottom:1px dashed #333;">
+    <input type="text" id="manualGuestInput" placeholder="Nick gościa (np. Random)" 
+           style="flex:1; padding:8px; background:#111; border:1px solid #444; color:#fff; border-radius:4px; font-family:'Montserrat', sans-serif;">
     
+    <button onclick="addManualGuest()" 
+            style="background:var(--green); color:#000; border:none; padding:0 20px; border-radius:4px; font-weight:bold; cursor:pointer; font-size:1.2em;">
+        +
+    </button>
+</div>
+		
+				
     <div id="bossSection">
         <span id="bossLabel" style="color:gold; font-size:0.8em;">👑 SZEF (50%):</span>
         <div id="splitBossGrid" class="user-grid-split"></div>
@@ -4151,6 +4163,108 @@ window.renderSplitLoot = (mobName) => {
         });
     }
 
+
+	// --- RĘCZNE DODAWANIE GOŚCI (DO DWÓCH SIATEK) ---
+    window.addManualGuest = () => {
+        const input = document.getElementById('manualGuestInput');
+        let nick = input.value.trim();
+
+        if (!nick) return alert("Wpisz nick gościa!");
+        
+        // Dodajemy dopisek, żeby odróżnić gościa od klanowicza
+        if (!nick.includes("(Gość)")) nick += " (Gość)";
+
+        // Zabezpieczenie przed duplikatami
+        // Sprawdzamy czy taki tekst jest już w przyciskach w sekcji teamu
+        const existing = Array.from(document.querySelectorAll('#splitTeamGrid .user-chip')).map(e => e.innerText);
+        if (existing.includes(nick)) return alert("Ten gość jest już na liście!");
+
+        // --- 1. TWORZYMY PRZYCISK DLA SZEFÓW (Boss Grid) ---
+        const bGrid = document.getElementById('splitBossGrid');
+        const bChip = document.createElement('div');
+        bChip.className = 'user-chip';
+        bChip.innerText = nick;
+        bChip.style.border = "1px dashed #777"; // Styl dla gościa
+        bChip.dataset.guestNick = nick; // Znacznik do usuwania
+
+        bChip.onclick = () => {
+            const mode = document.getElementById('splitMode').value;
+            if (mode === 'finder') {
+                // Tryb Znalazcy (Tylko 1 szef)
+                document.querySelectorAll('#splitBossGrid .user-chip').forEach(c => c.classList.remove('boss-active'));
+                s_Bosses = [nick];
+                bChip.classList.add('boss-active');
+            } else {
+                // Tryb Wykrywacz (Wielu VIP-ów)
+                if (s_Bosses.includes(nick)) {
+                    s_Bosses = s_Bosses.filter(n => n !== nick);
+                    bChip.classList.remove('boss-active');
+                } else {
+                    s_Bosses.push(nick);
+                    bChip.classList.add('boss-active');
+                }
+            }
+            window.playSound('click');
+        };
+
+        // Prawy przycisk myszy usuwa gościa z obu list
+        bChip.oncontextmenu = (e) => {
+            e.preventDefault();
+            removeGuestFully(nick);
+        };
+
+        bGrid.prepend(bChip); // Dodajemy na początek listy szefów
+
+        // --- 2. TWORZYMY PRZYCISK DLA EKIPY (Team Grid) ---
+        const tGrid = document.getElementById('splitTeamGrid');
+        const tChip = document.createElement('div');
+        tChip.className = 'user-chip';
+        tChip.innerText = nick;
+        tChip.style.border = "1px dashed #777";
+        tChip.dataset.guestNick = nick;
+
+        tChip.onclick = () => {
+            if (s_Team.includes(nick)) {
+                s_Team = s_Team.filter(n => n !== nick);
+                tChip.classList.remove('team-active');
+            } else {
+                s_Team.push(nick);
+                tChip.classList.add('team-active');
+            }
+            window.playSound('click');
+        };
+
+        tChip.oncontextmenu = (e) => {
+            e.preventDefault();
+            removeGuestFully(nick);
+        };
+
+        tGrid.prepend(tChip); // Dodajemy na początek listy ekipy
+
+        // --- 3. AUTOMATYCZNE ZAZNACZENIE ---
+        // Od razu klikamy go jako członka ekipy (dla wygody)
+        tChip.click();
+
+        // Czyścimy pole
+        input.value = "";
+    };
+
+    // Funkcja pomocnicza do usuwania gościa z obu sekcji naraz
+    window.removeGuestFully = (nick) => {
+        // Usuwamy z tablic danych
+        s_Bosses = s_Bosses.filter(n => n !== nick);
+        s_Team = s_Team.filter(n => n !== nick);
+
+        // Usuwamy elementy z DOM (szukamy po tekście lub data-attr)
+        const allChips = document.querySelectorAll('.user-chip');
+        allChips.forEach(chip => {
+            if (chip.innerText === nick) chip.remove();
+        });
+        
+        window.playSound('click');
+    };
+
+	
     // Pomocniczy format (bo w Twoim kodzie parseGold już jest)
 function s_formatGold(n) {
         if (n === undefined || n === null || isNaN(n)) return "0";
@@ -5204,3 +5318,4 @@ function renderJackpotUI(data) {
 <div id="toast-container"></div>
 </body>
 </html>
+
