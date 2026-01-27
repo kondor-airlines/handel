@@ -4718,51 +4718,83 @@ function startJackpotListener() {
         });
     }
 
-    async function finalizeJackpot() {
-        const jpRef = doc(db, "jackpot", "current");
+   async function finalizeJackpot() {
+    const jpRef = doc(db, "jackpot", "current");
 
-        try {
-            await runTransaction(db, async (transaction) => {
-                const sfDoc = await transaction.get(jpRef);
-                if (!sfDoc.exists()) throw "Dokument nie istnieje!";
+    try {
+        await runTransaction(db, async (transaction) => {
+            const sfDoc = await transaction.get(jpRef);
+            if (!sfDoc.exists()) throw "Brak dokumentu!";
 
-                const data = sfDoc.data();
+            const data = sfDoc.data();
+            if (data.status !== 'open' || data.winnerProcessing) return;
 
-                // PANCERNE SPRAWDZENIE:
-                if (data.status !== 'open' || data.winnerProcessing) {
-                    throw "Już wylosowano!"; // To przerywa transakcję
+            if (!data.entries || data.entries.length === 0) {
+                transaction.update(jpRef, { startTime: null, winnerProcessing: false });
+                return;
+            }
+
+            // 1. Obliczamy sumę i wyłaniamy zwycięzcę
+            let total = 0;
+            data.entries.forEach(e => total += Number(e.amount));
+            
+            let randomPoint = Math.random() * total;
+            let winner = null;
+            let currentStack = 0;
+            
+            // Obliczamy długi (ile kto przegrał na rzecz zwycięzcy)
+            const roundDebts = {};
+
+            for(let e of data.entries) {
+                currentStack += Number(e.amount);
+                if(!winner && randomPoint <= currentStack) {
+                    winner = e;
                 }
-
-                // Oznaczamy, że MY przetwarzamy
-                transaction.update(jpRef, { winnerProcessing: true });
-
-                let total = 0;
-                data.entries.forEach(e => total += e.amount);
-                let randomPoint = Math.random() * total;
-                
-                let winner = null;
-                let currentStack = 0;
-                
-                for(let e of data.entries) {
-                    currentStack += e.amount;
-                    if(randomPoint <= currentStack) {
-                        winner = e;
-                        break;
-                    }
+            }
+            
+            // Po wyłonieniu zwycięzcy wypełniamy listę długów
+            data.entries.forEach(e => {
+                if(e.uid !== winner.uid) {
+                    roundDebts[e.nick] = (roundDebts[e.nick] || 0) + Number(e.amount);
                 }
-
-                // Zapisujemy wynik - UPEWNIJ SIĘ ŻE TU SĄ KLAMRY { }
-                transaction.update(jpRef, {
-                    status: 'spinning',
-                    winner: winner,
-                    winnerTotal: total 
-                });
             });
-            console.log("Pomyślnie przeprowadzono losowanie.");
-        } catch (e) {
-            console.log("Losowanie anulowane (ktoś był szybszy lub błąd): ", e);
-        }
+
+            const totalStr = s_formatGold(total);
+
+            // 2. TWORZYMY WPIS DO HISTORII (Automatycznie)
+            // Tworzymy referencję do nowego dokumentu w historii
+            const historyRef = doc(collection(db, "jackpot_history"));
+            
+            transaction.set(historyRef, {
+                nick: winner.nick,
+                amount: totalStr,
+                avatar: winner.avatar || "",
+                date: new Date().toISOString(),
+                debts: roundDebts
+            });
+
+            // 3. AKTUALIZUJEMY STATUS GRY
+            transaction.update(jpRef, {
+                status: 'spinning',
+                winner: winner,
+                winnerTotal: total,
+                winnerProcessing: true
+            });
+
+            // 4. DODAJEMY KOMUNIKAT NA CZACIE
+            const chatRef = doc(collection(db, "chat"));
+            transaction.set(chatRef, {
+                nick: "System Jackpot",
+                text: `🎰 ${winner.nick} rozbił bank! Zgarnia: ${totalStr}!`,
+                type: 'roll',
+                date: new Date().toISOString()
+            });
+        });
+        console.log("Zapisano losowanie i historię pomyślnie.");
+    } catch (e) {
+        console.error("Błąd losowania/historii:", e);
     }
+}
 
     function spinTheWheel(winner, entries) {
         const strip = document.getElementById('jackpotStrip');
@@ -4880,26 +4912,6 @@ function startJackpotListener() {
             <div style="font-size:1.2em; color:var(--green); margin-bottom:10px;">Wygrywa pulę: <b>${totalStr}</b></div>
             ${debtorsListHtml}
         `;
-        
-        // Zapis do bazy (Zwycięzca)
-        if(currentUser && currentUser.uid === winner.uid) { 
-             addDoc(collection(db, "chat"), {
-                nick: "System Jackpot",
-                text: `🎰 ${winner.nick} rozbił bank! Zgarnia: ${totalStr}!`,
-                type: 'roll',
-                date: new Date().toISOString()
-            });
-
-            const debtsToSave = debts || {}; 
-
-            addDoc(collection(db, "jackpot_history"), {
-                nick: winner.nick,
-                amount: totalStr,
-                avatar: winner.avatar,
-                date: new Date().toISOString(),
-                debts: debtsToSave
-            });
-        }
     }
     function resetJackpotVisuals() {
         document.getElementById('jackpotStrip').style.transition = 'none';
@@ -5014,5 +5026,6 @@ function startJackpotListener() {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
