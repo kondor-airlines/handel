@@ -4240,21 +4240,28 @@ window.saveFinalSplit = async () => {
         // --- DISCORD DLA PODZIAŁÓW ---
         // Wybieramy losowy obrazek złota lub itemka z podziału
         const splitIcon = itemImg || "https://micc.garmory-cdn.cloud/obrazki/itemy/zlo/zloto8.gif";
+// --- POPRAWIONY KOD DISCORDA 2.0 ---
         
-		// --- POPRAWIONY KOD DISCORDA (Bez lootItems) ---
-            // --- POPRAWIONY KOD DISCORDA (Bez lootItems) ---
-            
-            // Używamy zmiennej 'item' (to nazwa łupu) oraz 'total' (kwota), które masz w tej funkcji.
-            // s_formatGold to Twoja funkcja pomocnicza do skracania kwot (np. 1.5m).
-            
-            sendDiscordNotification(
-                'podzial', 
-                `Nowy Podział: ${item}`, 
-                `**Kwota:** ${s_formatGold(total)}\n**Tryb:** ${description}\n**Ekipa:** ${s_Team.length} os. (+Szef)\n\n[Przejdź do Podziałów](https://kondor-airlines.web.app)`, 
-                currentNick
-            );
-            // -----------------------------------------------
-            // -----------------------------------------------
+        // 1. Ustalamy autora (jeśli undefined, bierzemy z globalnej zmiennej)
+        const authorName = currentNick || "Nieznany";
+
+        // 2. Ładniejszy opis ekipy
+        let teamText = "";
+        if (mode === 'equal') {
+            teamText = `Ekipa: ${s_Team.length} osób`;
+        } else {
+            // W trybie z Szefem/VIP dodajemy info o szefie
+            teamText = `Ekipa: ${s_Team.length} os. + Szef`;
+        }
+
+        // 3. Wysyłamy
+        sendDiscordNotification(
+            'podzial',                                   // Typ
+            `Nowy Podział: ${item}`,                     // Tytuł
+            `**Kwota:** ${s_formatGold(total)}\n**Tryb:** ${description}\n**${teamText}**\n\n[Przejdź do Podziałów](https://kondor-airlines.web.app)`, // Opis
+            authorName                                   // Autor (naprawione undefined)
+        );
+        // -----------------------------------
 			
         }
     };
@@ -5202,6 +5209,7 @@ function renderJackpotUI(data) {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
