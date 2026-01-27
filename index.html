@@ -4237,9 +4237,6 @@ window.saveFinalSplit = async () => {
             s_Bosses = []; s_Team = [];
             window.playSound('coin');
 
-			// Obliczamy sumę, żeby ładnie wyglądało na Discordzie
-        const totalValue = lootItems.reduce((sum, item) => sum + (parseFloat(item.value) || 0), 0);
-
         // --- DISCORD DLA PODZIAŁÓW ---
         // Wybieramy losowy obrazek złota lub itemka z podziału
         const splitIcon = itemImg || "https://micc.garmory-cdn.cloud/obrazki/itemy/zlo/zloto8.gif";
@@ -5205,5 +5202,6 @@ function renderJackpotUI(data) {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
