@@ -4603,14 +4603,21 @@ function startSplitHistory() {
         window.playSound('coin');
     };
 
+// Dodaj tę zmienną na samej górze skryptu (obok let jackpotUnsub):
+    let isFinalizingLocal = false; 
+
     function startJackpotListener() {
         if(jackpotUnsub) jackpotUnsub();
         
-        jackpotUnsub = onSnapshot(doc(db, "jackpot", "current"), (docSnap) => {
-            if(!docSnap.exists()) return; 
+        const conf = TIER_CONFIG[currentTier]; 
+        
+        jackpotUnsub = onSnapshot(doc(db, conf.db, "current"), (docSnap) => {
+            if(!docSnap.exists()) {
+                renderJackpotUI({entries: []});
+                return;
+            }
             const data = docSnap.data();
             
-            // 1. Synchronizacja czasu (Obliczanie Offsetu)
             if(docSnap.readTime) {
                 const serverTime = docSnap.readTime.toMillis();
                 const localTime = new Date().getTime();
@@ -4618,30 +4625,23 @@ function startSplitHistory() {
             }
 
             renderJackpotUI(data);
-
             const timerEl = document.getElementById('jackpotTimer');
 
-            // 2. Obsługa Czasu (PANCERNA LOGIKA)
+            // Reset flagi lokalnej, jeśli runda jest znowu otwarta i czysta
+            if (data.status === 'open' && !data.winnerProcessing) {
+                isFinalizingLocal = false; 
+            }
+
             if(data.status === 'open' && data.startTime) {
                 let startMillis = 0;
+                if (typeof data.startTime.toMillis === 'function') startMillis = data.startTime.toMillis();
+                else if (data.startTime.seconds) startMillis = data.startTime.seconds * 1000;
+                else startMillis = new Date(data.startTime).getTime();
 
-                // Firebase czasem zwraca Timestamp, czasem obiekt {seconds, nanoseconds}, a czasem Date
-                if (typeof data.startTime.toMillis === 'function') {
-                    startMillis = data.startTime.toMillis();
-                } 
-                else if (data.startTime.seconds) {
-                    startMillis = data.startTime.seconds * 1000;
-                }
-                else {
-                    startMillis = new Date(data.startTime).getTime();
-                }
-
-                // Jeśli startMillis jest poprawny (nie 0 i nie NaN)
                 if (startMillis > 0) {
                     jackpotEndTime = startMillis + (JP_GAME_TIME * 1000);
                     timerEl.style.display = 'block';
                 } else {
-                    // Czekamy na serwer (sytuacja "Start...")
                     timerEl.style.display = 'block';
                     timerEl.innerText = "START...";
                     jackpotEndTime = 0;
@@ -4651,7 +4651,6 @@ function startSplitHistory() {
                 timerEl.style.display = 'none';
             }
 
-            // 3. Obsługa Stanów Gry
             if(data.status === 'spinning' && !document.getElementById('jackpotStrip').classList.contains('spinning')) {
                 timerEl.style.display = 'none';
                 spinTheWheel(data.winner, data.entries);
@@ -4662,38 +4661,47 @@ function startSplitHistory() {
             }
         });
         
-        // 4. Interwał odświeżania (niezależny od bazy)
         if(jpTimerInterval) clearInterval(jpTimerInterval);
         
         jpTimerInterval = setInterval(() => {
              if (!jackpotEndTime) return;
 
-             // Obliczamy czas z uwzględnieniem różnicy zegarów (Offset)
              const nowSynced = new Date().getTime() + timeOffset;
              const diff = jackpotEndTime - nowSynced; 
-
              const timerEl = document.getElementById('jackpotTimer');
 
              if (diff > 0) {
                  let seconds = diff / 1000;
-                 if (seconds > JP_GAME_TIME) seconds = JP_GAME_TIME; // Wizualna korekta
+                 if (seconds > JP_GAME_TIME) seconds = JP_GAME_TIME;
                  timerEl.innerText = seconds.toFixed(2) + "s";
              } else {
                  timerEl.innerText = "LOSOWANIE...";
                  
-                 // Trigger losowania (tylko raz, gdy czas minie)
-                 if (diff > -2000 && diff < 0) {
-                     getDoc(doc(db, "jackpot", "current")).then(snap => {
-                         const d = snap.data();
-                         if(d && d.status === 'open' && !d.winnerProcessing) {
-                             finalizeJackpot(d);
-                         }
-                     });
+                 // --- POPRAWKA TUTAJ ---
+                 // 1. Sprawdzamy czy już nie próbujemy finalizować lokalnie
+                 if (diff > -5000 && !isFinalizingLocal) {
+                     isFinalizingLocal = true; // Blokujemy kolejne próby u tego klienta
+                     
+                     // 2. Losowe opóźnienie od 0 do 2000ms
+                     // To rozładuje "tłok" w bazie danych
+                     const randomDelay = Math.floor(Math.random() * 2000);
+                     
+                     setTimeout(() => {
+                         const conf = TIER_CONFIG[currentTier];
+                         getDoc(doc(db, conf.db, "current")).then(snap => {
+                             const d = snap.data();
+                             // Sprawdzamy ponownie tuż przed strzałem
+                             if(d && d.status === 'open' && !d.winnerProcessing) {
+                                 finalizeJackpot();
+                             } else {
+                                 console.log("Ktoś inny już rozpoczął losowanie.");
+                             }
+                         });
+                     }, randomDelay);
                  }
              }
         }, 50);
     }
-
     function renderJackpotUI(data) {
         const list = document.getElementById('jackpotPlayersList');
         const poolEl = document.getElementById('jackpotTotalPool');
@@ -4729,7 +4737,8 @@ function startSplitHistory() {
     }
 
     async function finalizeJackpot() {
-        const jpRef = doc(db, "jackpot", "current");
+        const conf = TIER_CONFIG[currentTier];
+        const jpRef = doc(db, conf.db, "current");
 
         try {
             await runTransaction(db, async (transaction) => {
@@ -4738,18 +4747,16 @@ function startSplitHistory() {
 
                 const data = sfDoc.data();
 
-                // PANCERNE SPRAWDZENIE:
+                // To wyrzuca błąd, jeśli ktoś nas ubiegł. To DOBRZE.
                 if (data.status !== 'open' || data.winnerProcessing) {
-                    throw "Już wylosowano!"; // To przerywa transakcję
+                    throw "Runda zakończona przez innego gracza."; 
                 }
 
-                // Oznaczamy, że MY przetwarzamy
                 transaction.update(jpRef, { winnerProcessing: true });
 
                 let total = 0;
                 data.entries.forEach(e => total += e.amount);
                 let randomPoint = Math.random() * total;
-                
                 let winner = null;
                 let currentStack = 0;
                 
@@ -4761,16 +4768,20 @@ function startSplitHistory() {
                     }
                 }
 
-                // Zapisujemy wynik - UPEWNIJ SIĘ ŻE TU SĄ KLAMRY { }
                 transaction.update(jpRef, {
                     status: 'spinning',
                     winner: winner,
                     winnerTotal: total 
                 });
             });
-            console.log("Pomyślnie przeprowadzono losowanie.");
+            console.log("✅ Pomyślnie przeprowadzono losowanie (jesteś serwerem).");
         } catch (e) {
-            console.log("Losowanie anulowane (ktoś był szybszy lub błąd): ", e);
+            // Ignorujemy błędy o tym, że już wylosowano - to normalne w trybie multiplayer
+            if (typeof e === 'string' && e.includes("Runda zakończona")) {
+                console.log("ℹ️ Losowanie już trwa (obsłużone przez kogoś innego).");
+            } else {
+                console.warn("⚠️ Błąd transakcji Jackpota:", e);
+            }
         }
     }
 
@@ -5012,3 +5023,4 @@ function startSplitHistory() {
 <div id="toast-container"></div>
 </body>
 </html>
+
