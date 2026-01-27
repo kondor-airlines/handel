@@ -4245,12 +4245,18 @@ window.saveFinalSplit = async () => {
         const splitIcon = itemImg || "https://micc.garmory-cdn.cloud/obrazki/itemy/zlo/zloto8.gif";
         
 		// --- POPRAWIONY KOD DISCORDA (Bez lootItems) ---
+            // --- POPRAWIONY KOD DISCORDA (Bez lootItems) ---
+            
+            // Używamy zmiennej 'item' (to nazwa łupu) oraz 'total' (kwota), które masz w tej funkcji.
+            // s_formatGold to Twoja funkcja pomocnicza do skracania kwot (np. 1.5m).
+            
             sendDiscordNotification(
                 'podzial', 
                 `Nowy Podział: ${item}`, 
                 `**Kwota:** ${s_formatGold(total)}\n**Tryb:** ${description}\n**Ekipa:** ${s_Team.length} os. (+Szef)\n\n[Przejdź do Podziałów](https://kondor-airlines.web.app)`, 
                 currentNick
             );
+            // -----------------------------------------------
             // -----------------------------------------------
 			
         }
@@ -5199,4 +5205,5 @@ function renderJackpotUI(data) {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
