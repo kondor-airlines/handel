@@ -4603,77 +4603,93 @@ function startSplitHistory() {
         window.playSound('coin');
     };
 
-function startJackpotListener() {
+    function startJackpotListener() {
         if(jackpotUnsub) jackpotUnsub();
         
-        // Pobieramy konfigurację aktualnego pokoju (low, medium lub high)
-        const listeningTier = currentTier; 
-        const conf = TIER_CONFIG[listeningTier];
-
-        // 1. Nasłuchujemy zmian (używamy conf.db zamiast sztywnego "jackpot")
-        jackpotUnsub = onSnapshot(doc(db, conf.db, "current"), (docSnap) => {
+        jackpotUnsub = onSnapshot(doc(db, "jackpot", "current"), (docSnap) => {
             if(!docSnap.exists()) return; 
             const data = docSnap.data();
             
-            // Synchronizacja czasu z serwerem
+            // 1. Synchronizacja czasu (Obliczanie Offsetu)
             if(docSnap.readTime) {
-                timeOffset = docSnap.readTime.toMillis() - new Date().getTime(); 
+                const serverTime = docSnap.readTime.toMillis();
+                const localTime = new Date().getTime();
+                timeOffset = serverTime - localTime; 
             }
 
-            // UI aktualizujemy tylko jeśli patrzymy na ten konkretny pokój
-            if (currentTier === listeningTier) renderJackpotUI(data);
+            renderJackpotUI(data);
 
-            let startMillis = 0;
-            if (data.startTime) {
-                startMillis = data.startTime.toMillis ? data.startTime.toMillis() : 
-                              (data.startTime.seconds ? data.startTime.seconds * 1000 : new Date(data.startTime).getTime());
-            }
+            const timerEl = document.getElementById('jackpotTimer');
 
-            // 2. Logika odliczania czasu
-            if(data.status === 'open' && startMillis > 0) {
-                jackpotEndTime = startMillis + (JP_GAME_TIME * 1000);
-                
-                // --- AUTO-TRIGGER (To zastępuje Twoje getDoc w pętli) ---
-                const nowSynced = new Date().getTime() + timeOffset;
-                if (nowSynced > jackpotEndTime && !data.winnerProcessing) {
-                    // Czas minął! Wywołujemy losowanie (tier przekazujemy do funkcji)
-                    finalizeJackpot(listeningTier);
+            // 2. Obsługa Czasu (PANCERNA LOGIKA)
+            if(data.status === 'open' && data.startTime) {
+                let startMillis = 0;
+
+                // Firebase czasem zwraca Timestamp, czasem obiekt {seconds, nanoseconds}, a czasem Date
+                if (typeof data.startTime.toMillis === 'function') {
+                    startMillis = data.startTime.toMillis();
+                } 
+                else if (data.startTime.seconds) {
+                    startMillis = data.startTime.seconds * 1000;
+                }
+                else {
+                    startMillis = new Date(data.startTime).getTime();
+                }
+
+                // Jeśli startMillis jest poprawny (nie 0 i nie NaN)
+                if (startMillis > 0) {
+                    jackpotEndTime = startMillis + (JP_GAME_TIME * 1000);
+                    timerEl.style.display = 'block';
+                } else {
+                    // Czekamy na serwer (sytuacja "Start...")
+                    timerEl.style.display = 'block';
+                    timerEl.innerText = "START...";
+                    jackpotEndTime = 0;
                 }
             } else {
                 jackpotEndTime = 0;
+                timerEl.style.display = 'none';
             }
 
-            // 3. Obsługa animacji
-            if(data.status === 'spinning') {
-                const roundId = startMillis.toString();
-                if (processedSpins[listeningTier] !== roundId) {
-                    processedSpins[listeningTier] = roundId;
-                    spinTheWheel(data.winner, data.entries, listeningTier, data.winnerTotal);
-                }
+            // 3. Obsługa Stanów Gry
+            if(data.status === 'spinning' && !document.getElementById('jackpotStrip').classList.contains('spinning')) {
+                timerEl.style.display = 'none';
+                spinTheWheel(data.winner, data.entries);
             }
             
-            if(data.status === 'open' && currentTier === listeningTier) {
-                if (document.getElementById('jackpotStrip').classList.contains('spun')) {
-                    resetJackpotVisuals();
-                }
+            if(data.status === 'open' && document.getElementById('jackpotStrip').classList.contains('spun')) {
+                 resetJackpotVisuals();
             }
         });
         
-        // 4. Interwał odświeżania zegara (TERAZ JEST BEZPIECZNY - 0 zapytań do bazy!)
+        // 4. Interwał odświeżania (niezależny od bazy)
         if(jpTimerInterval) clearInterval(jpTimerInterval);
+        
         jpTimerInterval = setInterval(() => {
+             if (!jackpotEndTime) return;
+
+             // Obliczamy czas z uwzględnieniem różnicy zegarów (Offset)
+             const nowSynced = new Date().getTime() + timeOffset;
+             const diff = jackpotEndTime - nowSynced; 
+
              const timerEl = document.getElementById('jackpotTimer');
-             if (!jackpotEndTime || currentTier !== listeningTier) {
-                 if(currentTier === listeningTier) timerEl.style.display = 'none';
-                 return;
-             }
-             
-             const diff = jackpotEndTime - (new Date().getTime() + timeOffset);
+
              if (diff > 0) {
-                 timerEl.style.display = 'block';
-                 timerEl.innerText = (diff / 1000).toFixed(2) + "s";
+                 let seconds = diff / 1000;
+                 if (seconds > JP_GAME_TIME) seconds = JP_GAME_TIME; // Wizualna korekta
+                 timerEl.innerText = seconds.toFixed(2) + "s";
              } else {
                  timerEl.innerText = "LOSOWANIE...";
+                 
+                 // Trigger losowania (tylko raz, gdy czas minie)
+                 if (diff > -2000 && diff < 0) {
+                     getDoc(doc(db, "jackpot", "current")).then(snap => {
+                         const d = snap.data();
+                         if(d && d.status === 'open' && !d.winnerProcessing) {
+                             finalizeJackpot(d);
+                         }
+                     });
+                 }
              }
         }, 50);
     }
@@ -5008,4 +5024,3 @@ function startJackpotListener() {
 <div id="toast-container"></div>
 </body>
 </html>
-
