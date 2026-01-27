@@ -1655,8 +1655,7 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
     const provider = new GoogleAuthProvider();
-
-	window.startJackpotHistoryListener();
+	
     window.escapeHtml = function(text) { return text ? text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;") : ""; };
     window.isValidImageUrl = (url) => url && /^https?:\/\/[^<>"]+\.(jpeg|jpg|gif|png|webp|bmp)$/i.test(url);
     
@@ -5017,46 +5016,6 @@ function renderJackpotUI(data) {
 
 	let historyUnsub = null;
     window.jackpotHistoryData = []; // Magazyn na dane
-
-    window.startJackpotHistoryListener = () => {
-    // Jeśli był stary nasłuch, wyłącz go
-    if (window.historyUnsub) window.historyUnsub();
-
-    const historyDiv = document.getElementById('jackpotHistoryList'); // Upewnij się, że masz taki ID w HTML
-    if (!historyDiv) return;
-
-    // Pobierz 10 ostatnich gier, sortuj od najnowszej
-    const q = query(collection(db, "jackpot_history"), orderBy("timestamp", "desc"), limit(10));
-
-    window.historyUnsub = onSnapshot(q, (snapshot) => {
-        let html = '';
-        
-        if (snapshot.empty) {
-            historyDiv.innerHTML = '<div style="text-align:center; color:#555; padding:10px;">Brak historii gier.</div>';
-            return;
-        }
-
-        snapshot.forEach((doc) => {
-            const h = doc.data();
-            // Formatowanie czasu (jeśli timestamp jest null - bo dopiero się zapisuje - użyj teraz)
-            const date = h.timestamp ? h.timestamp.toDate() : new Date();
-            const timeStr = date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-
-            html += `
-                <div class="history-item" style="display:flex; align-items:center; margin-bottom:8px; background:rgba(255,255,255,0.05); padding:5px; border-radius:4px; border-left: 3px solid var(--gold);">
-                    <img src="${h.avatar || 'https://i.imgur.com/XqBdK43.png'}" style="width:30px; height:30px; border-radius:50%; margin-right:10px;">
-                    <div style="flex-grow:1;">
-                        <div style="font-size:0.9em; font-weight:bold; color:#fff;">${h.nick}</div>
-                        <div style="font-size:0.75em; color:#888;">Szansa: ${h.chance}% • ${timeStr}</div>
-                    </div>
-                    <div style="color:var(--gold); font-weight:bold;">${s_formatGold(h.winAmount)}</div>
-                </div>
-            `;
-        });
-        
-        historyDiv.innerHTML = html;
-    });
-};
 	window.openHistoryDetails = (index) => {
         const data = window.jackpotHistoryData[index];
         if(!data) return;
@@ -5153,12 +5112,69 @@ function renderJackpotUI(data) {
     });
     listDiv.innerHTML = html;
 };
+
+// --- DEFINICJA FUNKCJI HISTORII (Wklej na dole pliku) ---
+window.startJackpotHistoryListener = () => {
+    // 1. Zabij stary nasłuch, jeśli istnieje
+    if (window.historyUnsub) window.historyUnsub();
+
+    const historyDiv = document.getElementById('jackpotHistoryList'); 
+    if (!historyDiv) return; // Jeśli nie ma elementu w HTML, przerwij cicho
+
+    console.log("📜 Uruchamiam nasłuch historii...");
+
+    // 2. Pobierz 10 ostatnich gier
+    const q = query(collection(db, "jackpot_history"), orderBy("timestamp", "desc"), limit(10));
+
+    window.historyUnsub = onSnapshot(q, (snapshot) => {
+        let html = '';
+        
+        if (snapshot.empty) {
+            historyDiv.innerHTML = '<div style="text-align:center; color:#555; padding:10px; font-size:0.8em;">Brak historii gier.</div>';
+            return;
+        }
+
+        snapshot.forEach((doc) => {
+            const h = doc.data();
+            // Bezpieczne formatowanie daty
+            let timeStr = "--:--";
+            if (h.timestamp) {
+                const date = h.timestamp.toDate();
+                timeStr = date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            }
+
+            html += `
+                <div class="history-item" style="display:flex; align-items:center; margin-bottom:8px; background:rgba(255,255,255,0.05); padding:5px; border-radius:4px; border-left: 3px solid var(--gold);">
+                    <img src="${h.avatar || 'https://i.imgur.com/XqBdK43.png'}" style="width:30px; height:30px; border-radius:50%; margin-right:10px; border:1px solid #444;">
+                    <div style="flex-grow:1; overflow:hidden;">
+                        <div style="font-size:0.85em; font-weight:bold; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${h.nick}</div>
+                        <div style="font-size:0.7em; color:#888;">Szansa: ${h.chance}% • ${timeStr}</div>
+                    </div>
+                    <div style="color:var(--gold); font-weight:bold; font-size:0.85em;">${s_formatGold(h.winAmount)}</div>
+                </div>
+            `;
+        });
+        
+        historyDiv.innerHTML = html;
+    }, (error) => {
+        console.error("Błąd historii:", error);
+    });
+
+	// Uruchamiamy nasłuch dopiero tutaj, na samym końcu, gdy wszystko jest załadowane
+setTimeout(() => {
+   if(window.startJackpotHistoryListener) {
+       window.startJackpotHistoryListener();
+   }
+}, 1000);
+	
+};
 	
 </script>
 
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
