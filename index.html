@@ -2821,13 +2821,68 @@ const lootTable = {
         });
     }
     window.openMailbox = () => { document.getElementById('mailboxModal').style.display = 'flex'; renderMailList(inboxMessages); };
+	
     function renderMailList(msgs) {
         const c = document.getElementById('mailboxContent');
-        if (!msgs || msgs.length === 0) { c.innerHTML = '<div style="text-align:center;color:#666;padding:20px;">Pusto.</div>'; return; }
+        
+        if (!msgs || msgs.length === 0) { 
+            c.innerHTML = '<div style="text-align:center;color:#666;padding:20px;">Pusto.</div>'; 
+            return; 
+        }
+        
         c.innerHTML = "";
+        
         msgs.forEach(m => {
+            // Oznaczamy jako przeczytane w bazie
             if (!m.read) updateDoc(doc(db, "wiadomosci", m.id), { read: true });
-            c.innerHTML += `<div class="mail-item ${!m.read?'unread':''}"><button onclick="deleteMessage('${m.id}')" class="delete-mail-btn">🗑️</button><div class="mail-meta"><span>Od: <span class="mail-author">${m.fromNick}</span></span><span>${new Date(m.date).toLocaleString()}</span></div><div class="mail-subject">${!m.read?'<span style="color:var(--gold)">[NOWA]</span> ':''}Dotyczy: ${m.item}</div><div class="mail-body">${m.text}</div></div>`;
+
+            // Przygotowanie tematu odpowiedzi (dodajemy "Re: " jeśli go nie ma)
+            let replySubject = m.item || "Bez tematu";
+            if (!replySubject.startsWith("Re:")) {
+                replySubject = "Re: " + replySubject;
+            }
+
+            // Ucieczka znaków dla bezpieczeństwa (żeby cudzysłowy w nicku nie zepsuły HTML)
+            const safeNick = window.escapeHtml(m.fromNick);
+            const safeSubject = window.escapeHtml(replySubject);
+            const safeItem = window.escapeHtml(m.item);
+
+            c.innerHTML += `
+                <div class="mail-item ${!m.read ? 'unread' : ''}" style="position:relative; padding-right: 70px;">
+                    
+                    <div style="position: absolute; top: 10px; right: 10px; display: flex; gap: 5px;">
+                        
+                        <button onclick="openCompose('${m.fromId}', '${safeNick}', '${safeSubject}')" 
+                                style="background:none; border:none; cursor:pointer; font-size:1.2em; opacity:0.7; transition:0.2s;" 
+                                title="Odpisz"
+                                onmouseover="this.style.opacity='1'; this.style.transform='scale(1.2)'" 
+                                onmouseout="this.style.opacity='0.7'; this.style.transform='scale(1)'">
+                            ↩️
+                        </button>
+
+                        <button onclick="deleteMessage('${m.id}')" 
+                                class="delete-mail-btn" 
+                                style="position:static; opacity:0.7;" 
+                                title="Usuń">
+                            🗑️
+                        </button>
+                    </div>
+
+                    <div class="mail-meta">
+                        <span>Od: <span class="mail-author" style="color:var(--gold); font-weight:bold;">${safeNick}</span></span>
+                        <span style="font-size:0.8em; color:#888; margin-left:10px;">${new Date(m.date).toLocaleString()}</span>
+                    </div>
+                    
+                    <div class="mail-subject" style="margin-top:5px; font-weight:bold;">
+                        ${!m.read ? '<span style="color:var(--green)">[NOWA]</span> ' : ''}
+                        Dotyczy: ${safeItem}
+                    </div>
+                    
+                    <div class="mail-body" style="margin-top:8px; padding-top:8px; border-top:1px solid rgba(255,255,255,0.1); color:#ccc; line-height:1.4;">
+                        ${m.text}
+                    </div>
+                </div>
+            `;
         });
     }
 
@@ -5318,5 +5373,6 @@ function renderJackpotUI(data) {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
