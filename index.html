@@ -4619,6 +4619,7 @@ window.spinTheWheel = async (winnerEntry, entries) => {
         const pool = entries.reduce((a,b)=>a+b.amount,0) || 1;
         const chance = ((entry.amount / pool)*100).toFixed(1);
 
+        // Fragment wewnątrz pętli for w spinTheWheel:
         cardsHtml += `
             <div class="jackpot-card" style="border-bottom: 3px solid ${entry.color || '#fff'}">
                 <img src="${safeAvatar}" onerror="this.src='https://i.imgur.com/XqBdK43.png'">
@@ -4766,12 +4767,13 @@ window.startJackpotHistoryListener = () => {
     window.historyUnsub = onSnapshot(q, (snap) => {
         if(snap.empty) { div.innerHTML = "<div style='text-align:center;padding:10px;color:#555'>Brak gier</div>"; return; }
         
+        // TU TEŻ: Używamy backticków (`)
         div.innerHTML = snap.docs.map(d => {
             const h = d.data();
             const time = h.timestamp ? h.timestamp.toDate().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}) : '--:--';
             return `
                 <div style="display:flex;align-items:center;padding:5px;margin-bottom:5px;background:rgba(255,255,255,0.05);border-radius:4px;border-left:3px solid var(--gold)">
-                    <img src="${h.avatar||'https://i.imgur.com/XqBdK43.png'}" style="width:25px;height:25px;border-radius:50%;margin-right:8px">
+                    <img src="${h.avatar||'https://i.imgur.com/XqBdK43.png'}" onerror="this.src='https://i.imgur.com/XqBdK43.png'" style="width:25px;height:25px;border-radius:50%;margin-right:8px">
                     <div style="flex:1">
                         <div style="font-size:0.85em;font-weight:bold;color:#fff">${h.nick}</div>
                         <div style="font-size:0.7em;color:#888">${time} • ${h.chance}%</div>
@@ -4799,6 +4801,7 @@ setTimeout(() => {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
