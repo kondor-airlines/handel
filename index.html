@@ -4164,7 +4164,7 @@ window.saveFinalSplit = async () => {
         if (!currentUser) return alert("Zaloguj się!");
 
         const item = document.getElementById('splitSelectedName').value;
-        const itemImgInput = document.getElementById('splitSelectedImg'); // Zabezpieczenie na brak pola
+        const itemImgInput = document.getElementById('splitSelectedImg'); 
         const itemImg = itemImgInput ? itemImgInput.value : "";
         const amountStr = document.getElementById('splitFinalAmount').value;
         const mode = document.getElementById('splitMode').value;
@@ -4178,7 +4178,7 @@ window.saveFinalSplit = async () => {
         let teamShareEach = 0;
         let description = "";
 
-        // --- MATEMATYKA PODZIAŁÓW ---
+        // --- MATEMATYKA ---
         if (mode === 'equal') {
             if (s_Team.length === 0) return alert("Zaznacz uczestników w dolnej sekcji!");
             description = "Równy podział";
@@ -4187,7 +4187,7 @@ window.saveFinalSplit = async () => {
             s_Bosses = []; 
         } 
         else if (mode === 'finder') {
-            if (s_Bosses.length !== 1) return alert("Wybierz dokładnie jednego Znalazcę (50%)!");
+            if (s_Bosses.length !== 1) return alert("Wybierz dokładnie jednego Znalazcę!");
             if (s_Team.length === 0) return alert("Zaznacz resztę ekipy!");
             description = "Zasada Znalazcy (50/50)";
             const poolBoss = Math.floor(total * 0.5);
@@ -4196,7 +4196,7 @@ window.saveFinalSplit = async () => {
             teamShareEach = Math.floor(poolRest / s_Team.length);
         } 
         else if (mode === 'detector') {
-            if (s_Bosses.length === 0) return alert("Zaznacz VIP-ów (Znalazca/Wykrywacz)!");
+            if (s_Bosses.length === 0) return alert("Zaznacz VIP-ów!");
             if (s_Team.length === 0) return alert("Zaznacz resztę ekipy!");
             description = "Wykrywajka (50% dla VIP)";
             const poolVIP = Math.floor(total * 0.5);
@@ -4226,33 +4226,35 @@ window.saveFinalSplit = async () => {
             window.playSound('coin');
             alert("Podział zapisany! ✅");
 
-            // --- 2. DISCORD (Musi być PRZED resetem zmiennych!) ---
+            // --- 2. DISCORD (POPRAWIONY - LISTA NICKÓW) ---
             const safeAuthor = currentNick || "Klanowicz";
-            
-            // Logika wyświetlania ekipy na Discordzie
-            let teamInfo = "";
-            if (mode === 'equal') {
-                teamInfo = `**Ekipa:** ${s_Team.length} os.`; // Bez dopisku (+Szef)
-            } else {
-                teamInfo = `**Ekipa:** ${s_Team.length} os. + Szef`;
-            }
-
-            // Link do strony (Wstaw swój adres!)
             const siteLink = "https://kondor-airlines.web.app"; 
+            
+            // Konwertujemy tablice na tekst po przecinku
+            const teamNames = s_Team.length > 0 ? s_Team.join(", ") : "Brak";
+            const bossNames = s_Bosses.length > 0 ? s_Bosses.join(", ") : "Brak";
+
+            let detailsText = "";
+
+            if (mode === 'equal') {
+                // Tryb Równy: Pokazujemy tylko listę ekipy
+                detailsText = `**Kwota:** ${s_formatGold(total)}\n**Tryb:** ${description}\n**Ekipa:** ${teamNames}`;
+            } else {
+                // Tryb z Szefem: Pokazujemy Szefa ORAZ Ekipę
+                detailsText = `**Kwota:** ${s_formatGold(total)}\n**Tryb:** ${description}\n**Szef/VIP:** ${bossNames}\n**Ekipa:** ${teamNames}`;
+            }
 
             sendDiscordNotification(
                 'podzial', 
                 `Nowy Podział: ${item}`, 
-                `**Kwota:** ${s_formatGold(total)}\n**Tryb:** ${description}\n${teamInfo}\n\n[Przejdź do Podziałów](${siteLink})`, 
+                `${detailsText}\n\n[Przejdź do Podziałów](${siteLink})`, 
                 safeAuthor
             );
             // ----------------------------------------------------
 
-            // 3. RESETOWANIE FORMULARZA (Dopiero teraz!)
+            // 3. RESETOWANIE FORMULARZA
             document.getElementById('splitFinalAmount').value = "";
             document.querySelectorAll('.boss-active, .team-active, .selected').forEach(el => el.classList.remove('boss-active', 'team-active', 'selected'));
-            
-            // To właśnie ta linijka wcześniej zerowała licznik przed wysłaniem:
             s_Bosses = []; 
             s_Team = []; 
         }
@@ -5201,6 +5203,7 @@ function renderJackpotUI(data) {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
