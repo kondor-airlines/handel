@@ -2762,7 +2762,7 @@ const lootTable = {
     });
 
 // ZAKTUALIZOWANE RENDEROWANIE (Obsługa kolorów dla rzutów)
-	onSnapshot(query(collection(db, "chat"), orderBy("date", "asc"), limit(15)), (snap) => {
+    onSnapshot(query(collection(db, "chat"), orderBy("date", "asc"), limit(50)), (snap) => {
         const div = document.getElementById('chatMessages');
         div.innerHTML = "";
         snap.docs.forEach(d => {
@@ -3810,35 +3810,10 @@ window.renderOffers = () => {
             document.getElementById('itemDesc').value = statsPart.split('opis=')[1].split(';')[0].replaceAll('[br]', '\n');
         } else { document.getElementById('itemDesc').value = ""; }
     };
-// --- POPRAWIONA SEKCJA OFERT (HANDEL) ---
-    // 1. Zapytanie z limitem (oszczędzanie bazy)
-    const qOffers = query(collection(db, "oferty"), orderBy("date", "desc"), limit(20));
-
-    // 2. Nasłuchiwanie (Pamiętaj o słowie 'snap' w nawiasie!)
-    onSnapshot(qOffers, (snap) => {
-        const div = document.getElementById('marketList'); // Upewnij się, że masz takie ID w HTML
-        if (!div) return;
-
-        div.innerHTML = "";
-        
-        if (snap.empty) {
-            div.innerHTML = "<div style='text-align:center; padding:20px; color:#666;'>Brak ofert na rynku.</div>";
-            return;
-        }
-
-        snap.docs.forEach(doc => {
-            const item = doc.data();
-            
-            // Tutaj wstawiasz swój kod renderujący ofertę (HTML)
-            // Poniżej przykładowy prosty wygląd:
-            div.innerHTML += `
-                <div class="market-item" style="border:1px solid #444; margin-bottom:10px; padding:10px; background:rgba(0,0,0,0.3);">
-                    <div style="color:var(--gold); font-weight:bold;">${window.escapeHtml(item.item || "Przedmiot")}</div>
-                    <div style="font-size:0.9em;">Cena: ${item.price || 0}</div>
-                    <div style="font-size:0.8em; color:#888;">Sprzedawca: ${window.escapeHtml(item.nick || "Anonim")}</div>
-                    </div>
-            `;
-        });
+    onSnapshot(query(collection(db, "oferty"), orderBy("date", "desc")), (snap) => {
+        allOffers = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        updateUserFilterOptions();
+        window.renderOffers();
     });
     window.alert = function(message) {
         const container = document.getElementById('toast-container');
@@ -4754,125 +4729,86 @@ function startSplitHistory() {
     startJackpotHistoryListener(); // <--- Usuń "if(window...)" i wywołaj bezpośrednio
 };
 
-		// --- TRYB OFFLINE (BEZ BAZY DANYCH) ---
-    
-    // Lokalna lista graczy (zastępuje bazę)
-    window.offlinePlayers = []; 
-
-    // Funkcja do aktualizacji widoku (rysowanie koła i listy)
-    window.updateOfflineUI = () => {
-        // Podmieniamy globalną zmienną używaną przez drawWheel
-        // (zakładam, że w Twoim kodzie nazywa się jackpotPlayers)
-        jackpotPlayers = window.offlinePlayers; 
+		window.joinJackpot = async () => {
+        if(!currentUser) return alert("Zaloguj się!");
         
-        drawWheel(); // Rysuje koło
-        renderJackpotList(); // Rysuje listę pod kołem (jeśli masz taką funkcję)
-    };
+        if(isBettingProcessing) return; // Blokada klikania
 
-    // 1. DOŁĄCZANIE (OFFLINE)
-    window.joinJackpot = async () => {
-        const amountInput = document.getElementById('jackpotAmount');
-        const amount = parseInt(amountInput.value);
+        const input = document.getElementById('jackpotBetAmount');
+        const amount = parseGold(input.value);
 
-        if (isNaN(amount) || amount <= 0) return alert("Podaj kwotę!");
+        // Limity (1m - 10g)
+        if(amount < 1000000) return alert("🚫 Za mało! Minimum wpłaty to 1m.");
+        if(amount > 10000000000) return alert("🚫 Za dużo! Max 10g.");
 
-        // Obliczanie biletów (lokalnie)
-        const currentTotal = window.offlinePlayers.length > 0 
-            ? window.offlinePlayers[window.offlinePlayers.length - 1].ticketEnd 
-            : 0;
+        isBettingProcessing = true;
+        const btn = document.querySelector('#jackpotControls button'); // Znajdź przycisk
+        const originalText = btn ? btn.innerText : "WCHODZĘ!";
+        if(btn) { btn.innerText = "⏳..."; btn.style.opacity = "0.5"; }
 
-        const myTickets = Math.floor(amount / 1000); // 1 bilet za 1k (przykładowo)
-        
-        if (myTickets < 1) return alert("Minimum 1k złota!");
+        const jpRef = doc(db, "jackpot", "current");
 
-        const newPlayer = {
-            id: "local_" + Date.now(),
-            nick: currentNick || "Ja", // Twój nick
-            amount: amount,
-            ticketStart: currentTotal + 1,
-            ticketEnd: currentTotal + myTickets,
-            color: '#'+(Math.random()*0xFFFFFF<<0).toString(16) // Losowy kolor
-        };
+        try {
+            // Pobierz stan, aby sprawdzić limity przed próbą zapisu
+            const snap = await getDoc(jpRef);
+            let data = { status: 'open', entries: [], startTime: null };
+            if(snap.exists()) data = snap.data();
 
-        window.offlinePlayers.push(newPlayer);
-        amountInput.value = "";
-        
-        window.playSound('coin');
-        window.updateOfflineUI(); // Odśwież koło
-    };
-
-    // 2. DODAWANIE BOTA (Żebyś miał z kim grać)
-    window.addBot = () => {
-        const botNames = ["Stachu", "Zdzichu", "Mirek", "Geralt", "Yennefer", "Smok"];
-        const randomName = botNames[Math.floor(Math.random() * botNames.length)];
-        const randomGold = Math.floor(Math.random() * 50) * 10000 + 10000; // 10k - 500k
-
-        const currentTotal = window.offlinePlayers.length > 0 
-            ? window.offlinePlayers[window.offlinePlayers.length - 1].ticketEnd 
-            : 0;
-        
-        const tickets = Math.floor(randomGold / 1000);
-
-        const bot = {
-            id: "bot_" + Date.now(),
-            nick: randomName + " (BOT)",
-            amount: randomGold,
-            ticketStart: currentTotal + 1,
-            ticketEnd: currentTotal + tickets,
-            color: '#'+(Math.random()*0xFFFFFF<<0).toString(16)
-        };
-
-        window.offlinePlayers.push(bot);
-        window.playSound('click');
-        window.updateOfflineUI();
-    };
-
-	// 3. KRĘCENIE KOŁEM (OFFLINE)
-    window.spinWheel = async () => {
-        if (window.offlinePlayers.length < 2) return alert("Potrzeba min. 2 graczy! (Dodaj bota)");
-        if (isSpinning) return;
-
-        isSpinning = true;
-        const wheel = document.getElementById('wheel');
-        
-        // --- LOSOWANIE ---
-        const lastPlayer = window.offlinePlayers[window.offlinePlayers.length - 1];
-        const totalTickets = lastPlayer.ticketEnd;
-        const winningTicket = Math.floor(Math.random() * totalTickets) + 1;
-
-        // Szukanie zwycięzcy
-        let winner = window.offlinePlayers.find(p => winningTicket >= p.ticketStart && winningTicket <= p.ticketEnd);
-
-        // Obliczanie kąta (żeby trafiło w kolor zwycięzcy)
-        // To jest uproszczona wersja - po prostu kręci się długo
-        const deg = 3600 + Math.floor(Math.random() * 360); 
-
-        wheel.style.transition = "transform 6s cubic-bezier(0.1, 0.7, 0.1, 1)"; // Płynne hamowanie
-        wheel.style.transform = `rotate(${deg}deg)`;
-        
-        window.playSound('spin');
-
-        // Czekamy na koniec animacji
-        setTimeout(() => {
-            isSpinning = false;
-            wheel.style.transition = "none";
-            wheel.style.transform = `rotate(${deg % 360}deg)`;
-            
-            window.playSound('win');
-            
-            // Obliczamy szansę procentową
-            const chance = ((winner.ticketEnd - winner.ticketStart + 1) / totalTickets * 100).toFixed(1);
-
-            // Wyświetlamy wynik
-            alert(`🎰 JACKPOT OFFLINE 🎰\n\n🏆 Wygrał: ${winner.nick}\n💰 Zgarnął: ${totalTickets * 1000} złota\n📈 Szansa: ${chance}%`);
-
-            // Czyścimy grę po wygranej
-            if(confirm("Gramy od nowa?")) {
-                window.offlinePlayers = [];
-                window.updateOfflineUI();
+            // Sprawdź czy runda otwarta
+            const now = new Date().getTime();
+            let isStuck = false;
+            if (data.startTime) {
+                 let startMillis = (data.startTime.toMillis ? data.startTime.toMillis() : (data.startTime.seconds ? data.startTime.seconds*1000 : new Date(data.startTime).getTime()));
+                 if ((now - startMillis) > 90000) isStuck = true; // 90s timeout
             }
 
-        }, 6000); // 6 sekund kręcenia
+            if(data.status !== 'open' && !isStuck) throw "Runda trwa! Poczekaj na wynik.";
+
+            // Sprawdź limit 10g na gracza
+            let myTotal = 0;
+            if(data.entries) data.entries.forEach(e => { if(e.uid === currentUser.uid) myTotal += e.amount; });
+            
+            if((myTotal + amount) > 10000000000) {
+                throw `Limit 10g na rundę! Masz już: ${s_formatGold(myTotal)}`;
+            }
+
+            // Tworzymy wpis
+            const newEntry = {
+                uid: currentUser.uid,
+                nick: currentNick,
+                avatar: currentUser.photoURL,
+                amount: amount,
+                color: getRandomColor()
+            };
+
+            const newEntries = [...(data.entries || []), newEntry];
+            const uniquePlayers = new Set(newEntries.map(e => e.uid)).size;
+            
+            let newStartTime = data.startTime;
+            if (isStuck) { newStartTime = null; data.status = 'open'; } // Reset zacięcia
+            else if (uniquePlayers >= 2 && !data.startTime) {
+                newStartTime = serverTimestamp(); // Start zegara
+            }
+
+            // Zapis do bazy
+            await setDoc(jpRef, { 
+                entries: newEntries,
+                status: 'open',
+                winnerProcessing: false,
+                startTime: newStartTime
+            }, { merge: true });
+
+            input.value = "";
+            window.playSound('coin');
+
+        } catch (error) {
+            alert(error); // Wyświetl błąd (np. o limicie)
+        } finally {
+            setTimeout(() => {
+                isBettingProcessing = false;
+                if(btn) { btn.innerText = originalText; btn.style.opacity = "1"; }
+            }, 500);
+        }
     };
 
 	// 3. LISTENER (SERCE GRY)
@@ -5276,9 +5212,8 @@ function renderJackpotUI(data) {
 		console.log("--> Uruchamiam nasłuch historii!");
         if(historyUnsub) historyUnsub();
         
-		// Dodaj po prostu przecinek i limit(5) na końcu nawiasu query
-		const q = query(collection(db, "jackpot_history"), orderBy("date", "desc"), limit(5));
-		
+        const q = query(collection(db, "jackpot_history"), orderBy("date", "desc"), limit(10));
+        
         historyUnsub = onSnapshot(q, (snap) => {
             const div = document.getElementById('jackpotHistoryList');
             div.innerHTML = "";
@@ -5438,10 +5373,3 @@ function renderJackpotUI(data) {
 <div id="toast-container"></div>
 </body>
 </html>
-
-
-
-
-
-
-
