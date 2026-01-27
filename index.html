@@ -4178,7 +4178,7 @@ window.saveFinalSplit = async () => {
         let teamShareEach = 0;
         let description = "";
 
-        // --- MATEMATYKA ---
+        // --- MATEMATYKA (Liczenie kwot) ---
         if (mode === 'equal') {
             if (s_Team.length === 0) return alert("Zaznacz uczestników w dolnej sekcji!");
             description = "Równy podział";
@@ -4226,22 +4226,23 @@ window.saveFinalSplit = async () => {
             window.playSound('coin');
             alert("Podział zapisany! ✅");
 
-            // --- 2. DISCORD (POPRAWIONY - LISTA NICKÓW) ---
+            // --- 2. DISCORD (NICKI + KWOTY) ---
             const safeAuthor = currentNick || "Klanowicz";
             const siteLink = "https://kondor-airlines.web.app"; 
             
-            // Konwertujemy tablice na tekst po przecinku
             const teamNames = s_Team.length > 0 ? s_Team.join(", ") : "Brak";
             const bossNames = s_Bosses.length > 0 ? s_Bosses.join(", ") : "Brak";
 
             let detailsText = "";
 
             if (mode === 'equal') {
-                // Tryb Równy: Pokazujemy tylko listę ekipy
-                detailsText = `**Kwota:** ${s_formatGold(total)}\n**Tryb:** ${description}\n**Ekipa:** ${teamNames}`;
+                // Tryb Równy: "Ekipa: A, B, C (po X złota)"
+                detailsText = `**Kwota:** ${s_formatGold(total)}\n**Tryb:** ${description}\n**Ekipa:** ${teamNames} (po ${s_formatGold(teamShareEach)})`;
             } else {
-                // Tryb z Szefem: Pokazujemy Szefa ORAZ Ekipę
-                detailsText = `**Kwota:** ${s_formatGold(total)}\n**Tryb:** ${description}\n**Szef/VIP:** ${bossNames}\n**Ekipa:** ${teamNames}`;
+                // Tryb z Szefem: Osobne linie dla Szefa i Ekipy z kwotami
+                detailsText = `**Kwota:** ${s_formatGold(total)}\n**Tryb:** ${description}\n` +
+                              `**Szef/VIP:** ${bossNames} (po ${s_formatGold(bossShareEach)})\n` +
+                              `**Ekipa:** ${teamNames} (po ${s_formatGold(teamShareEach)})`;
             }
 
             sendDiscordNotification(
@@ -4250,7 +4251,7 @@ window.saveFinalSplit = async () => {
                 `${detailsText}\n\n[Przejdź do Podziałów](${siteLink})`, 
                 safeAuthor
             );
-            // ----------------------------------------------------
+            // ----------------------------------
 
             // 3. RESETOWANIE FORMULARZA
             document.getElementById('splitFinalAmount').value = "";
@@ -5203,6 +5204,7 @@ function renderJackpotUI(data) {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
