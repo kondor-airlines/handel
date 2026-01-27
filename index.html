@@ -3621,16 +3621,19 @@ window.renderOffers = () => {
         });
         
         window.playSound('coin');
-		// --- DISCORD START ---
-		// --- POPRAWIONY KOD DISCORDA ---
-        const desc = document.getElementById('itemDesc').value; // To już poprawiliśmy wcześniej
-        const shortDesc = desc.length > 60 ? desc.substring(0, 60) + "..." : desc;
+// --- DISCORD START (Wersja Full Wypas) ---
+        const descVal = document.getElementById('itemDesc').value;
+        const shortDesc = descVal.length > 100 ? descVal.substring(0, 100) + "..." : descVal;
         
+        // finalImg i finalSourceImg to zmienne, które już masz w tej funkcji wcześniej!
         sendDiscordNotification(
-            'handel', 
-            `Nowa Oferta: ${finalName}`,  // <--- BYŁO name, MA BYĆ finalName
-            `**Cena:** ${finalPrice}\n**Opis:** ${shortDesc}\n\n[Przejdź do Targowiska](https://TWOJA-STRONA.pl)`, // <--- BYŁO price, MA BYĆ finalPrice
-            currentNick
+            'handel',                   // typ
+            `Nowa Oferta: ${finalName}`, // Tytuł
+            finalPrice,                 // Cena
+            `**Opis:** ${shortDesc || "Brak dodatkowego opisu."}`, // Opis
+            currentNick,                // Autor
+            finalImg,                   // Obrazek przedmiotu (Thumbnail)
+            finalSourceImg              // Obrazek potwora (Avatar bota)
         );
         // --- DISCORD END ---
         window.alert("Dodano ofertę! ✅");
@@ -4237,14 +4240,19 @@ window.saveFinalSplit = async () => {
 			// Obliczamy sumę, żeby ładnie wyglądało na Discordzie
         const totalValue = lootItems.reduce((sum, item) => sum + (parseFloat(item.value) || 0), 0);
 
-        // --- DISCORD START ---
+        // --- DISCORD DLA PODZIAŁÓW ---
+        // Wybieramy losowy obrazek złota lub itemka z podziału
+        const splitIcon = itemImg || "https://micc.garmory-cdn.cloud/obrazki/itemy/zlo/zloto8.gif";
+        
         sendDiscordNotification(
-            'podzial', 
-            `Nowy Podział Łupu!`, 
-            `**Mapa:** ${mapName}\n**Łączna wartość:** ${totalValue} złota\n**Liczba przedmiotów:** ${lootItems.length}\n\n[Przejdź do Podziałów](https://TWOJA-STRONA.pl)`, 
-            currentNick
+            'podzial',
+            `Nowy Podział: ${item}`,
+            `${s_formatGold(total)} złota`,
+            `**Tryb:** ${description}\n**Ekipa:** ${s_Team.length} os. (+Szef)`,
+            currentNick,
+            splitIcon, // Obrazek przedmiotu/złota
+            "https://micc.garmory-cdn.cloud/obrazki/npc/kob/tunia.gif" // Ikonka bota dla podziałów (np. Tunia)
         );
-        // --- DISCORD END ---
 			
         }
     };
@@ -5134,39 +5142,43 @@ function renderJackpotUI(data) {
     };
 
 	// --- POWIADOMIENIA DISCORD (2 KANAŁY) ---
-    async function sendDiscordNotification(type, title, details, author) {
-        // TU WKLEJ SWOJE LINKI:
+    // --- ULEPSZONE POWIADOMIENIA DISCORD (Z OBRAZKAMI) ---
+    async function sendDiscordNotification(type, title, price, desc, author, imgItem, imgMob) {
         const WEBHOOK_HANDEL = "https://discord.com/api/webhooks/1465769735185502479/f-BawOQxP6mXA5QL_p6yyFVgB2M8S8qyCEI9yZg0SmjNzcZrrdcIUn-nBeEdKYzuzCRu";
         const WEBHOOK_PODZIALY = "https://discord.com/api/webhooks/1465769820812345477/z9-BUhTxCbeo_rzvJTjTpm8CzEi2bKHQ3ng-Rvvdyrjpdj2XEZoLpsLS_n1CJE-aemLh";
 
-        // Wybór odpowiedniego kanału i koloru
         let targetUrl = "";
         let color = 0;
-        let icon = "";
-
+        
         if (type === 'handel') {
             targetUrl = WEBHOOK_HANDEL;
-            color = 3066993; // Zielony (Decimal)
-            icon = "⚖️";
+            color = 3066993; // Zielony
         } else if (type === 'podzial') {
             targetUrl = WEBHOOK_PODZIALY;
-            color = 16766720; // Złoty (Decimal)
-            icon = "💰";
+            color = 16766720; // Złoty
         }
 
-        // Jeśli link jest pusty (nie ustawiony), przerywamy cicho
-        if (!targetUrl || targetUrl.includes("LINK_DO")) return;
+        if (!targetUrl || targetUrl.includes("TU_TWOJ")) return;
+
+        // Jeśli obrazek itemka to Base64 (wgrany z dysku), Discord go nie wyświetli.
+        // Wyświetlamy go tylko jeśli to link (http...).
+        const safeItemImg = (imgItem && imgItem.startsWith('http')) ? imgItem : "";
+        const safeMobImg = (imgMob && imgMob.startsWith('http')) ? imgMob : "https://cdn-icons-png.flaticon.com/512/3135/3135715.png"; // Domyślna ikonka jak brak moba
 
         const payload = {
             username: "Targowisko Bot",
-            avatar_url: "https://cdn-icons-png.flaticon.com/512/3135/3135715.png",
+            avatar_url: safeMobImg, // Avatar bota zmieni się na potwora/źródło
             embeds: [
                 {
-                    title: `${icon} ${title}`,
-                    description: details,
+                    title: title,
+                    description: `**Cena:** ${price}\n\n${desc}\n\n[Przejdź do Targowiska](https://TWOJA-STRONA.pl)`,
                     color: color,
+                    thumbnail: {
+                        url: safeItemImg // Obrazek przedmiotu jako miniaturka po prawej
+                    },
                     footer: {
-                        text: `Dodał: ${author} • ${new Date().toLocaleTimeString()}`
+                        text: `Wystawił: ${author} • ${new Date().toLocaleTimeString()}`,
+                        icon_url: "https://micc.garmory-cdn.cloud/obrazki/itemy/nas/pyt.gif" // Mała ikonka w stopce
                     }
                 }
             ]
@@ -5179,7 +5191,7 @@ function renderJackpotUI(data) {
                 body: JSON.stringify(payload)
             });
         } catch (e) {
-            console.error("Błąd wysyłania na Discorda:", e);
+            console.error("Błąd Discorda:", e);
         }
     }
 	
@@ -5188,6 +5200,7 @@ function renderJackpotUI(data) {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
