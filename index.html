@@ -5121,12 +5121,45 @@ function renderJackpotUI(data) {
         });
         alert("☢️ ZRESETOWANO JACKPOT RĘCZNIE! ☢️");
     };
+
+	window.renderJackpotList = (entries) => {
+    const listDiv = document.getElementById('jackpotEntries'); // Teraz ID pasuje do HTML!
+    if (!listDiv) return;
+
+    if (!entries || entries.length === 0) {
+        listDiv.innerHTML = '<div style="text-align:center; color:#555; padding:10px;">Stół jest pusty.<br>Czekamy na graczy!</div>';
+        return;
+    }
+
+    // Sortujemy: najwięksi gracze na górze
+    const sorted = [...entries].sort((a,b) => b.amount - a.amount);
+    const total = entries.reduce((a,b) => a + b.amount, 0);
+
+    let html = '';
+    sorted.forEach(entry => {
+        const percent = ((entry.amount / total) * 100).toFixed(1);
+        html += `
+            <div style="display:flex; align-items:center; padding:5px; border-bottom:1px solid #222; background:rgba(255,255,255,0.02);">
+                <img src="${entry.avatar}" onerror="this.src='https://i.imgur.com/XqBdK43.png'" style="width:24px; height:24px; border-radius:50%; margin-right:8px; border:1px solid ${entry.color}">
+                <div style="flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:0.9em;">
+                    <span style="color:${entry.color}">${entry.nick}</span>
+                </div>
+                <div style="text-align:right;">
+                    <div style="color:#fff; font-size:0.85em;">${s_formatGold(entry.amount)}</div>
+                    <div style="color:#666; font-size:0.7em;">${percent}%</div>
+                </div>
+            </div>
+        `;
+    });
+    listDiv.innerHTML = html;
+};
 	
 </script>
 
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
