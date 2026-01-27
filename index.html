@@ -4164,7 +4164,8 @@ window.saveFinalSplit = async () => {
         if (!currentUser) return alert("Zaloguj się!");
 
         const item = document.getElementById('splitSelectedName').value;
-        const itemImg = document.getElementById('splitSelectedImg').value;
+        const itemImgInput = document.getElementById('splitSelectedImg'); // Zabezpieczenie na brak pola
+        const itemImg = itemImgInput ? itemImgInput.value : "";
         const amountStr = document.getElementById('splitFinalAmount').value;
         const mode = document.getElementById('splitMode').value;
 
@@ -4178,37 +4179,28 @@ window.saveFinalSplit = async () => {
         let description = "";
 
         // --- MATEMATYKA PODZIAŁÓW ---
-        
         if (mode === 'equal') {
-            // TRYB: RÓWNY PODZIAŁ
             if (s_Team.length === 0) return alert("Zaznacz uczestników w dolnej sekcji!");
-            
             description = "Równy podział";
             teamShareEach = Math.floor(total / s_Team.length);
-            bossShareEach = 0; // W tym trybie nie ma "Szefa"
-            s_Bosses = [];    // Czyścimy szefów na wszelki wypadek
+            bossShareEach = 0; 
+            s_Bosses = []; 
         } 
         else if (mode === 'finder') {
-            // TRYB: ZASADA ZNALAZCY
             if (s_Bosses.length !== 1) return alert("Wybierz dokładnie jednego Znalazcę (50%)!");
             if (s_Team.length === 0) return alert("Zaznacz resztę ekipy!");
-
             description = "Zasada Znalazcy (50/50)";
             const poolBoss = Math.floor(total * 0.5);
             const poolRest = total - poolBoss;
-            
             bossShareEach = poolBoss;
             teamShareEach = Math.floor(poolRest / s_Team.length);
         } 
         else if (mode === 'detector') {
-            // TRYB: WYKRYWAJKA
             if (s_Bosses.length === 0) return alert("Zaznacz VIP-ów (Znalazca/Wykrywacz)!");
             if (s_Team.length === 0) return alert("Zaznacz resztę ekipy!");
-
             description = "Wykrywajka (50% dla VIP)";
             const poolVIP = Math.floor(total * 0.5);
             const poolRest = total - poolVIP;
-            
             bossShareEach = Math.floor(poolVIP / s_Bosses.length);
             teamShareEach = Math.floor(poolRest / s_Team.length);
         }
@@ -4218,6 +4210,7 @@ window.saveFinalSplit = async () => {
                     `⚔️ Ekipa (${s_Team.length} os.): po ${s_formatGold(teamShareEach)}`;
 
         if (confirm(msg)) {
+            // 1. ZAPIS DO BAZY
             await addDoc(collection(db, "podzialy"), {
                 item, itemImg, total,
                 bosses: s_Bosses,
@@ -4230,39 +4223,38 @@ window.saveFinalSplit = async () => {
                 author: currentNick
             });
             
+            window.playSound('coin');
             alert("Podział zapisany! ✅");
-            // Resetuj okno
+
+            // --- 2. DISCORD (Musi być PRZED resetem zmiennych!) ---
+            const safeAuthor = currentNick || "Klanowicz";
+            
+            // Logika wyświetlania ekipy na Discordzie
+            let teamInfo = "";
+            if (mode === 'equal') {
+                teamInfo = `**Ekipa:** ${s_Team.length} os.`; // Bez dopisku (+Szef)
+            } else {
+                teamInfo = `**Ekipa:** ${s_Team.length} os. + Szef`;
+            }
+
+            // Link do strony (Wstaw swój adres!)
+            const siteLink = "https://kondor-airlines.web.app"; 
+
+            sendDiscordNotification(
+                'podzial', 
+                `Nowy Podział: ${item}`, 
+                `**Kwota:** ${s_formatGold(total)}\n**Tryb:** ${description}\n${teamInfo}\n\n[Przejdź do Podziałów](${siteLink})`, 
+                safeAuthor
+            );
+            // ----------------------------------------------------
+
+            // 3. RESETOWANIE FORMULARZA (Dopiero teraz!)
             document.getElementById('splitFinalAmount').value = "";
             document.querySelectorAll('.boss-active, .team-active, .selected').forEach(el => el.classList.remove('boss-active', 'team-active', 'selected'));
-            s_Bosses = []; s_Team = [];
-            window.playSound('coin');
-
-        // --- DISCORD DLA PODZIAŁÓW ---
-        // Wybieramy losowy obrazek złota lub itemka z podziału
-        const splitIcon = itemImg || "https://micc.garmory-cdn.cloud/obrazki/itemy/zlo/zloto8.gif";
-// --- POPRAWIONY KOD DISCORDA 2.0 ---
-        
-        // 1. Ustalamy autora (jeśli undefined, bierzemy z globalnej zmiennej)
-        const authorName = currentNick || "Nieznany";
-
-        // 2. Ładniejszy opis ekipy
-        let teamText = "";
-        if (mode === 'equal') {
-            teamText = `Ekipa: ${s_Team.length} osób`;
-        } else {
-            // W trybie z Szefem/VIP dodajemy info o szefie
-            teamText = `Ekipa: ${s_Team.length} os. + Szef`;
-        }
-
-        // 3. Wysyłamy
-        sendDiscordNotification(
-            'podzial',                                   // Typ
-            `Nowy Podział: ${item}`,                     // Tytuł
-            `**Kwota:** ${s_formatGold(total)}\n**Tryb:** ${description}\n**${teamText}**\n\n[Przejdź do Podziałów](https://kondor-airlines.github.io/handel/)`, // Opis
-            authorName                                   // Autor (naprawione undefined)
-        );
-        // -----------------------------------
-			
+            
+            // To właśnie ta linijka wcześniej zerowała licznik przed wysłaniem:
+            s_Bosses = []; 
+            s_Team = []; 
         }
     };
 
@@ -5209,6 +5201,7 @@ function renderJackpotUI(data) {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
