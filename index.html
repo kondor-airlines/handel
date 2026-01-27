@@ -4727,61 +4727,75 @@ function startJackpotListener() {
             if (!sfDoc.exists()) throw "Brak dokumentu!";
 
             const data = sfDoc.data();
+            // 1. Zabezpieczenie przed procesowaniem
             if (data.status !== 'open' || data.winnerProcessing) return;
 
+            // 2. Sprawdzenie czy są gracze
             if (!data.entries || data.entries.length === 0) {
                 transaction.update(jpRef, { startTime: null, winnerProcessing: false });
                 return;
             }
 
-            // 1. Obliczamy sumę i wyłaniamy zwycięzcę
+            // 3. Obliczamy sumę i wyłaniamy zwycięzcę (bezpieczne rzutowanie na Number)
             let total = 0;
-            data.entries.forEach(e => total += Number(e.amount));
+            data.entries.forEach(e => {
+                const amt = Number(e.amount);
+                total += isNaN(amt) ? 0 : amt;
+            });
             
+            if (total <= 0) throw "Pula wynosi 0";
+
             let randomPoint = Math.random() * total;
             let winner = null;
             let currentStack = 0;
-            
-            // Obliczamy długi (ile kto przegrał na rzecz zwycięzcy)
             const roundDebts = {};
 
+            // Wyłaniamy zwycięzcę
             for(let e of data.entries) {
-                currentStack += Number(e.amount);
+                const amt = Number(e.amount) || 0;
+                currentStack += amt;
                 if(!winner && randomPoint <= currentStack) {
                     winner = e;
                 }
             }
-            
-            // Po wyłonieniu zwycięzcy wypełniamy listę długów
+
+            // 4. Budujemy mapę długów (SANITYZACJA KLUCZY)
             data.entries.forEach(e => {
-                if(e.uid !== winner.uid) {
-                    roundDebts[e.nick] = (roundDebts[e.nick] || 0) + Number(e.amount);
+                if(e && winner && e.uid !== winner.uid) {
+                    // KLUCZOWE: Firestore nie lubi kropek w kluczach mapy. 
+                    // Zamieniamy kropki na podkreślniki w nickach używanych jako klucze.
+                    const safeNick = e.nick.replace(/\./g, '_'); 
+                    const amt = Number(e.amount) || 0;
+                    roundDebts[safeNick] = (roundDebts[safeNick] || 0) + amt;
                 }
             });
 
             const totalStr = s_formatGold(total);
 
-            // 2. TWORZYMY WPIS DO HISTORII (Automatycznie)
-            // Tworzymy referencję do nowego dokumentu w historii
+            // 5. Zapis do historii (Nowy dokument)
             const historyRef = doc(collection(db, "jackpot_history"));
-            
             transaction.set(historyRef, {
-                nick: winner.nick,
+                nick: winner.nick || "Nieznany",
                 amount: totalStr,
                 avatar: winner.avatar || "",
                 date: new Date().toISOString(),
                 debts: roundDebts
             });
 
-            // 3. AKTUALIZUJEMY STATUS GRY
+            // 6. Aktualizacja statusu Jackpota
             transaction.update(jpRef, {
                 status: 'spinning',
-                winner: winner,
+                winner: {
+                    uid: winner.uid,
+                    nick: winner.nick,
+                    avatar: winner.avatar || "",
+                    color: winner.color || "#ffd700"
+                },
                 winnerTotal: total,
                 winnerProcessing: true
             });
 
-            // 4. DODAJEMY KOMUNIKAT NA CZACIE
+            // 7. Komunikat na czacie
             const chatRef = doc(collection(db, "chat"));
             transaction.set(chatRef, {
                 nick: "System Jackpot",
@@ -4790,9 +4804,9 @@ function startJackpotListener() {
                 date: new Date().toISOString()
             });
         });
-        console.log("Zapisano losowanie i historię pomyślnie.");
+        console.log("Jackpot: Losowanie zakończone sukcesem.");
     } catch (e) {
-        console.error("Błąd losowania/historii:", e);
+        console.error("Krytyczny błąd transakcji Jackpot:", e);
     }
 }
 
@@ -5026,6 +5040,7 @@ function startJackpotListener() {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
