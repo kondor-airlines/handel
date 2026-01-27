@@ -4603,91 +4603,86 @@ function startSplitHistory() {
         window.playSound('coin');
     };
 
-    function startJackpotListener() {
-        if(jackpotUnsub) jackpotUnsub();
+function startJackpotListener() {
+    if(jackpotUnsub) jackpotUnsub();
+    
+    // Tworzymy "pudełko" na dane, do którego dostęp będą miały obie funkcje poniżej
+    let lastJpData = null;
+
+    jackpotUnsub = onSnapshot(doc(db, "jackpot", "current"), (docSnap) => {
+        if(!docSnap.exists()) return; 
         
-        jackpotUnsub = onSnapshot(doc(db, "jackpot", "current"), (docSnap) => {
-            if(!docSnap.exists()) return; 
-            const data = docSnap.data();
-            
-            // 1. Synchronizacja czasu (Obliczanie Offsetu)
-            if(docSnap.readTime) {
-                const serverTime = docSnap.readTime.toMillis();
-                const localTime = new Date().getTime();
-                timeOffset = serverTime - localTime; 
+        // Zapisujemy dane do naszego pudełka
+        lastJpData = docSnap.data();
+        
+        if(docSnap.readTime) {
+            const serverTime = docSnap.readTime.toMillis();
+            const localTime = new Date().getTime();
+            timeOffset = serverTime - localTime; 
+        }
+
+        renderJackpotUI(lastJpData);
+
+        const timerEl = document.getElementById('jackpotTimer');
+
+        if(lastJpData.status === 'open' && lastJpData.startTime) {
+            let startMillis = 0;
+            if (typeof lastJpData.startTime.toMillis === 'function') {
+                startMillis = lastJpData.startTime.toMillis();
+            } 
+            else if (lastJpData.startTime.seconds) {
+                startMillis = lastJpData.startTime.seconds * 1000;
+            }
+            else {
+                startMillis = new Date(lastJpData.startTime).getTime();
             }
 
-            renderJackpotUI(data);
-
-            const timerEl = document.getElementById('jackpotTimer');
-
-            // 2. Obsługa Czasu (PANCERNA LOGIKA)
-            if(data.status === 'open' && data.startTime) {
-                let startMillis = 0;
-
-                // Firebase czasem zwraca Timestamp, czasem obiekt {seconds, nanoseconds}, a czasem Date
-                if (typeof data.startTime.toMillis === 'function') {
-                    startMillis = data.startTime.toMillis();
-                } 
-                else if (data.startTime.seconds) {
-                    startMillis = data.startTime.seconds * 1000;
-                }
-                else {
-                    startMillis = new Date(data.startTime).getTime();
-                }
-
-                // Jeśli startMillis jest poprawny (nie 0 i nie NaN)
-                if (startMillis > 0) {
-                    jackpotEndTime = startMillis + (JP_GAME_TIME * 1000);
-                    timerEl.style.display = 'block';
-                } else {
-                    // Czekamy na serwer (sytuacja "Start...")
-                    timerEl.style.display = 'block';
-                    timerEl.innerText = "START...";
-                    jackpotEndTime = 0;
-                }
+            if (startMillis > 0) {
+                jackpotEndTime = startMillis + (JP_GAME_TIME * 1000);
+                timerEl.style.display = 'block';
             } else {
+                timerEl.style.display = 'block';
+                timerEl.innerText = "START...";
                 jackpotEndTime = 0;
-                timerEl.style.display = 'none';
             }
+        } else {
+            jackpotEndTime = 0;
+            timerEl.style.display = 'none';
+        }
 
-            // 3. Obsługa Stanów Gry
-            if(data.status === 'spinning' && !document.getElementById('jackpotStrip').classList.contains('spinning')) {
-                timerEl.style.display = 'none';
-                spinTheWheel(data.winner, data.entries);
-            }
-            
-            if(data.status === 'open' && document.getElementById('jackpotStrip').classList.contains('spun')) {
-                 resetJackpotVisuals();
-            }
-        });
+        if(lastJpData.status === 'spinning' && !document.getElementById('jackpotStrip').classList.contains('spinning')) {
+            timerEl.style.display = 'none';
+            spinTheWheel(lastJpData.winner, lastJpData.entries);
+        }
         
-        // 4. Interwał odświeżania (niezależny od bazy)
-        if(jpTimerInterval) clearInterval(jpTimerInterval);
-        
-        jpTimerInterval = setInterval(() => {
-             if (!jackpotEndTime) return;
+        if(lastJpData.status === 'open' && document.getElementById('jackpotStrip').classList.contains('spun')) {
+             resetJackpotVisuals();
+        }
+    });
+    
+    if(jpTimerInterval) clearInterval(jpTimerInterval);
+    
+    jpTimerInterval = setInterval(() => {
+         if (!jackpotEndTime) return;
 
-             // Obliczamy czas z uwzględnieniem różnicy zegarów (Offset)
-             const nowSynced = new Date().getTime() + timeOffset;
-             const diff = jackpotEndTime - nowSynced; 
+         const nowSynced = new Date().getTime() + timeOffset;
+         const diff = jackpotEndTime - nowSynced; 
+         const timerEl = document.getElementById('jackpotTimer');
 
-             const timerEl = document.getElementById('jackpotTimer');
-
-             if (diff > 0) {
-                 let seconds = diff / 1000;
-                 if (seconds > JP_GAME_TIME) seconds = JP_GAME_TIME; // Wizualna korekta
-                 timerEl.innerText = seconds.toFixed(2) + "s";
-             } else {
-                 timerEl.innerText = "LOSOWANIE...";
-                 
-                 // Trigger losowania (tylko raz, gdy czas minie)
-                 if (diff <= 0 && data.status === 'open' && !data.winnerProcessing) {
-    			finalizeJackpot();
-				}
+         if (diff > 0) {
+             let seconds = diff / 1000;
+             if (seconds > JP_GAME_TIME) seconds = JP_GAME_TIME;
+             timerEl.innerText = seconds.toFixed(2) + "s";
+         } else {
+             timerEl.innerText = "LOSOWANIE...";
+             
+             // UŻYWAMY lastJpData zamiast data - teraz błąd zniknie
+             if (diff <= 0 && lastJpData && lastJpData.status === 'open' && !lastJpData.winnerProcessing) {
+                 finalizeJackpot();
              }
-        }, 50);
-    }
+         }
+    }, 50);
+}
 
     function renderJackpotUI(data) {
         const list = document.getElementById('jackpotPlayersList');
@@ -5019,4 +5014,5 @@ function startSplitHistory() {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
