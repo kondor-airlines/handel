@@ -2735,25 +2735,26 @@ const lootTable = {
         
         await addDoc(collection(db, "chat"), {
             nick: currentNick,
+            uid: currentUser.uid, // <--- TO JEST KLUCZOWE DLA USUWANIA
             text: window.escapeHtml(txt),
-            type: 'msg', // Zwykła wiadomość
+            type: 'msg',
             date: new Date().toISOString()
         });
         inp.value = "";
     };
 
-    // NOWOŚĆ: Funkcja rzutu kością
-    window.rollDice = async () => {
+   window.rollDice = async () => {
         if (!currentUser) return alert("Zaloguj się!");
-        const result = Math.floor(Math.random() * 100) + 1; // Losuje 1-100
+        const result = Math.floor(Math.random() * 100) + 1;
         
         await addDoc(collection(db, "chat"), {
             nick: currentNick,
+            uid: currentUser.uid, // <--- TUTAJ TEŻ TRZEBA DODAĆ
             text: `🎲 rzucił(a) kośćmi i uzyskał(a) wynik: ${result}/100`,
-            type: 'roll', // Specjalny typ wiadomości
+            type: 'roll',
             date: new Date().toISOString()
         });
-        window.playSound('coin'); // Dźwięk monet przy rzucie
+        window.playSound('coin');
     };
     
     // NASŁUCH ENTER W CZACIE
@@ -5408,6 +5409,7 @@ function renderJackpotUI(data) {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
