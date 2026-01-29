@@ -1020,6 +1020,29 @@ input:focus, select:focus, textarea:focus {
     letter-spacing: 2px; /* Rozszerzenie liter */
     box-shadow: 0 0 25px rgba(255, 215, 0, 0.6);
 }
+
+/* --- STYL DLA EVENTÓW --- */
+
+/* Aktywny przycisk filtra (Różowo-Fioletowy neon) */
+.filter-btn#f-event.active {
+    background: linear-gradient(135deg, #ff00cc 0%, #333399 100%) !important;
+    border-color: #ff00cc !important;
+    box-shadow: 0 0 15px rgba(255, 0, 204, 0.4) !important;
+    color: #fff !important;
+}
+
+/* Wygląd karty z ofertą eventową */
+.offer-card.type-event {
+    border-color: #ff00cc;
+    box-shadow: inset 0 0 20px rgba(255, 0, 204, 0.1);
+}
+
+/* Wygląd małej etykiety na karcie */
+.tag.event {
+    background: linear-gradient(90deg, #ff00cc, #333399);
+    color: #fff;
+    border: 1px solid #fff;
+}
 		
 @keyframes pulseGold { 0% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(255, 215, 0, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0); } }
 		
@@ -1109,13 +1132,13 @@ input:focus, select:focus, textarea:focus {
     </div>
 	
     <div class="filters-container">
-        <div class="filter-group">
-            <span class="group-label">Handel:</span>
-            <button class="filter-btn active" id="f-all" onclick="setFilter('type', 'all')">Wszystkie</button>
-            <button class="filter-btn" id="f-sprzedam" onclick="setFilter('type', 'sprzedam')">Sprzedam</button>
-            <button class="filter-btn" id="f-kupie" onclick="setFilter('type', 'kupie')">Kupię</button>
-            <button class="filter-btn" id="f-zamienie" onclick="setFilter('type', 'zamienie')">Zamienię</button>
-        </div>
+		<div class="filter-group">
+    <span class="group-label">Handel:</span>
+    <button class="filter-btn active" id="f-all" onclick="setFilter('type', 'all')">Wszystkie</button>
+    <button class="filter-btn" id="f-sprzedam" onclick="setFilter('type', 'sprzedam')">Sprzedam</button>
+    <button class="filter-btn" id="f-event" onclick="setFilter('type', 'event')">🎉 Eventowe</button> <button class="filter-btn" id="f-kupie" onclick="setFilter('type', 'kupie')">Kupię</button>
+    <button class="filter-btn" id="f-zamienie" onclick="setFilter('type', 'zamienie')">Zamienię</button>
+		</div>
 
         <div class="filter-group">
             <span class="group-label">Usługi:</span>
@@ -3538,9 +3561,10 @@ window.handleFileUpload = (input) => {
             
             // Tuta była lista, w której brakowało 'archive'
             // Dodałem 'archive' oraz 'chest' do tablicy
-            if(type==='type' && ['all','sprzedam','kupie','zamienie','gold','chest','exp','other','fav','mine','archive'].includes(id)) {
-                b.classList.toggle('active', id === currentFilters.type);
-            }
+            // Znajdź tę linię z długą listą w nawiasie kwadratowym [...]
+		if(type==='type' && ['all','sprzedam','event','kupie','zamienie','gold','chest','exp','other','fav','mine','archive'].includes(id)) {
+    	b.classList.toggle('active', id === currentFilters.type);
+		}
             
             if(type==='cat' && ['herosi','e2'].includes(id)) {
                 b.classList.toggle('active', id === currentFilters.cat);
@@ -5821,6 +5845,7 @@ function renderJackpotUI(data) {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
