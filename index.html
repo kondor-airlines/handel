@@ -1136,9 +1136,9 @@ input:focus, select:focus, textarea:focus {
     <span class="group-label">Handel:</span>
     <button class="filter-btn active" id="f-all" onclick="setFilter('type', 'all')">Wszystkie</button>
     <button class="filter-btn" id="f-sprzedam" onclick="setFilter('type', 'sprzedam')">Sprzedam</button>
+    <button class="filter-btn" id="f-kupie" onclick="setFilter('type', 'kupie')">Kupię</button>
     <button class="filter-btn" id="f-zamienie" onclick="setFilter('type', 'zamienie')">Zamienię</button>
-	<button class="filter-btn" id="f-event" onclick="setFilter('type', 'event')">🎉 Eventowe</button> <button class="filter-btn" id="f-kupie" onclick="setFilter('type', 'kupie')">Kupię</button>
-
+    <button class="filter-btn" id="f-event" onclick="setFilter('type', 'event')">🎉 Eventowe</button> </div>
 		</div>
 
         <div class="filter-group">
@@ -3770,13 +3770,17 @@ window.renderOffers = () => {
 
         let mailBtn = (!isOwner && currentUser && !isSold) ? `<button class="small-btn msg-btn" onclick="openCompose('${data.userId}', '${window.escapeHtml(data.nick)}', '${window.escapeHtml(data.name)}')" title="Wyślij wiadomość">✉️</button>` : "";
         
-        let ownerBtns = "";
-        if (isOwner && !isSold) {
-            ownerBtns += `<button class="small-btn edit-added" onclick="openFullEdit('${data.id}','${window.escapeHtml(data.name)}','${window.escapeHtml(data.price)}','${window.escapeHtml(data.desc)}','${window.escapeHtml(data.img)}','${data.bonding || 'bound'}', '${data.type}')">✏️</button>`;
-            if (['sprzedam', 'gold', 'chest', 'exp', 'other'].includes(data.type)) {
-                ownerBtns += `<button class="small-btn" onclick="markAsSold('${data.id}')" title="Oznacz jako sprzedane" style="border-color:var(--gold); color:var(--gold);">💰</button>`;
+        // Wewnątrz renderOffers, sekcja ownerBtns:
+            
+            let ownerBtns = "";
+            if (isOwner && !isSold) {
+                ownerBtns += `<button class="small-btn edit-added" onclick="openFullEdit('${data.id}','${window.escapeHtml(data.name)}','${window.escapeHtml(data.price)}','${window.escapeHtml(data.desc)}','${window.escapeHtml(data.img)}','${data.bonding || 'bound'}', '${data.type}')">✏️</button>`;
+                
+                // TU DODAJ 'event':
+                if (['sprzedam', 'gold', 'chest', 'exp', 'other', 'event'].includes(data.type)) {
+                    ownerBtns += `<button class="small-btn" onclick="markAsSold('${data.id}')" title="Oznacz jako sprzedane" style="border-color:var(--gold); color:var(--gold);">💰</button>`;
+                }
             }
-        }
         
         let deleteBtn = (isOwner || isAdmin) ? `<button class="small-btn delete-btn" onclick="deleteOffer('${data.id}')" title="Usuń całkowicie">🗑️</button>` : "";
 
@@ -5846,6 +5850,7 @@ function renderJackpotUI(data) {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
