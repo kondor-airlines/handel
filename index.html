@@ -5981,17 +5981,26 @@ function renderJackpotUI(data) {
         alert("Zapisano Discord ID! Nowe oferty będą miały przycisk.");
     };
 
-    window.goToDiscord = (id) => {
+window.goToDiscord = (id) => {
         if(!id) return alert("Ten użytkownik nie podał Discord ID.");
 
-        // 1. Próba otwarcia aplikacji na komputerze
-        window.location.href = `discord://-/users/${id}`;
-        
-        // 2. Zabezpieczenie: Jeśli ktoś nie ma aplikacji, po chwili otworzy się przeglądarka
-        // (Możesz usunąć ten fragment od setTimeout, jeśli chcesz wymusić tylko aplikację)
-        setTimeout(() => {
-            window.open(`https://discord.com/users/${id}`, '_blank');
-        }, 1000);
+        // Sprawdzamy czy użytkownik jest na telefonie
+        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
+        if (isMobile) {
+            // Na telefonie standardowy link najlepiej wywołuje zapytanie o otwarcie aplikacji
+            window.location.href = `https://discord.com/users/${id}`;
+        } else {
+            // Na komputerze próbujemy wymusić aplikację
+            window.location.href = `discord://-/users/${id}`;
+            
+            // Zabezpieczenie dla komputerów bez aplikacji
+            setTimeout(() => {
+                if (document.hasFocus()) {
+                    window.open(`https://discord.com/users/${id}`, '_blank');
+                }
+            }, 1500);
+        }
     };
 	
 </script>
@@ -5999,6 +6008,7 @@ function renderJackpotUI(data) {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
