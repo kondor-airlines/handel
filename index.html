@@ -973,6 +973,50 @@
     animation: spin 1s linear infinite;
     box-shadow: 0 0 15px rgba(255, 215, 0, 0.2);
 }
+
+/* --- EFEKT SZKŁA (GLASSMORPHISM) --- */
+
+/* Okienka (Modale) */
+.modal-content, .modal-content-full {
+    background: rgba(15, 15, 15, 0.85) !important; /* Półprzezroczystość */
+    backdrop-filter: blur(12px) !important;       /* Rozmycie tła pod spodem */
+    box-shadow: 0 0 40px rgba(0,0,0,0.8) !important;
+    border: 1px solid rgba(255, 215, 0, 0.2) !important; /* Delikatna ramka */
+}
+
+/* Karty Ofert */
+.offer-card {
+    background: rgba(20, 20, 20, 0.7) !important;
+    backdrop-filter: blur(5px);
+    transition: transform 0.3s, box-shadow 0.3s, border-color 0.3s;
+}
+
+/* Panel dodawania */
+.panel {
+    background: rgba(20, 20, 20, 0.9) !important;
+    backdrop-filter: blur(8px);
+}
+
+/* --- NEONOWE INPUTY --- */
+input, select, textarea {
+    transition: all 0.3s ease;
+    border: 1px solid #333;
+}
+
+/* Gdy klikniesz w pole (focus) */
+input:focus, select:focus, textarea:focus {
+    outline: none;
+    border-color: var(--gold);
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.3); /* Złota poświata */
+    background: rgba(0, 0, 0, 0.8);
+    transform: scale(1.02); /* Minimalne powiększenie */
+}
+
+/* Przycisk wysyłania/akcji po najechaniu */
+.action-btn:hover {
+    letter-spacing: 2px; /* Rozszerzenie liter */
+    box-shadow: 0 0 25px rgba(255, 215, 0, 0.6);
+}
 		
 @keyframes pulseGold { 0% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(255, 215, 0, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0); } }
 		
@@ -5649,6 +5693,7 @@ function renderJackpotUI(data) {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
