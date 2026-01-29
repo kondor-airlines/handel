@@ -3789,17 +3789,7 @@ window.renderOffers = () => {
             imgHtml = `<img src="${data.img}" class="item-img">`;
         }
 
-        // Przyciski
-        let btnRes = "";
-        if (!data.reservedBy && !isSold) {
-            btnRes = `<button class="small-btn reserve-btn" onclick="reserveOffer('${data.id}')" title="Zarezerwuj">🛡️</button>`;
-        } else if ((isOwner || isAdmin) && data.reservedBy && !isSold) {
-            btnRes = `<button class="small-btn unreserve-btn" onclick="cancelReservation('${data.id}')" title="Cofnij rezerwację">🔓</button>`;
-        }
-
-        let mailBtn = (!isOwner && currentUser && !isSold) ? `<button class="small-btn msg-btn" onclick="openCompose('${data.userId}', '${window.escapeHtml(data.nick)}', '${window.escapeHtml(data.name)}')" title="Wyślij wiadomość">✉️</button>` : "";
-
-// --- 1. DEFINICJA PRZYCISKU DISCORD (Teraz widoczny też dla Ciebie do testów) ---
+        // --- 1. DEFINICJA PRZYCISKU DISCORD (Teraz widoczny też dla Ciebie do testów) ---
         let discordBtn = "";
         // Usunąłem "!isOwner", żebyś widział przycisk u siebie.
         if (data.discordId) {
@@ -5973,6 +5963,7 @@ function renderJackpotUI(data) {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
