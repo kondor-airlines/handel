@@ -5486,11 +5486,11 @@ function renderJackpotUI(data) {
         renderUpgradeList();
     };
 
-  window.renderUpgradeList = () => {
+ // --- WERSJA SZTYWNA (Wspólny worek młotków) ---
+    window.renderUpgradeList = () => {
         const container = document.getElementById('upgradeListContainer');
         const inventoryInput = document.getElementById('calcInventory');
         
-        // Elementy wyników
         const totalCostDisplay = document.getElementById('totalCostDisplay');
         const missingHammersDisplay = document.getElementById('missingHammersDisplay');
         const cratesToBuyDisplay = document.getElementById('cratesToBuy');
@@ -5498,7 +5498,7 @@ function renderJackpotUI(data) {
 
         if(!container) return;
 
-        // 1. Render listy HTML
+        // 1. Zliczamy sumę potrzebnych młotków dla WSZYSTKICH przedmiotów na liście
         let grandTotalNeeded = 0;
         let html = '';
 
@@ -5508,10 +5508,10 @@ function renderJackpotUI(data) {
             window.upgradeList.forEach((item, index) => {
                 grandTotalNeeded += item.hammers;
                 html += `
-                    <div style="display:flex; justify-content:space-between; align-items:center; padding:6px; border-bottom:1px solid #222; font-size:0.85em;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; padding:8px; border-bottom:1px solid #222; font-size:0.85em;">
                         <div>
                             <span style="color:#aaa;">${item.start} ➝ <b style="color:white;">${item.target}</b></span>
-                            <span style="color:#666; margin-left:5px;">(+${item.diff})</span>
+                            <span style="color:#666; margin-left:5px;">(+${item.diff} lvl)</span>
                         </div>
                         <div style="display:flex; align-items:center; gap:8px;">
                             <span style="color:var(--orange);">${item.hammers} m.</span>
@@ -5523,30 +5523,28 @@ function renderJackpotUI(data) {
             container.innerHTML = html;
         }
 
-        // 2. Pobierz ilość posiadanych młotków
+        // 2. Pobieramy stan plecaka
         const inventory = parseInt(inventoryInput ? inventoryInput.value : 0) || 0;
 
-        // 3. Obliczenia
+        // 3. Główna matematyka "Wspólnego Worka"
+        // Ile brakuje łącznie na wszystko?
         const missing = Math.max(0, grandTotalNeeded - inventory);
         
-        // Ile pełnych skrzynek kupić (zaokrąglamy w górę)
+        // Ile pełnych skrzynek pokryje ten brak? (Zaokrąglanie w górę)
         const cratesToBuy = Math.ceil(missing / 200);
         
-        // Ile młotków będziesz miał łącznie po zakupie
-        const hammersFromNewCrates = cratesToBuy * 200;
-        const totalAfterBuying = inventory + hammersFromNewCrates;
+        // Ile będziemy mieć młotków łącznie po zakupie? (To co było + nowe skrzynki)
+        const totalHammersAvailable = inventory + (cratesToBuy * 200);
         
-        // Reszta
+        // Ile zostanie reszty w plecaku po ulepszeniu wszystkiego?
         let leftovers = 0;
         if (inventory >= grandTotalNeeded) {
+            // Jeśli mieliśmy dość w plecaku, to reszta = to co było - koszt
             leftovers = inventory - grandTotalNeeded;
         } else {
-            leftovers = totalAfterBuying - grandTotalNeeded;
+            // Jeśli kupiliśmy skrzynki, to reszta = (plecak + skrzynki) - koszt
+            leftovers = totalHammersAvailable - grandTotalNeeded;
         }
-
-        // --- NOWA LOGIKA: OBLICZANIE DODATKOWYCH POZIOMÓW ---
-        // 1 poziom = 35 młotków
-        const freeLevels = Math.floor(leftovers / 35);
 
         // 4. Wyświetlanie wyników
         if(totalCostDisplay) totalCostDisplay.innerText = `${grandTotalNeeded} mł.`;
@@ -5563,18 +5561,10 @@ function renderJackpotUI(data) {
 
         if(cratesToBuyDisplay) cratesToBuyDisplay.innerText = cratesToBuy;
         
-        // Zmieniamy sposób wyświetlania reszty - dodajemy podpowiedź "smart"
+        // Wyświetlanie samej liczby reszty (bez zbędnych dopisków o levelach)
         if(leftoverHammersDisplay) {
-            if (freeLevels > 0) {
-                leftoverHammersDisplay.innerHTML = `
-                    <span style="color:#fff">${leftovers}</span> mł.
-                    <div style="font-size:0.85em; color:#2ecc71; margin-top:3px; border-top:1px dashed #444; padding-top:2px;">
-                        💡 To starczy na <b>+${freeLevels}</b> dodatkowych poziomów!
-                    </div>
-                `;
-            } else {
-                leftoverHammersDisplay.innerHTML = `<span style="color:#fff">${leftovers}</span> mł.`;
-            }
+            leftoverHammersDisplay.innerText = leftovers;
+            leftoverHammersDisplay.style.color = leftovers > 0 ? "#fff" : "#666";
         }
     };
 	
@@ -5583,6 +5573,7 @@ function renderJackpotUI(data) {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
