@@ -922,6 +922,16 @@
         border-color: var(--gold); font-size: 1.2em;
     }
 
+		/* Styl dla przycisku Młotków */
+.hammer-btn-style {
+    background: linear-gradient(135deg, #2c3e50, #000); /* Ciemna stal */
+    border-color: #bdc3c7; /* Srebrna ramka */
+}
+.hammer-btn-style:hover {
+    box-shadow: 0 0 20px #bdc3c7; /* Srebrna poświata */
+    transform: scale(1.1);
+}
+
 @keyframes pulseGold { 0% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(255, 215, 0, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0); } }
 		
         @keyframes rise {
@@ -1332,7 +1342,9 @@
         <img src="https://micc.garmory-cdn.cloud/obrazki/npc/mez/npc249.gif">
     </button>
 
-	<button class="side-btn" onclick="openUpgradeCalc()" title="Kalkulator Młotków">🔨</button>
+	<button class="side-btn hammer-btn-style" onclick="openUpgradeCalc()" title="Kalkulator Młotków">
+    <img src="https://micc.garmory-cdn.cloud/obrazki/itemy/upg/upg_licytacja.gif" style="width:30px; height:30px;">
+</button>
 	
     <button class="side-btn essence-btn-style" onclick="toggleEssence()" title="Esencja">
         <img src="https://micc.garmory-cdn.cloud/obrazki/itemy/neu/pyl-sakryfikacji.gif">
@@ -5573,6 +5585,7 @@ function renderJackpotUI(data) {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
