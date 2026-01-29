@@ -1093,33 +1093,28 @@ input:focus, select:focus, textarea:focus {
             <img src="https://cdn-icons-png.freepik.com/512/598/598489.png" width="18">
             <span>Zaloguj przez Google</span>
         </button>
-        <div id="userProfile" class="user-profile">
-			<button class="icon-btn" onclick="toggleHelp()" title="Poradnik Klanowicza">
-    		❓
-			</button>
-            <button class="icon-btn" onclick="toggleMute()" title="Włącz/Wyłącz dźwięk">
-                <span id="muteIcon">🔊</span>
-            </button>
-            <button class="icon-btn" onclick="toggleKarczma()" title="Karczma (Czat)">
-                🍻
-            </button>
-            <button class="icon-btn" onclick="openMailbox()" title="Skrzynka odbiorcza">
-                📩 <span id="mailBadge" class="badge" style="display:none;">0</span>
-            </button>
-			<button class="icon-btn" onclick="toggleDebts()" title="Zeszyt Dłużników">📜</button>
-			<button class="icon-btn" onclick="openSplitModal()" title="Podziały Łupów" style="color: #00ffff; position: relative;">
-    ⚖️ <span id="splitBadge" class="badge" style="display:none;">0</span>
-</button>
+		
+			<div id="userProfile" class="user-profile">
+    <button class="icon-btn" onclick="toggleHelp()" title="Poradnik Klanowicza">❓</button>
+    <button class="icon-btn" onclick="toggleMute()" title="Włącz/Wyłącz dźwięk"><span id="muteIcon">🔊</span></button>
+    <button class="icon-btn" onclick="toggleKarczma()" title="Karczma (Czat)">🍻</button>
+    <button class="icon-btn" onclick="openMailbox()" title="Skrzynka odbiorcza">📩 <span id="mailBadge" class="badge" style="display:none;">0</span></button>
+    <button class="icon-btn" onclick="toggleDebts()" title="Zeszyt Dłużników">📜</button>
+    <button class="icon-btn" onclick="openSplitModal()" title="Podziały Łupów" style="color: #00ffff; position: relative;">⚖️ <span id="splitBadge" class="badge" style="display:none;">0</span></button>
 
-			
-            <div class="avatar-wrapper">
-                <img id="userAvatar" class="user-avatar" src="" alt="">
-            </div>
-            <div>
-                <div id="userNickDisplay" style="font-weight:bold; color:var(--gold); font-size:0.9em;">...</div>
-                <div class="logout-link" onclick="logout()">Wyloguj</div>
-            </div>
+    <div class="avatar-wrapper">
+        <img id="userAvatar" class="user-avatar" src="" alt="">
+    </div>
+    <div>
+        <div id="userNickDisplay" style="font-weight:bold; color:var(--gold); font-size:0.9em;">...</div>
+        <div style="display:flex; gap:10px; font-size:0.75em;">
+            <span onclick="openSettings()" style="cursor:pointer; color:#5865F2;" title="Ustaw swoje ID Discorda">⚙️ Discord</span>
+            <span class="logout-link" onclick="logout()">Wyloguj</span>
         </div>
+    </div>
+</div>
+
+		
     </header>
 
 	<div id="announcementBoard" class="announcement-board">
@@ -1879,6 +1874,21 @@ input:focus, select:focus, textarea:focus {
             </div>
 
         </div>
+    </div>
+</div>
+
+<div id="settingsModal" class="modal-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:10025; justify-content:center; align-items:center;">
+    <div class="modal-content" style="background:#1a1a1a; padding:25px; border:2px solid #5865F2; border-radius:15px; width:95%; max-width:400px; text-align:center;">
+        <h3 style="color:#5865F2; margin-top:0; font-family:'MedievalSharp';">⚙️ Ustawienia Profilu</h3>
+        
+        <label style="color:#aaa; font-size:0.8em; display:block; margin-bottom:5px; text-align:left;">Twój Discord ID (Wymagane do linku):</label>
+        <input type="text" id="settingsDiscordId" placeholder="np. 3072834520394..." style="width:100%; padding:10px; background:#000; border:1px solid #5865F2; color:#fff; margin-bottom:5px;">
+        <div style="font-size:0.7em; color:#666; text-align:left; margin-bottom:15px;">
+            *Aby zdobyć ID: Włącz "Tryb Dewelopera" na Discordzie -> Prawy przycisk na siebie -> Kopiuj ID użytkownika.
+        </div>
+
+        <button onclick="saveSettings()" class="action-btn" style="background:#5865F2; color:white; margin-bottom:10px;">ZAPISZ</button>
+        <button onclick="document.getElementById('settingsModal').style.display='none'" style="background:none; border:none; color:#888; cursor:pointer;">Anuluj</button>
     </div>
 </div>
 	
@@ -3788,7 +3798,13 @@ window.renderOffers = () => {
         }
 
         let mailBtn = (!isOwner && currentUser && !isSold) ? `<button class="small-btn msg-btn" onclick="openCompose('${data.userId}', '${window.escapeHtml(data.nick)}', '${window.escapeHtml(data.name)}')" title="Wyślij wiadomość">✉️</button>` : "";
-        
+
+		// --- PRZYCISK DISCORD ---
+        let discordBtn = "";
+        if (data.discordId && !isOwner) {
+            discordBtn = `<button class="small-btn" onclick="goToDiscord('${data.discordId}')" title="Otwórz czat Discord" style="border-color:#5865F2; color:#5865F2;">💬</button>`;
+        }
+		
         let ownerBtns = "";
         if (isOwner && !isSold) {
             ownerBtns += `<button class="small-btn edit-added" onclick="openFullEdit('${data.id}','${window.escapeHtml(data.name)}','${window.escapeHtml(data.price)}','${window.escapeHtml(data.desc)}','${window.escapeHtml(data.img)}','${data.bonding || 'bound'}', '${data.type}')">✏️</button>`;
@@ -3821,20 +3837,24 @@ window.renderOffers = () => {
                 <div class="price-tag">${window.escapeHtml(data.price)}</div>
                 ${data.reservedBy ? `<div style="font-size:0.7em; color:var(--green); margin:5px 0;">🔒 Rez: ${data.reservedBy}</div>` : ""}
                 ${data.desc ? `<div style="font-size:0.8em; color:#888; font-style:italic; margin-bottom:10px; text-align:center;">"${window.escapeHtml(data.desc)}"</div>` : ""}
-                <div class="seller-info">
-                    <div class="seller-left">
-                        <div class="avatar-wrapper">
-                            <img src="${data.avatar}" class="tiny-avatar">
-                            ${onlineHtml}
-                        </div>
-                        <b>${window.escapeHtml(data.nick)}</b>
+// Wewnątrz window.renderOffers = () => { ...
+// ... (gdzieś na dole funkcji, wewnątrz list.innerHTML += ` ... )
+
+            <div class="seller-info">
+                <div class="seller-left">
+                    <div class="avatar-wrapper">
+                        <img src="${data.avatar}" class="tiny-avatar">
+                        ${onlineHtml}
                     </div>
-                    <div class="btn-group">
-                        ${mailBtn} ${btnRes} ${ownerBtns} ${deleteBtn}
-                    </div>
+                    <b>${window.escapeHtml(data.nick)}</b>
                 </div>
-            </div>`;
-    });
+
+                <div class="btn-group">
+                    ${discordBtn} ${mailBtn} ${btnRes} ${ownerBtns} ${deleteBtn}
+                </div>
+                </div>
+        </div>`; // To jest koniec karty
+});
     document.getElementById('offerStats').innerText = `Widocznych ofert: ${count}`;
 };
     window.loginGoogle = () => { signInWithPopup(auth, provider).catch(e => alert(e.message)); };
@@ -3909,9 +3929,16 @@ window.renderOffers = () => {
         if (!chk.checked) inp.value = "";
     };
 	
-		window.addOffer = async () => {
-    const type = document.getElementById('offerType').value;
-    const sel = document.getElementById('itemSource');
+	window.addOffer = async () => {
+        const type = document.getElementById('offerType').value;
+        const sel = document.getElementById('itemSource');
+        
+        // --- NOWOŚĆ: POBIERAMY DISCORD ID PRZED DODANIEM ---
+        let myDiscordId = "";
+        if(currentUser) {
+            const uSnap = await getDoc(doc(db, "users", currentUser.uid));
+            if(uSnap.exists()) myDiscordId = uSnap.data().discordId || "";
+        }
     
     let finalPrice = "";
     let finalName = document.getElementById('itemName').value;
@@ -4030,13 +4057,13 @@ window.renderOffers = () => {
         finalBonding = "bound";
     }
 
-    // Wysyłka do Firebase (BEZ ZMIAN)
-    await addDoc(collection(db, "oferty"), {
-        userId: currentUser.uid, 
-        nick: currentNick, 
-        avatar: currentUser.photoURL,
-        // Jeśli dodałeś obsługę Discorda wcześniej, to dodaj tu: discord: currentDiscord,
-        type: type === 'event' ? 'sprzedam' : type, // Event zapisujemy jako typ 'sprzedam' żeby pasował do filtrów, albo jako nowy typ
+			await addDoc(collection(db, "oferty"), {
+            userId: currentUser.uid, 
+            nick: currentNick, 
+            avatar: currentUser.photoURL,
+            discordId: myDiscordId, // <--- DODAJ TĘ LINIJKĘ
+            type: (type === 'event') ? 'event' : type,
+            // ... reszta pól bez zmian ...
         // UWAGA: Żeby działały filtry, lepiej zapisać to jako osobny typ 'event' i dodać go do filtrów,
         // ALBO zapisać jako 'sprzedam', ale wtedy nie będzie oddzielnego filtra "Eventowe".
         // Sugeruję zapisać typ: 'event'
@@ -5899,12 +5926,42 @@ function renderJackpotUI(data) {
             leftoverHammersDisplay.style.color = leftovers > 0 ? "#fff" : "#666";
         }
     };
+
+	// --- OBSŁUGA DISCORDA ---
+    window.openSettings = async () => {
+        if(!currentUser) return;
+        // Pobierz aktualne ID z bazy, żeby wypełnić pole
+        const docSnap = await getDoc(doc(db, "users", currentUser.uid));
+        if(docSnap.exists() && docSnap.data().discordId) {
+            document.getElementById('settingsDiscordId').value = docSnap.data().discordId;
+        }
+        document.getElementById('settingsModal').style.display = 'flex';
+    };
+
+    window.saveSettings = async () => {
+        const did = document.getElementById('settingsDiscordId').value.trim();
+        if(!currentUser) return;
+        
+        await updateDoc(doc(db, "users", currentUser.uid), {
+            discordId: did
+        });
+        
+        document.getElementById('settingsModal').style.display = 'none';
+        alert("Zapisano Discord ID! Nowe oferty będą miały przycisk.");
+    };
+
+    window.goToDiscord = (id) => {
+        if(!id) return alert("Ten użytkownik nie podał Discord ID.");
+        // Otwiera bezpośredni link do profilu/czatu
+        window.open(`https://discord.com/users/${id}`, '_blank');
+    };
 	
 </script>
 
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
