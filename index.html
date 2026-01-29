@@ -3613,7 +3613,7 @@ window.renderOffers = () => {
                 // Musi być idealna zgodność typu
                 if (data.type !== currentFilters.type) return;
             }
-        
+		}
 
         // Pozostałe filtry (Kategoria, Szukaj, Level, Profesja)
         if (currentFilters.cat === 'herosi' && !isHeros) return;
@@ -5749,6 +5749,7 @@ function renderJackpotUI(data) {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
