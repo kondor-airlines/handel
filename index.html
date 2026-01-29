@@ -6,8 +6,9 @@
     <title>Targowisko Klanowe - Kondor Airlines</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚔️</text></svg>">
     <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
-    <style>
-:root {
+<style>
+        /* --- BAZA I TŁO --- */
+        :root {
             --gold: #ffd700; --gold-bright: #fff2a6; --bg: #0f0f0f; --card: #1a1a1a;
             --border: #332b00; --green: #2ecc71; --blue: #3498db; --red: #e74c3c;
             --purple: #9b59b6; --orange: #e67e22; --heroic: #3498db; --unique: #e67e22; --legendary: #ffd700;
@@ -28,7 +29,7 @@
         /* --- UKŁAD STRONY (LAYOUT) --- */
         .container { 
             max-width: 1200px; 
-            width: 95%;
+            width: 100%;
             margin: 40px auto; 
             position: relative;
         }
@@ -41,6 +42,7 @@
             padding-bottom: 15px; 
             margin-bottom: 30px; 
             gap: 10px; 
+            flex-wrap: wrap; /* Zapobiega ucinaniu na małych ekranach */
         }
 
         h1 {
@@ -74,50 +76,56 @@
         .user-avatar:hover { transform: scale(1.2); border-color: #fff; }
         .logout-link { color: #ff6666; font-size: 0.75em; text-decoration: none; cursor: pointer; text-transform: uppercase; font-weight: bold; }
 
-        /* --- FILTRY (NAPRAWIONE) --- */
+        /* --- FILTRY GŁÓWNE (POPRAWIONE) --- */
         .filters-container {
             display: flex;
             flex-direction: column;
-            gap: 15px;
+            gap: 15px; /* Odstęp między rzędami */
             align-items: center;
             margin-bottom: 25px;
+            width: 100%;
         }
 
         .filter-group {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: 8px; /* Równy odstęp między przyciskami */
             background: rgba(255, 255, 255, 0.03);
             border: 1px solid #333;
             border-radius: 50px;
             padding: 8px 20px;
-            display: flex;
-            gap: 8px;
-            align-items: center;
-            flex-wrap: wrap;
-            justify-content: center;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            /* Zapobiega rozciąganiu na całą szerokość */
+            width: fit-content; 
+            max-width: 100%;
         }
 
-        .advanced-filters { 
-            display: flex; 
-            justify-content: center; 
-            gap: 15px; 
-            margin-bottom: 30px; 
-            flex-wrap: wrap; 
-            background: rgba(255, 255, 255, 0.02); 
-            padding: 15px; 
-            border-radius: 8px; 
-            border: 1px solid #333; 
-            align-items: center; 
+        .group-label {
+            color: #666;
+            font-size: 0.75em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-right: 5px;
+            font-weight: bold;
         }
 
-        .filter-select, .search-box { 
-            background: #0a0a0a; border: 1px solid #444; color: var(--gold); padding: 8px; border-radius: 5px; 
-            min-width: 200px; width: auto; 
-        }
-        .lvl-input { width: 60px; background: #0a0a0a; border: 1px solid #444; color: #eee; padding: 8px; border-radius: 5px; text-align: center; }
+        .separator { color: #444; font-size: 1.2em; margin: 0 5px; opacity: 0.5; }
 
         /* PRZYCISKI FILTRÓW */
         .filter-btn {
-            background: rgba(0, 0, 0, 0.6); color: #aaa; border: 1px solid #444; padding: 8px 16px; border-radius: 20px; cursor: pointer; transition: 0.3s; font-weight: 600; font-size: 0.85em; text-transform: uppercase;
+            background: rgba(0, 0, 0, 0.6); 
+            color: #aaa; 
+            border: 1px solid #444; 
+            padding: 8px 16px; 
+            border-radius: 20px; 
+            cursor: pointer; 
+            transition: 0.3s; 
+            font-weight: 600; 
+            font-size: 0.85em; 
+            text-transform: uppercase;
+            /* Nie pozwalaj przyciskom być za szerokimi */
+            flex: 0 1 auto; 
         }
         .filter-btn:hover { border-color: var(--gold); color: #fff; background: rgba(255, 215, 0, 0.1); transform: translateY(-2px); }
         .filter-btn.active { background: linear-gradient(135deg, #ffd700 0%, #b8860b 100%); color: #000; border: 1px solid #ffd700; box-shadow: 0 0 15px rgba(255, 215, 0, 0.4); font-weight: 800; }
@@ -132,11 +140,48 @@
         .offer-card.type-event { border-color: #ff00cc; box-shadow: inset 0 0 20px rgba(255, 0, 204, 0.1); }
         .tag.event { background: linear-gradient(90deg, #ff00cc, #333399); color: #fff; border: 1px solid #fff; }
 
+        /* --- FILTRY ZAAWANSOWANE (POPRAWIONE) --- */
+        .advanced-filters { 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            gap: 15px; 
+            margin-bottom: 30px; 
+            flex-wrap: wrap; 
+            background: rgba(255, 255, 255, 0.02); 
+            padding: 15px; 
+            border-radius: 8px; 
+            border: 1px solid #333; 
+            /* Centrowanie kontenera */
+            width: fit-content;
+            margin-left: auto;
+            margin-right: auto;
+            max-width: 100%;
+        }
+
+        /* Stylizacja selectów i inputów w filtrach, żeby nie były za szerokie */
+        .advanced-filters select, 
+        .advanced-filters input.search-box { 
+            background: #0a0a0a; 
+            border: 1px solid #444; 
+            color: var(--gold); 
+            padding: 8px; 
+            border-radius: 5px; 
+            /* Sztywne ograniczenia szerokości */
+            width: auto;
+            min-width: 150px; 
+            max-width: 250px;
+            flex: 1 1 auto;
+        }
+
+        .lvl-group { display: flex; align-items: center; gap: 5px; color: #888; font-size: 0.9em; }
+        .lvl-input { width: 60px; background: #0a0a0a; border: 1px solid #444; color: #eee; padding: 8px; border-radius: 5px; text-align: center; }
+
         /* --- SIATKA OFERT (GRID) --- */
         .offers-grid { 
             display: grid; 
             /* To zapewnia 4 karty w rzędzie na pełnym ekranie (1200px) */
-            grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); 
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); 
             gap: 25px; 
             width: 100%;
         }
@@ -158,12 +203,18 @@
         .offer-card:hover .item-img { transform: scale(1.1); }
         .item-title { font-size: 1.1em; font-weight: bold; text-align: center; color: var(--gold); margin-bottom: 5px; line-height: 1.3; }
         .price-tag { font-size: 1.4em; color: #fff; font-weight: bold; margin: 5px 0; border-top: 1px solid #333; padding-top: 10px; width: 100%; text-align: center; }
+        
+        .item-source { display: flex; align-items: center; gap: 5px; font-size: 0.8em; color: #888; margin-bottom: 10px; }
 
         /* TAGI */
         .tag { position: absolute; top: 10px; left: 10px; padding: 4px 8px; border-radius: 4px; font-size: 0.65em; font-weight: 800; text-transform: uppercase; z-index: 2; }
         .tag.sprzedam { background: var(--green); color: #000; }
         .tag.kupie { background: var(--blue); color: #fff; }
         .tag.chest { background: #8d6e63; color: #fff; }
+        .tag.zamienie { background: var(--orange); color: #fff; }
+        
+        .fav-btn { position: absolute; top: 5px; right: 5px; background: none; border: none; font-size: 1.5em; cursor: pointer; color: #555; transition: 0.3s; z-index: 5; }
+        .fav-btn:hover, .fav-btn.active { color: var(--red); transform: scale(1.2); }
 
         /* STOPKA KARTY */
         .seller-info { margin-top: auto; width: 100%; padding-top: 15px; border-top: 1px dotted #444; display: flex; flex-direction: column; gap: 12px; }
@@ -177,7 +228,7 @@
         .panel { background: linear-gradient(135deg, #151515 0%, #1a1a1a 100%); padding: 25px; border-radius: 12px; border: 1px solid rgba(255, 215, 0, 0.3); margin-bottom: 40px; box-shadow: 0 10px 30px rgba(0,0,0,0.8); display: none; }
         .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
         .full-width { grid-column: 1 / -1; }
-        input, select, textarea { background: #0a0a0a; border: 1px solid #333; color: #eee; padding: 12px; border-radius: 6px; width: 100%; transition: 0.3s; }
+        input, select, textarea { background: #0a0a0a; border: 1px solid #333; color: #eee; padding: 12px; border-radius: 6px; width: 100%; transition: 0.3s; box-sizing: border-box; }
         input:focus, select:focus, textarea:focus { border-color: var(--gold); background: #111; box-shadow: 0 0 10px rgba(255, 215, 0, 0.2); outline: none; }
         
         /* GŁÓWNY PRZYCISK */
@@ -217,8 +268,9 @@
             h1 { width: 100%; text-align: center; }
             .user-profile { width: 100%; justify-content: center; flex-wrap: wrap; margin-left: 0; }
             .offers-grid { grid-template-columns: repeat(auto-fill, minmax(100%, 1fr)); }
-            .advanced-filters { flex-direction: column; }
-            .filter-select, .search-box { width: 100%; }
+            .advanced-filters { flex-direction: column; width: 100%; }
+            .advanced-filters select, .advanced-filters input.search-box { width: 100%; max-width: 100%; }
+            .filters-container, .filter-group { width: 100%; }
         }
 
         /* INNE DROBNE STYLE */
@@ -234,6 +286,15 @@
         .tooltip-name { font-family: 'MedievalSharp'; font-size: 1.3em; margin-bottom: 5px; display: block; }
         .tooltip-name.legendary { color: var(--gold); } .tooltip-name.heroic { color: var(--heroic); } .tooltip-name.unique { color: var(--unique); }
         .tooltip-img { width: 64px; height: 64px; object-fit: contain; margin: 0 auto; display: block; }
+        
+        /* Skrzynki wiersze */
+        .chest-row { display: flex; gap: 10px; margin-bottom: 10px; align-items: center; }
+        .multi-chest-wrapper { display: flex; flex-wrap: wrap; justify-content: center; gap: 5px; margin: 15px auto 10px auto; }
+        .mini-chest-img { width: 40px; height: 40px; object-fit: contain; }
+        
+        /* Inne */
+        .offer-card.is-sold { filter: grayscale(100%); opacity: 0.7; border-color: #555 !important; }
+        .sold-stamp { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-15deg); font-size: 2em; font-weight: 800; color: #fff; border: 4px solid #fff; padding: 10px 20px; border-radius: 10px; z-index: 10; opacity: 0.8; pointer-events: none; }
     </style>
 </head>
 <body>
@@ -5022,23 +5083,4 @@ function renderJackpotUI(data) {
 <div id="toast-container"></div>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
