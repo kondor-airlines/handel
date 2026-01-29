@@ -3837,8 +3837,6 @@ window.renderOffers = () => {
                 <div class="price-tag">${window.escapeHtml(data.price)}</div>
                 ${data.reservedBy ? `<div style="font-size:0.7em; color:var(--green); margin:5px 0;">🔒 Rez: ${data.reservedBy}</div>` : ""}
                 ${data.desc ? `<div style="font-size:0.8em; color:#888; font-style:italic; margin-bottom:10px; text-align:center;">"${window.escapeHtml(data.desc)}"</div>` : ""}
-// Wewnątrz window.renderOffers = () => { ...
-// ... (gdzieś na dole funkcji, wewnątrz list.innerHTML += ` ... )
 
             <div class="seller-info">
                 <div class="seller-left">
@@ -5961,6 +5959,7 @@ function renderJackpotUI(data) {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
