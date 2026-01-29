@@ -1376,6 +1376,26 @@ input:focus, select:focus, textarea:focus {
     </div>
 </div>
 
+	<div id="editDebtModal" class="modal-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:10011; justify-content:center; align-items:center;">
+    <div class="modal-content" style="background:#1a1a1a; padding:25px; border:2px solid var(--gold); border-radius:15px; width:95%; max-width:400px; display:flex; flex-direction:column; gap:10px;">
+        <h3 style="color:var(--gold); margin:0; text-align:center; font-family:'MedievalSharp';">Edytuj Wpis</h3>
+        
+        <label style="color:#aaa; font-size:0.8em;">Kto (Dłużnik):</label>
+        <input type="text" id="editDebtWho" style="background:#000; border:1px solid #444; color:#fff; padding:10px;">
+        
+        <label style="color:#aaa; font-size:0.8em;">Kwota:</label>
+        <input type="text" id="editDebtAmount" style="background:#000; border:1px solid #444; color:#fff; padding:10px;">
+        
+        <label style="color:#aaa; font-size:0.8em;">Notatka / Data:</label>
+        <input type="text" id="editDebtNote" style="background:#000; border:1px solid #444; color:#fff; padding:10px;">
+
+        <div style="display:flex; gap:10px; margin-top:10px;">
+            <button onclick="saveDebtEdit()" class="action-btn" style="flex:1; background:var(--green); color:#000;">ZAPISZ</button>
+            <button onclick="document.getElementById('editDebtModal').style.display='none'" class="action-btn" style="flex:1; background:#333; color:#fff; border:1px solid #555;">ANULUJ</button>
+        </div>
+    </div>
+</div>
+
 <div id="annModal" style="display: none; position: fixed; z-index: 10020; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.9); align-items: center; justify-content: center;">
     <div style="background: #1a1a1a; padding: 25px; border: 2px solid #ff6666; border-radius: 12px; width: 90%; max-width: 500px;">
         <h3 style="color:#ff6666; margin-top:0;">Edytuj Ogłoszenie</h3>
@@ -4321,10 +4341,40 @@ window.renderOffers = () => {
         window.playSound('coin');
     };
 
+	// --- EDYCJA DŁUGÓW ---
+    let currentDebtEditId = null;
+
+    window.openDebtEdit = (id, who, amount, note) => {
+        currentDebtEditId = id;
+        document.getElementById('editDebtWho').value = who;
+        document.getElementById('editDebtAmount').value = amount;
+        document.getElementById('editDebtNote').value = note;
+        document.getElementById('editDebtModal').style.display = 'flex';
+    };
+
+    window.saveDebtEdit = async () => {
+        if (!currentDebtEditId) return;
+
+        const newWho = document.getElementById('editDebtWho').value.trim();
+        const newAmount = document.getElementById('editDebtAmount').value.trim();
+        const newNote = document.getElementById('editDebtNote').value.trim();
+
+        if (!newWho || !newAmount) return alert("Pola Kto i Kwota są wymagane!");
+
+        await updateDoc(doc(db, "dlugi", currentDebtEditId), {
+            borrower: newWho,
+            amount: newAmount,
+            note: newNote
+        });
+
+        document.getElementById('editDebtModal').style.display = 'none';
+        window.playSound('coin');
+        window.alert("Zaktualizowano wpis! 📝");
+    };
+
     function startDebtsListener() {
         if(debtsUnsub) debtsUnsub();
-        // Pobieramy długi gdzie my jesteśmy wierzycielem (dodałem) LUB dłużnikiem (opcjonalnie można filtrować)
-        // Tutaj prosta wersja: widzimy długi które MY dodaliśmy (jako wierzyciel)
+        
         const q = query(collection(db, "dlugi"), where("lenderId", "==", currentUser.uid), orderBy("date", "desc"));
         
         debtsUnsub = onSnapshot(q, (snap) => {
@@ -4334,6 +4384,11 @@ window.renderOffers = () => {
             div.innerHTML = "";
             snap.docs.forEach(d => {
                 const item = d.data();
+                // Ucieczka znaków, żeby ' nie psuło kodu HTML w onclick
+                const safeWho = item.borrower.replace(/'/g, "\\'");
+                const safeAmount = item.amount.replace(/'/g, "\\'");
+                const safeNote = item.note.replace(/'/g, "\\'");
+
                 div.innerHTML += `
                     <div class="debt-item ${item.isPaid ? 'paid' : ''}">
                         <div class="debt-info">
@@ -4345,6 +4400,11 @@ window.renderOffers = () => {
                             <button onclick="toggleDebtPaid('${d.id}', ${!item.isPaid})" class="small-btn" title="Oznacz jako spłacone" style="border-color:${item.isPaid ? '#555' : 'var(--green)'}; color:${item.isPaid ? '#555' : 'var(--green)'}">
                                 ${item.isPaid ? '↺' : '✅'}
                             </button>
+                            
+                            <button onclick="openDebtEdit('${d.id}', '${safeWho}', '${safeAmount}', '${safeNote}')" class="small-btn" title="Edytuj" style="border-color:var(--gold); color:var(--gold);">
+                                ✏️
+                            </button>
+
                             <button onclick="deleteDebt('${d.id}')" class="small-btn" style="border-color:#555; color:#666;">🗑️</button>
                         </div>
                     </div>
@@ -5845,6 +5905,7 @@ function renderJackpotUI(data) {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
