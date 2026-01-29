@@ -3721,6 +3721,16 @@ window.renderOffers = () => {
     let count = 0;
     
     allOffers.forEach(data => {
+
+				// Przykład logiczny do wstawienia w pętli generującej oferty:
+		if (offer.sellerId === currentUserId && !offer.discordId) {
+		    const myCurrentDiscordId = localStorage.getItem('userDiscordId'); // lub skąd pobierasz ID
+		    if (myCurrentDiscordId) {
+		        // Aktualizacja w bazie danych (Firebase/API)
+		        updateOfferInDatabase(offer.id, { discordId: myCurrentDiscordId });
+		    }
+		}
+		
         // --- 1. INICJALIZACJA DANYCH ---
         const isSold = data.status === 'sold';
         const isSkrytka = data.name.toLowerCase().includes('(s)');
@@ -6019,6 +6029,7 @@ function renderJackpotUI(data) {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
