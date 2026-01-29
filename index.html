@@ -3722,14 +3722,18 @@ window.renderOffers = () => {
     
     allOffers.forEach(data => {
 
-				// Przykład logiczny do wstawienia w pętli generującej oferty:
-		if (offer.sellerId === currentUserId && !offer.discordId) {
-		    const myCurrentDiscordId = localStorage.getItem('userDiscordId'); // lub skąd pobierasz ID
-		    if (myCurrentDiscordId) {
-		        // Aktualizacja w bazie danych (Firebase/API)
-		        updateOfferInDatabase(offer.id, { discordId: myCurrentDiscordId });
-		    }
-		}
+				// --- AUTOMATYCZNA NAPRAWA STARYCH OFERT ---
+        if (currentUser && data.userId === currentUser.uid && !data.discordId) {
+            getDoc(doc(db, "users", currentUser.uid)).then(uSnap => {
+                if (uSnap.exists() && uSnap.data().discordId) {
+                    const currentId = uSnap.data().discordId;
+                    // Używamy data.id, bo tak nazywa się Twój obiekt oferty w pętli
+                    updateDoc(doc(db, "oferty", data.id), { discordId: currentId });
+                    console.log("Zaktualizowano ofertę:", data.name);
+                }
+            });
+        }
+        // ------------------------------------------
 		
         // --- 1. INICJALIZACJA DANYCH ---
         const isSold = data.status === 'sold';
@@ -6029,6 +6033,7 @@ function renderJackpotUI(data) {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
