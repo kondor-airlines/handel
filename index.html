@@ -1173,16 +1173,26 @@ input:focus, select:focus, textarea:focus {
     <div id="addOfferPanel" class="panel" style="display: none;">
         <h3 style="margin-top:0; color:var(--gold); font-family:'MedievalSharp';">Wystaw Ogłoszenie</h3>
         <div class="form-grid">
-            <select id="offerType" onchange="toggleSpecialFields()" class="full-width" style="font-weight:bold; color:var(--gold);">
-                <option value="sprzedam">🗡️ Sprzedam Przedmiot</option>
-                <option value="kupie">💰 Kupię Przedmiot</option>
-                <option value="zamienie">🔄 Zamienię się</option>
-                <option value="gold">⚖️ Handel Złotem</option>
-                <option value="chest">📦 Sprzedaż Skrzynek</option>
-                <option value="exp">🛡️ Pomoc / Expienie</option>
-                <option value="other">🎲 Inne</option>
-            </select>
+			
+		<select id="offerType" onchange="toggleSpecialFields()" class="full-width" style="font-weight:bold; color:var(--gold);">
+		    <option value="sprzedam">🗡️ Sprzedam Przedmiot</option>
+		    <option value="event">🎉 Sprzedam Eventowe</option> <option value="kupie">💰 Kupię Przedmiot</option>
+		    <option value="zamienie">🔄 Zamienię się</option>
+		    <option value="gold">⚖️ Handel Złotem</option>
+		    <option value="chest">📦 Sprzedaż Skrzynek</option>
+		    <option value="exp">🛡️ Pomoc / Expienie</option>
+		    <option value="other">🎲 Inne</option>
+		</select>
 
+			<div id="field-event-hero" class="full-width" style="display:none; background:rgba(255, 215, 0, 0.05); padding:10px; border:1px dashed var(--gold); border-radius:6px; margin-bottom:5px;">
+    <label style="color:#aaa; font-size:0.8em; display:block; margin-bottom:5px;">Dane Herosa Eventowego:</label>
+    <div style="display:flex; gap:10px;">
+        <input type="text" id="eventHeroName" placeholder="Nazwa Herosa (np. Zając)" style="flex:1;">
+        <input type="text" id="eventHeroImg" placeholder="Link do grafiki herosa" style="flex:1;">
+    </div>
+</div>
+
+			
             <div id="field-sell" class="full-width">
                 <input type="text" id="itemPrice" placeholder="Cena (np. 150m, 50k, 20 PLN, 100 ZŁ)" 
                        oninput="validatePriceInput(this)">
@@ -3083,87 +3093,105 @@ const lootTable = {
         window.renderBestiary(cat);
     };
 
-window.toggleSpecialFields = () => {
+		window.toggleSpecialFields = () => {
     const typeEl = document.getElementById('offerType');
     if (!typeEl) return;
     const type = typeEl.value;
 
-    // Resetowanie widoczności sekcji
-    document.getElementById('field-sell').style.display = 'none';
-    document.getElementById('field-buy').style.display = 'none';
-    document.getElementById('field-trade').style.display = 'none';
-    document.getElementById('field-gold').style.display = 'none';
-    document.getElementById('chestBundleContainer').style.display = 'none';
+    // Reset widoczności sekcji specjalnych
+    ['field-sell', 'field-buy', 'field-trade', 'field-gold', 'chestBundleContainer', 'field-event-hero'].forEach(id => {
+        document.getElementById(id).style.display = 'none';
+    });
 
-    // Logika sekcji
-    if (type === 'sprzedam') document.getElementById('field-sell').style.display = 'block';
+    // Reset inputów tekstowych
+    const nameInput = document.getElementById('itemName');
+    const imgInput = document.getElementById('itemImg');
+    const preview = document.getElementById('livePreview');
+    const priceInput = document.getElementById('itemPrice'); // Pole ceny
+
+    // --- LOGIKA POKAZYWANIA PÓL ---
+    if (type === 'sprzedam') {
+        document.getElementById('field-sell').style.display = 'block';
+        priceInput.placeholder = "Cena (np. 150m, 50k, 20 PLN)";
+    } 
+    else if (type === 'event') {
+        document.getElementById('field-event-hero').style.display = 'block';
+        document.getElementById('field-sell').style.display = 'block'; // Używamy tego samego pola ceny
+        priceInput.placeholder = "Cena (np. 100m, 50 zł, do ustalenia)";
+    }
     else if (type === 'kupie') document.getElementById('field-buy').style.display = 'block';
     else if (type === 'zamienie') document.getElementById('field-trade').style.display = 'block';
     else if (type === 'gold') document.getElementById('field-gold').style.display = 'grid';
-   else if (type === 'chest') {
-            document.getElementById('chestBundleContainer').style.display = 'block';
-            // Resetujemy widok ceny (domyślnie pokaż, chyba że wybrano Kupię)
-            window.toggleChestPrice(); 
-            if(document.getElementById('chestRowsArea').innerHTML === "") window.addChestRow();
-        }
+    else if (type === 'chest') {
+        document.getElementById('chestBundleContainer').style.display = 'block';
+        window.toggleChestPrice();
+        if(document.getElementById('chestRowsArea').innerHTML === "") window.addChestRow();
+    }
 
-    // --- Obsługa pól standardowych ---
-    const hideSource = ['gold', 'exp', 'other', 'chest'].includes(type);
+    // --- LOGIKA PÓL STANDARDOWYCH (Listy wyboru vs Ręczne wpisywanie) ---
+    // Ukrywamy listy wyboru (kategorie, źródła) dla: Gold, Exp, Inne, Skrzynki ORAZ EVENTY
+    const hideSource = ['gold', 'exp', 'other', 'chest', 'event'].includes(type);
     const displayStyle = hideSource ? 'none' : 'block';
 
-    ['sourceCategory', 'itemSource', 'itemSelect', 'sourceSearch', 'itemSearch', 'itemBonding'].forEach(id => {
+    ['sourceCategory', 'itemSource', 'itemSelect', 'sourceSearch', 'itemSearch'].forEach(id => {
         const el = document.getElementById(id);
         if(el) el.style.display = displayStyle;
     });
 
-    // --- NOWOŚĆ: Obsługa opcji "Obojętne" w kłódce (TEGO BRAKOWAŁO) ---
+    // --- LOGIKA KŁÓDKI ---
     const bondingSel = document.getElementById('itemBonding');
     const anyOption = bondingSel.querySelector('option[value="any"]');
     
+    // Kłódkę pokazujemy zawsze, chyba że to gold/exp/inne/skrzynki (ale dla EVENTU pokazujemy!)
+    const showBonding = !['gold', 'exp', 'other', 'chest'].includes(type); 
+    bondingSel.style.display = showBonding ? 'block' : 'none';
+
     if (type === 'kupie') {
-        // Przy kupnie pokazujemy opcję "Obojętne"
         anyOption.style.display = 'block'; 
     } else {
-        // W każdym innym przypadku (np. Sprzedam) ukrywamy ją i resetujemy jeśli była wybrana
         anyOption.style.display = 'none';
         if (bondingSel.value === 'any') bondingSel.value = 'bound';
     }
-    // --------------------------------------------------
 
-    // Autouzupełnianie ikon i nazw
-    const nameInput = document.getElementById('itemName');
-    const imgInput = document.getElementById('itemImg');
-    const preview = document.getElementById('livePreview');
-
-    const specialMap = {
-        gold: { name: "Złoto", img: "https://micc.garmory-cdn.cloud/obrazki/itemy/zlo/zloto8.gif" },
-        exp:  { name: "Pomoc / Expienie", img: "https://micc.garmory-cdn.cloud/obrazki/npc/kob/tunia.gif" },
-        other: { name: "Inne", img: "https://micc.garmory-cdn.cloud/obrazki/itemy/neu/pyl-sakryfikacji.gif" }
-    };
-
-    if (type === 'chest') {
+    // --- LOGIKA NAZWY I OBRAZKA PRZEDMIOTU ---
+    // Dla Eventu czyścimy i włączamy pola ręczne
+    if (type === 'event') {
+        nameInput.disabled = false;
+        nameInput.value = "";
+        nameInput.placeholder = "Nazwa przedmiotu eventowego";
+        imgInput.style.display = 'block';
+        imgInput.value = "";
+        preview.style.display = 'none';
+    }
+    else if (type === 'chest') {
         nameInput.disabled = true;
         nameInput.placeholder = "Zestaw skrzyń...";
         nameInput.value = "";
         imgInput.style.display = 'none';
         preview.style.display = 'none';
     } 
-    else if (specialMap[type]) {
-        nameInput.disabled = false;
-        nameInput.value = (type === 'gold') ? "" : specialMap[type].name; 
-        imgInput.style.display = 'block';
-        imgInput.value = specialMap[type].img;
-        preview.style.display = 'flex';
-        document.getElementById('previewIcon').src = specialMap[type].img;
-        document.getElementById('previewName').innerText = nameInput.value || "Handel Złotem";
-    } 
     else {
-        nameInput.disabled = false;
-        nameInput.placeholder = "Nazwa przedmiotu";
-        const autoNames = Object.values(specialMap).map(m => m.name);
-        if(autoNames.includes(nameInput.value)) nameInput.value = "";
-        imgInput.style.display = 'block';
-        preview.style.display = 'none';
+        // ... reszta logiki dla innych typów (bez zmian) ...
+        const specialMap = {
+            gold: { name: "Złoto", img: "https://micc.garmory-cdn.cloud/obrazki/itemy/zlo/zloto8.gif" },
+            exp:  { name: "Pomoc / Expienie", img: "https://micc.garmory-cdn.cloud/obrazki/npc/kob/tunia.gif" },
+            other: { name: "Inne", img: "https://micc.garmory-cdn.cloud/obrazki/itemy/neu/pyl-sakryfikacji.gif" }
+        };
+
+        if (specialMap[type]) {
+            nameInput.disabled = false;
+            nameInput.value = (type === 'gold') ? "" : specialMap[type].name; 
+            imgInput.style.display = 'block';
+            imgInput.value = specialMap[type].img;
+            preview.style.display = 'flex';
+            document.getElementById('previewIcon').src = specialMap[type].img;
+            document.getElementById('previewName').innerText = nameInput.value || "Handel Złotem";
+        } else {
+            nameInput.disabled = false;
+            nameInput.placeholder = "Nazwa przedmiotu";
+            imgInput.style.display = 'block';
+            preview.style.display = 'none';
+        }
     }
 };
 
@@ -3567,14 +3595,25 @@ window.renderOffers = () => {
         if (currentFilters.type === 'chest') {
             if (data.type !== 'chest' && !isSkrytka) return;
         } 
-        else if (currentFilters.type !== 'all' && 
+		else if (currentFilters.type !== 'all' && 
                  currentFilters.type !== 'archive' && 
                  currentFilters.type !== 'mine' && 
                  currentFilters.type !== 'fav') {
             
-            if (data.type !== currentFilters.type) return;
-            if (currentFilters.type === 'sprzedam' && isSkrytka) return;
-        }
+            // --- SPECJALNA LOGIKA DLA FILTRA "SPRZEDAM" ---
+            if (currentFilters.type === 'sprzedam') {
+                // Jeśli przedmiot NIE JEST 'sprzedam' I NIE JEST 'event', to go ukryj
+                if (data.type !== 'sprzedam' && data.type !== 'event') return;
+                
+                // Ukryj skrzynki (bo mają własny przycisk w menu), nawet jak są typu 'sprzedam'
+                if (isSkrytka) return;
+            } 
+            // --- DLA POZOSTAŁYCH FILTRÓW (Kupię, Gold, Exp itp.) ---
+            else {
+                // Musi być idealna zgodność typu
+                if (data.type !== currentFilters.type) return;
+            }
+        
 
         // Pozostałe filtry (Kategoria, Szukaj, Level, Profesja)
         if (currentFilters.cat === 'herosi' && !isHeros) return;
@@ -3731,11 +3770,19 @@ window.renderOffers = () => {
 		
     });
 
-	// Walidacja ceny (teraz obsługuje też PLN i ZŁ)
+// ZAKTUALIZOWANA WALIDACJA CENY
     window.validatePriceInput = (input) => {
-        // Akceptuje: liczby + k/m/g LUB liczby + pln/zł (wielkość liter dowolna)
+        const val = input.value.trim().toLowerCase();
+        
+        // 1. Sprawdź czy to tekst "do ustalenia"
+        if (val.includes("do ustalenia") || val.includes("dogadania")) {
+            input.style.borderColor = 'var(--green)';
+            return;
+        }
+
+        // 2. Standardowe sprawdzanie walut (k/m/g/pln/zł)
         const pattern = /^\d+(\.\d+)?\s*([kmg]|pln|zł)$/i;
-        input.style.borderColor = pattern.test(input.value.trim()) ? 'var(--green)' : 'var(--red)';
+        input.style.borderColor = pattern.test(val) ? 'var(--green)' : 'var(--red)';
     };
 
     // Pokazywanie pola dopłaty w "Zamienię"
@@ -3746,177 +3793,178 @@ window.renderOffers = () => {
         if (!chk.checked) inp.value = "";
     };
 	
-    window.addOffer = async () => {
-        const type = document.getElementById('offerType').value;
-        const sel = document.getElementById('itemSource');
-        
-        let finalPrice = "";
-        let finalName = document.getElementById('itemName').value;
-        let finalImg = document.getElementById('itemImg').value;
-        let finalSource = sel.value;
-        // Pobieramy obrazek potwora, ale zaraz go nadpiszemy dla ofert specjalnych
-        let finalSourceImg = sel.options[sel.selectedIndex]?.dataset.img || ''; 
-        let finalBonding = document.getElementById('itemBonding').value;
+		window.addOffer = async () => {
+    const type = document.getElementById('offerType').value;
+    const sel = document.getElementById('itemSource');
+    
+    let finalPrice = "";
+    let finalName = document.getElementById('itemName').value;
+    let finalImg = document.getElementById('itemImg').value;
+    let finalSource = sel.value;
+    let finalSourceImg = sel.options[sel.selectedIndex]?.dataset.img || ''; 
+    let finalBonding = document.getElementById('itemBonding').value;
 
-        // 1. Logika dla "SPRZEDAM"
-        if (type === 'sprzedam') {
-            const inp = document.getElementById('itemPrice');
-            const pattern = /^\d+(\.\d+)?\s*([kmg]|pln|zł)$/i;
-            if (!pattern.test(inp.value.trim())) {
-                return alert("Błędna cena! Wpisz np: 150m, 50k, 20 PLN");
+    // 1. Logika dla "SPRZEDAM"
+    if (type === 'sprzedam') {
+        const inp = document.getElementById('itemPrice');
+        const pattern = /^\d+(\.\d+)?\s*([kmg]|pln|zł)$/i;
+        if (!pattern.test(inp.value.trim())) {
+            return alert("Błędna cena! Wpisz np: 150m, 50k, 20 PLN");
+        }
+        finalPrice = inp.value.trim().toLowerCase();
+        if (!sel.value) return alert("Wybierz potwora z listy!");
+    }
+
+    // 2. NOWOŚĆ: Logika dla "EVENTOWE"
+    else if (type === 'event') {
+        const inp = document.getElementById('itemPrice');
+        const val = inp.value.trim();
+        
+        // Sprawdzamy cenę (akceptujemy "do ustalenia")
+        const pattern = /^\d+(\.\d+)?\s*([kmg]|pln|zł)$/i;
+        const isNegotiable = val.toLowerCase().includes("ustalenia") || val.toLowerCase().includes("dogadania");
+        
+        if (!pattern.test(val) && !isNegotiable) {
+            return alert("Błędna cena! Wpisz np: 150m, 'do ustalenia' lub 'pln'.");
+        }
+        finalPrice = val;
+
+        // Pobieramy dane herosa z pól ręcznych
+        const heroName = document.getElementById('eventHeroName').value.trim();
+        const heroImg = document.getElementById('eventHeroImg').value.trim();
+
+        if(!finalName) return alert("Wpisz nazwę przedmiotu!");
+        if(!heroName) return alert("Wpisz nazwę Herosa Eventowego!");
+
+        finalSource = heroName + " (Event)";
+        // Domyślny obrazek jeśli pusty
+        finalSourceImg = heroImg || "https://cdn-icons-png.flaticon.com/512/3135/3135715.png"; 
+    }
+
+    // ... Reszta logiki (Kupię, Zamienię, Gold...) BEZ ZMIAN ...
+    else if (type === 'kupie') {
+        const currency = document.getElementById('buyCurrency').value;
+        finalPrice = `Płacę: ${currency}`;
+        if (!sel.value) return alert("Wybierz co chcesz kupić!");
+    }
+    else if (type === 'zamienie') {
+        const surcharge = document.getElementById('tradeSurchargeInput').value.trim();
+        const hasSurcharge = document.getElementById('tradeSurchargeCheck').checked;
+        if (hasSurcharge && surcharge) finalPrice = `Dopłata: ${surcharge}`;
+        else finalPrice = "Wymiana";
+        if (!sel.value) return alert("Wybierz przedmiot!");
+    }
+    else if (type === 'gold') {
+        const action = document.getElementById('goldAction').value;
+        const amount = document.getElementById('goldAmount').value.trim();
+        if (!amount) return alert("Podaj ilość złota!");
+        finalName = `${action} Złoto`; 
+        finalPrice = amount;            
+        finalSource = "Kantor";
+        finalSourceImg = ""; 
+        finalBonding = "bound";
+    }
+    else if (type === 'exp') {
+        finalPrice = "Do dogadania";
+        finalSource = "Usługa";
+        finalSourceImg = ""; 
+        finalBonding = "bound";
+    }
+    else if (type === 'other') {
+        finalPrice = "Inne";
+        finalSource = "Ogłoszenie";
+        finalSourceImg = ""; 
+        finalBonding = "bound";
+    }
+    else if (type === 'chest') {
+        const rows = document.querySelectorAll('.chest-row');
+        if (rows.length === 0) return alert("Dodaj przynajmniej jedną skrzynkę!");
+        
+        const chestAction = document.getElementById('chestAction').value; 
+        const chestTotalInput = document.getElementById('chestPrice');
+        const chestTotalPrice = chestTotalInput ? chestTotalInput.value.trim() : "";
+
+        let chestSummary = [];
+        let imagesArray = [];
+        
+        for (let row of rows) {
+            const select = row.querySelector('.chest-select');
+            const qty = row.querySelector('.chest-qty').value;
+            const singlePrice = row.querySelector('.chest-row-price').value.trim();
+            
+            if (!select.value || qty < 1) return alert("Uzupełnij nazwy i ilość skrzynek!");
+            
+            let rowText = `${qty}x ${select.value.replace('Skrzynia ', '')}`;
+            if (chestAction === 'Sprzedam' && singlePrice) {
+                rowText += ` (${singlePrice})`;
             }
-            finalPrice = inp.value.trim().toLowerCase();
-            if (!sel.value) return alert("Wybierz potwora z listy!");
+            chestSummary.push(rowText);
+            const u = select.options[select.selectedIndex].dataset.img;
+            if(u) imagesArray.push(u);
         }
 
-        // 2. Logika dla "KUPIĘ"
-        else if (type === 'kupie') {
-            const currency = document.getElementById('buyCurrency').value;
-            finalPrice = `Płacę: ${currency}`;
-            if (!sel.value) return alert("Wybierz co chcesz kupić!");
-        }
-
-        // 3. Logika dla "ZAMIENIĘ"
-        else if (type === 'zamienie') {
-            const surcharge = document.getElementById('tradeSurchargeInput').value.trim();
-            const hasSurcharge = document.getElementById('tradeSurchargeCheck').checked;
-            
-            if (hasSurcharge && surcharge) {
-                finalPrice = `Dopłata: ${surcharge}`;
-            } else {
-                finalPrice = "Wymiana";
-            }
-            if (!sel.value) return alert("Wybierz przedmiot!");
-        }
-
-        // 4. Logika dla "HANDEL ZŁOTEM"
-        else if (type === 'gold') {
-            const action = document.getElementById('goldAction').value;
-            const amount = document.getElementById('goldAmount').value.trim();
-            
-            if (!amount) return alert("Podaj ilość złota!");
-            
-            finalName = `${action} Złoto`; 
-            finalPrice = amount;           
-            finalSource = "Kantor";
-            finalSourceImg = ""; 
-            finalBonding = "bound";
-        }
-
-        // 5. Logika dla "POMOC / EXPIENIE"
-        else if (type === 'exp') {
-            finalPrice = "Do dogadania";
-            finalSource = "Usługa";
-            finalSourceImg = ""; 
-            finalBonding = "bound";
-        }
-
-        // 6. Logika dla "INNE"
-        else if (type === 'other') {
-            finalPrice = "Inne";
-            finalSource = "Ogłoszenie";
-            finalSourceImg = ""; 
-            finalBonding = "bound";
-        }
-
-        // 7. Logika dla "SKRZYNKI" (ZAKTUALIZOWANA)
-        // 7. Logika dla "SKRZYNKI" (POPRAWIONA)
-        // 7. Logika dla "SKRZYNKI" (Z CENAMI CZĄSTKOWYMI)
-        else if (type === 'chest') {
-            const rows = document.querySelectorAll('.chest-row');
-            if (rows.length === 0) return alert("Dodaj przynajmniej jedną skrzynkę!");
-            
-            const chestAction = document.getElementById('chestAction').value; // Sprzedam / Kupię
-            const chestTotalInput = document.getElementById('chestPrice');
-            const chestTotalPrice = chestTotalInput ? chestTotalInput.value.trim() : "";
-
-            let chestSummary = [];
-            let imagesArray = [];
-            
-            for (let row of rows) {
-                const select = row.querySelector('.chest-select');
-                const qty = row.querySelector('.chest-qty').value;
-                const singlePrice = row.querySelector('.chest-row-price').value.trim();
-                
-                if (!select.value || qty < 1) return alert("Uzupełnij nazwy i ilość skrzynek!");
-                
-                // Budujemy opis
-                let rowText = `${qty}x ${select.value.replace('Skrzynia ', '')}`;
-                
-                // Dopisz cenę TYLKO jeśli to sprzedaż i cena została wpisana
-                if (chestAction === 'Sprzedam' && singlePrice) {
-                    rowText += ` (${singlePrice})`;
-                }
-                
-                chestSummary.push(rowText);
-                
-                const u = select.options[select.selectedIndex].dataset.img;
-                if(u) imagesArray.push(u);
-            }
-
-            finalName = `${chestAction}: ` + chestSummary.join(', ');
-            finalImg = imagesArray.join('|');
-            
-            // Logika ceny głównej (Sumy)
-            if (chestAction === 'Kupię') {
-                finalPrice = "Do dogadania";
-            } else {
-                // Jeśli wpisałeś cenę ogólną, użyj jej. Jeśli nie, napisz "Patrz opis"
-                finalPrice = chestTotalPrice || "Patrz opis"; 
-            }
-
-            finalSource = "Skrzynki Herosów";
-            finalSourceImg = ""; 
-            finalBonding = "bound";
-        }
-
-        // Wysyłka do Firebase
-        await addDoc(collection(db, "oferty"), {
-            userId: currentUser.uid, 
-            nick: currentNick, 
-            avatar: currentUser.photoURL,
-            type: type,
-            bonding: finalBonding,
-            name: finalName,
-            price: finalPrice, 
-            source: finalSource, 
-            sourceImg: finalSourceImg,
-            desc: document.getElementById('itemDesc').value,
-            img: finalImg,
-            date: new Date().toISOString(), 
-            reservedBy: null
-        });
+        finalName = `${chestAction}: ` + chestSummary.join(', ');
+        finalImg = imagesArray.join('|');
         
-        window.playSound('coin');
-// --- DISCORD START (Wersja Full Wypas) ---
-        const descVal = document.getElementById('itemDesc').value;
-        const shortDesc = descVal.length > 100 ? descVal.substring(0, 100) + "..." : descVal;
-        
-        // finalImg i finalSourceImg to zmienne, które już masz w tej funkcji wcześniej!
-        sendDiscordNotification(
-            'handel',                   // typ
-            `Nowa Oferta: ${finalName}`, // Tytuł
-            finalPrice,                 // Cena
-            `**Opis:** ${shortDesc || "Brak dodatkowego opisu."}`, // Opis
-            currentNick,                // Autor
-            finalImg,                   // Obrazek przedmiotu (Thumbnail)
-            finalSourceImg              // Obrazek potwora (Avatar bota)
-        );
-        // --- DISCORD END ---
-        window.alert("Dodano ofertę! ✅");
-        
-        // Reset formularza
-        document.getElementById('addOfferPanel').style.display = 'none';
-        document.getElementById('toggleAddBtn').innerText = '+ WYSTAW ARTEFAKT';
-        
-        // Reset do stanu początkowego
-        document.getElementById('offerType').value = 'sprzedam';
-        window.toggleSpecialFields();
-        
-        // Czyścimy inputy skrzynek
-        document.getElementById('chestRowsArea').innerHTML = "";
-        document.getElementById('chestPrice').value = "";
-    };
+        if (chestAction === 'Kupię') finalPrice = "Do dogadania";
+        else finalPrice = chestTotalPrice || "Patrz opis"; 
+
+        finalSource = "Skrzynki Herosów";
+        finalSourceImg = ""; 
+        finalBonding = "bound";
+    }
+
+    // Wysyłka do Firebase (BEZ ZMIAN)
+    await addDoc(collection(db, "oferty"), {
+        userId: currentUser.uid, 
+        nick: currentNick, 
+        avatar: currentUser.photoURL,
+        // Jeśli dodałeś obsługę Discorda wcześniej, to dodaj tu: discord: currentDiscord,
+        type: type === 'event' ? 'sprzedam' : type, // Event zapisujemy jako typ 'sprzedam' żeby pasował do filtrów, albo jako nowy typ
+        // UWAGA: Żeby działały filtry, lepiej zapisać to jako osobny typ 'event' i dodać go do filtrów,
+        // ALBO zapisać jako 'sprzedam', ale wtedy nie będzie oddzielnego filtra "Eventowe".
+        // Sugeruję zapisać typ: 'event'
+        type: (type === 'event') ? 'event' : type,
+
+        bonding: finalBonding,
+        name: finalName,
+        price: finalPrice, 
+        source: finalSource, 
+        sourceImg: finalSourceImg,
+        desc: document.getElementById('itemDesc').value,
+        img: finalImg,
+        date: new Date().toISOString(), 
+        reservedBy: null
+    });
+    
+    window.playSound('coin');
+
+    // Discord Notification
+    const descVal = document.getElementById('itemDesc').value;
+    const shortDesc = descVal.length > 100 ? descVal.substring(0, 100) + "..." : descVal;
+    
+    sendDiscordNotification(
+        'handel',                    
+        `Nowa Oferta: ${finalName}`, 
+        finalPrice,                 
+        `**Opis:** ${shortDesc || "Brak dodatkowego opisu."}`, 
+        currentNick,                
+        finalImg,                   
+        finalSourceImg              
+    );
+
+    window.alert("Dodano ofertę! ✅");
+    
+    document.getElementById('addOfferPanel').style.display = 'none';
+    document.getElementById('toggleAddBtn').innerText = '+ WYSTAW ARTEFAKT';
+    document.getElementById('toggleAddBtn').style.background = 'linear-gradient(to bottom, #ffd700, #b8860b)';
+    document.getElementById('toggleAddBtn').style.color = '#000';
+    
+    document.getElementById('offerType').value = 'sprzedam';
+    window.toggleSpecialFields();
+    document.getElementById('chestRowsArea').innerHTML = "";
+    document.getElementById('chestPrice').value = "";
+};
     
     window.reserveOffer = async (id) => { if(!currentNick) return alert("Zaloguj się!"); await updateDoc(doc(db, "oferty", id), { reservedBy: currentNick }); window.playSound('click'); };
     window.cancelReservation = async (id) => { await updateDoc(doc(db, "oferty", id), { reservedBy: null }); window.playSound('click'); };
@@ -5701,6 +5749,7 @@ function renderJackpotUI(data) {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
