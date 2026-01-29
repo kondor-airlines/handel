@@ -3549,6 +3549,77 @@ window.handleFileUpload = (input) => {
         
         window.renderOffers();
     };
+
+	// --- NOWA FUNKCJA TOOLTIPÓW (Z linkiem do MargoWorld) ---
+    window.getTooltipHtml = (dataName, dataImg) => {
+        // Czyścimy nazwę z ewentualnych dopisków w nawiasach i spacji
+        const cleanName = dataName.replace(/\s*\([^)]*\)$/, "").trim();
+        
+        let foundStats = "";
+        let rarityClass = "legendary"; // Domyślny kolor dla eventowych
+
+        // 1. Próba znalezienia w bazie (lootTable)
+        for (const mob in lootTable) {
+            // Szukamy po obrazku LUB po nazwie
+            const item = lootTable[mob].find(i => i.img === dataImg || i.stats.split('||')[0] === dataName);
+            if (item) {
+                const parts = item.stats.split('||');
+                if(parts[1]) {
+                    if(parts[1].includes('rarity=heroic')) rarityClass = 'heroic';
+                    if(parts[1].includes('rarity=unique')) rarityClass = 'unique';
+                    // Zamieniamy średniki na nową linię
+                    foundStats = parts[1].replace(/;/g, '<br>').replace(/rarity=[^<]+/, '');
+                }
+                break;
+            }
+        }
+
+        // 2. Generowanie bezpiecznego linku do MargoWorld
+        const safeName = encodeURIComponent(cleanName);
+        const mwLink = `https://margoworld.pl/item?name=${safeName}`;
+
+        let contentHtml = "";
+
+        if (foundStats) {
+            // SCENARIUSZ A: Przedmiot jest w bazie (Herosi/E2) -> Pokaż statystyki + mały link
+            contentHtml = `
+                <div class="tooltip-stats">${foundStats}</div>
+                <div style="margin-top:8px; padding-top:5px; border-top:1px dashed #444;">
+                     <a href="${mwLink}" target="_blank" style="color:#888; font-size:0.9em; text-decoration:none;">🔗 MargoWorld</a>
+                </div>
+            `;
+        } else {
+            // SCENARIUSZ B: Przedmiot RĘCZNY (Eventowy/Inny) -> Pokaż DUŻY PRZYCISK
+            contentHtml = `
+                <div class="tooltip-stats" style="margin-top:10px; color:#aaa; font-style:italic;">
+                    Przedmiot spoza bazy (Event/Ręczny)
+                </div>
+                <div style="margin-top:10px; padding-top:10px; border-top:1px solid #444;">
+                    <a href="${mwLink}" target="_blank" style="
+                        display:block; 
+                        background:linear-gradient(to bottom, #ffd700, #b8860b); 
+                        color:#000; 
+                        padding:8px; 
+                        border-radius:4px; 
+                        text-decoration:none; 
+                        font-weight:bold;
+                        font-family:'Montserrat', sans-serif;
+                        box-shadow: 0 0 10px rgba(255, 215, 0, 0.2);">
+                        🔍 SPRAWDŹ NA MARGOWORLD
+                    </a>
+                </div>
+            `;
+        }
+
+        return `
+            <div class="tooltip-container" style="pointer-events: auto;">
+                <div class="tooltip-name ${rarityClass}">${window.escapeHtml(cleanName)}</div>
+                <img src="${dataImg}" class="tooltip-img" onerror="this.src='https://micc.garmory-cdn.cloud/obrazki/itemy/nas/pyt.gif'">
+                ${contentHtml}
+            </div>
+        `;
+    };
+	
 window.renderOffers = () => {
     const list = document.getElementById('offersList');
     const search = document.getElementById('globalSearch').value.toLowerCase();
@@ -3684,8 +3755,9 @@ window.renderOffers = () => {
         
         let deleteBtn = (isOwner || isAdmin) ? `<button class="small-btn delete-btn" onclick="deleteOffer('${data.id}')" title="Usuń całkowicie">🗑️</button>` : "";
 
-        let tooltipHtml = (['sprzedam', 'kupie', 'zamienie'].includes(data.type) && !isSkrytka) ? getTooltipHtml(data.name, data.img) : "";
-        const displayName = data.name.replace(/\s*\([^)]*\)$/, "");
+		// Dodaliśmy 'event' do listy dozwolonych typów
+		let tooltipHtml = (['sprzedam', 'kupie', 'zamienie', 'event'].includes(data.type) && !isSkrytka) ? getTooltipHtml(data.name, data.img) : "";
+		const displayName = data.name.replace(/\s*\([^)]*\)$/, "");
         const isOnline = isUserOnline(data.userId);
         const onlineHtml = isOnline ? '<span class="online-dot" title="Online"></span>' : '';
 
@@ -5749,6 +5821,7 @@ function renderJackpotUI(data) {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
