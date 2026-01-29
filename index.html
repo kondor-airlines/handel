@@ -1115,17 +1115,22 @@ input:focus, select:focus, textarea:focus {
     
     <button class="icon-btn" onclick="logout()" title="Wyloguj się" style="color: #ff6666; margin-left: 5px;">🚪</button>
 
-    <div class="avatar-wrapper" style="margin-left: 10px;">
+<div class="avatar-wrapper" style="margin-left: 10px;">
         <img id="userAvatar" class="user-avatar" src="" alt="">
     </div>
     
-    <div style="display: flex; flex-direction: column; justify-content: center;">
-        <div id="userNickDisplay" style="font-weight:bold; color:var(--gold); font-size:0.9em; line-height: 1;">...</div>
-        <div onclick="openSettings()" style="cursor:pointer; color:#5865F2; font-size:0.7em; font-weight:bold; margin-top: 4px;" title="Ustaw Discord ID">
-            ⚙️ DISCORD
+    <div style="display: flex; flex-direction: column; justify-content: center; gap: 2px;">
+        <div id="userNickDisplay" style="font-weight:bold; color:var(--gold); font-size:0.85em; white-space: nowrap;">...</div>
+        
+        <div style="display: flex; gap: 5px;">
+            <button onclick="openSettings()" style="background: rgba(88, 101, 242, 0.1); border: 1px solid #5865F2; color: #5865F2; font-size: 0.65em; padding: 2px 5px; border-radius: 4px; cursor: pointer; font-weight: bold; transition: 0.2s;">
+                DISCORD
+            </button>
+            <button onclick="logout()" style="background: rgba(231, 76, 60, 0.1); border: 1px solid var(--red); color: var(--red); font-size: 0.65em; padding: 2px 5px; border-radius: 4px; cursor: pointer; font-weight: bold; transition: 0.2s;">
+                WYLOGUJ
+            </button>
         </div>
     </div>
-</div>
 </div>
 
 		
@@ -5990,4 +5995,5 @@ function renderJackpotUI(data) {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
