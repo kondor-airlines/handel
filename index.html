@@ -5486,8 +5486,7 @@ function renderJackpotUI(data) {
         renderUpgradeList();
     };
 
-    // --- GŁÓWNA LOGIKA OBLICZEŃ ---
-    window.renderUpgradeList = () => {
+  window.renderUpgradeList = () => {
         const container = document.getElementById('upgradeListContainer');
         const inventoryInput = document.getElementById('calcInventory');
         
@@ -5496,6 +5495,8 @@ function renderJackpotUI(data) {
         const missingHammersDisplay = document.getElementById('missingHammersDisplay');
         const cratesToBuyDisplay = document.getElementById('cratesToBuy');
         const leftoverHammersDisplay = document.getElementById('leftoverHammers');
+
+        if(!container) return;
 
         // 1. Render listy HTML
         let grandTotalNeeded = 0;
@@ -5523,147 +5524,31 @@ function renderJackpotUI(data) {
         }
 
         // 2. Pobierz ilość posiadanych młotków
-        const inventory = parseInt(inventoryInput.value) || 0;
+        const inventory = parseInt(inventoryInput ? inventoryInput.value : 0) || 0;
 
         // 3. Obliczenia
-        // Ile brakuje (jeśli masz więcej niż trzeba, to 0)
         const missing = Math.max(0, grandTotalNeeded - inventory);
         
         // Ile pełnych skrzynek kupić (zaokrąglamy w górę)
         const cratesToBuy = Math.ceil(missing / 200);
         
         // Ile młotków będziesz miał łącznie po zakupie
-        // (To co masz + to co kupisz w skrzynkach)
         const hammersFromNewCrates = cratesToBuy * 200;
         const totalAfterBuying = inventory + hammersFromNewCrates;
         
-        // Ile zostanie reszty po ulepszeniu wszystkiego
-        // (Jeśli masz już wystarczająco dużo bez kupowania, to reszta = inventory - needed)
+        // Reszta
         let leftovers = 0;
         if (inventory >= grandTotalNeeded) {
             leftovers = inventory - grandTotalNeeded;
         } else {
             leftovers = totalAfterBuying - grandTotalNeeded;
         }
+
+        // --- NOWA LOGIKA: OBLICZANIE DODATKOWYCH POZIOMÓW ---
+        // 1 poziom = 35 młotków
+        const freeLevels = Math.floor(leftovers / 35);
 
         // 4. Wyświetlanie wyników
-        totalCostDisplay.innerText = `${grandTotalNeeded} mł.`;
-        
-        if (missing === 0 && grandTotalNeeded > 0) {
-            missingHammersDisplay.innerText = "Masz wystarczająco!";
-            missingHammersDisplay.style.color = "#2ecc71";
-        } else {
-            missingHammersDisplay.innerText = `${missing}`;
-            missingHammersDisplay.style.color = "var(--orange)";
-        }
-
-        cratesToBuyDisplay.innerText = cratesToBuy;
-        leftoverHammersDisplay.innerText = leftovers;
-    };
-
-	// --- SILNIK KALKULATORA MŁOTKÓW ---
-    
-    window.upgradeList = [];
-
-    window.openUpgradeCalc = () => {
-        const modal = document.getElementById('upgradeCalcModal');
-        if(modal) {
-            modal.style.display = 'flex';
-            renderUpgradeList();
-            if(window.playSound) window.playSound('click');
-        } else {
-            console.error("BŁĄD: Nie znaleziono modala o id 'upgradeCalcModal'. Sprawdź czy wkleiłeś kod HTML!");
-            alert("Błąd: Nie wkleiłeś kodu HTML okienka (modala) na dole strony!");
-        }
-    };
-
-    window.addToUpgradeList = () => {
-        const startInput = document.getElementById('calcStartLvl');
-        const targetInput = document.getElementById('calcTargetLvl');
-        const errorDiv = document.getElementById('calcError');
-        
-        if(!startInput || !targetInput) return;
-
-        const start = parseInt(startInput.value);
-        const target = parseInt(targetInput.value);
-
-        if (!start || !target || target <= start) {
-            if(errorDiv) {
-                errorDiv.style.display = 'block';
-                errorDiv.innerText = "Cel musi być wyższy niż start!";
-            }
-            return;
-        }
-        if(errorDiv) errorDiv.style.display = 'none';
-
-        const diff = target - start;
-        const hammers = diff * 35;
-
-        window.upgradeList.push({ start, target, diff, hammers });
-
-        startInput.value = '';
-        targetInput.value = '';
-        startInput.focus(); 
-        renderUpgradeList();
-    };
-
-    window.removeUpgradeItem = (index) => {
-        window.upgradeList.splice(index, 1);
-        renderUpgradeList();
-    };
-
-    window.clearUpgradeList = () => {
-        window.upgradeList = [];
-        renderUpgradeList();
-    };
-
-    window.renderUpgradeList = () => {
-        const container = document.getElementById('upgradeListContainer');
-        const inventoryInput = document.getElementById('calcInventory');
-        const totalCostDisplay = document.getElementById('totalCostDisplay');
-        const missingHammersDisplay = document.getElementById('missingHammersDisplay');
-        const cratesToBuyDisplay = document.getElementById('cratesToBuy');
-        const leftoverHammersDisplay = document.getElementById('leftoverHammers');
-
-        if(!container) return;
-
-        let grandTotalNeeded = 0;
-        let html = '';
-
-        if (window.upgradeList.length === 0) {
-            container.innerHTML = `<div style="text-align:center; color:#555; padding:10px; font-style:italic; font-size:0.9em;">Lista pusta</div>`;
-        } else {
-            window.upgradeList.forEach((item, index) => {
-                grandTotalNeeded += item.hammers;
-                html += `
-                    <div style="display:flex; justify-content:space-between; align-items:center; padding:6px; border-bottom:1px solid #222; font-size:0.85em;">
-                        <div>
-                            <span style="color:#aaa;">${item.start} ➝ <b style="color:white;">${item.target}</b></span>
-                            <span style="color:#666; margin-left:5px;">(+${item.diff})</span>
-                        </div>
-                        <div style="display:flex; align-items:center; gap:8px;">
-                            <span style="color:var(--orange);">${item.hammers} m.</span>
-                            <button onclick="removeUpgradeItem(${index})" style="background:none; border:none; color:#e74c3c; cursor:pointer;">&times;</button>
-                        </div>
-                    </div>
-                `;
-            });
-            container.innerHTML = html;
-        }
-
-        const inventory = parseInt(inventoryInput ? inventoryInput.value : 0) || 0;
-        const missing = Math.max(0, grandTotalNeeded - inventory);
-        const cratesToBuy = Math.ceil(missing / 200);
-        const hammersFromNewCrates = cratesToBuy * 200;
-        const totalAfterBuying = inventory + hammersFromNewCrates;
-        
-        let leftovers = 0;
-        if (inventory >= grandTotalNeeded) {
-            leftovers = inventory - grandTotalNeeded;
-        } else {
-            leftovers = totalAfterBuying - grandTotalNeeded;
-        }
-
         if(totalCostDisplay) totalCostDisplay.innerText = `${grandTotalNeeded} mł.`;
         
         if(missingHammersDisplay) {
@@ -5677,7 +5562,20 @@ function renderJackpotUI(data) {
         }
 
         if(cratesToBuyDisplay) cratesToBuyDisplay.innerText = cratesToBuy;
-        if(leftoverHammersDisplay) leftoverHammersDisplay.innerText = leftovers;
+        
+        // Zmieniamy sposób wyświetlania reszty - dodajemy podpowiedź "smart"
+        if(leftoverHammersDisplay) {
+            if (freeLevels > 0) {
+                leftoverHammersDisplay.innerHTML = `
+                    <span style="color:#fff">${leftovers}</span> mł.
+                    <div style="font-size:0.85em; color:#2ecc71; margin-top:3px; border-top:1px dashed #444; padding-top:2px;">
+                        💡 To starczy na <b>+${freeLevels}</b> dodatkowych poziomów!
+                    </div>
+                `;
+            } else {
+                leftoverHammersDisplay.innerHTML = `<span style="color:#fff">${leftovers}</span> mł.`;
+            }
+        }
     };
 	
 </script>
@@ -5685,6 +5583,7 @@ function renderJackpotUI(data) {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
