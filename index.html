@@ -5981,26 +5981,27 @@ function renderJackpotUI(data) {
         alert("Zapisano Discord ID! Nowe oferty będą miały przycisk.");
     };
 
-window.goToDiscord = (id) => {
+		window.goToDiscord = (id) => {
         if(!id) return alert("Ten użytkownik nie podał Discord ID.");
 
-        // Sprawdzamy czy użytkownik jest na telefonie
-        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+        // Próba otwarcia profilu przez uniwersalne API Discorda
+        // Ten link jest najlepiej rozpoznawany przez systemy Android i iOS
+        const apiLink = `https://discordapp.com/api/guilds/YOUR_GUILD_ID/widget.json`; // (Opcjonalnie, ale niepotrzebne)
+        
+        // Najbardziej stabilna metoda "deep link":
+        const discordUrl = `https://discord.com/users/${id}`;
+        
+        // Na urządzeniach mobilnych wykonujemy próbę "wymuszenia"
+        // Jeśli użytkownik ma apkę, system go tam przeniesie.
+        window.location.href = discordUrl;
 
-        if (isMobile) {
-            // Na telefonie standardowy link najlepiej wywołuje zapytanie o otwarcie aplikacji
-            window.location.href = `https://discord.com/users/${id}`;
-        } else {
-            // Na komputerze próbujemy wymusić aplikację
-            window.location.href = `discord://-/users/${id}`;
-            
-            // Zabezpieczenie dla komputerów bez aplikacji
-            setTimeout(() => {
-                if (document.hasFocus()) {
-                    window.open(`https://discord.com/users/${id}`, '_blank');
-                }
-            }, 1500);
-        }
+        // Jeśli po 500ms nic się nie stało (nadal jesteśmy na stronie), 
+        // otwieramy w nowej karcie jako ostateczność.
+        setTimeout(() => {
+            if (document.hasFocus()) {
+                window.open(discordUrl, '_blank');
+            }
+        }, 500);
     };
 	
 </script>
@@ -6008,6 +6009,7 @@ window.goToDiscord = (id) => {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
