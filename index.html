@@ -1043,21 +1043,6 @@ input:focus, select:focus, textarea:focus {
     color: #fff;
     border: 1px solid #fff;
 }
-
-		/* --- NAPRAWA UKŁADU STRONY --- */
-
-.container {
-    max-width: 1250px !important; /* To trzyma stronę w ryzach (nie pozwala się rozlać) */
-    width: 95%;
-    margin: 40px auto;
-}
-
-.offers-grid {
-    display: grid;
-    /* Karty nie będą węższe niż 270px, co daje ok. 4 w rzędzie */
-    grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)) !important; 
-    gap: 25px;
-}
 		
 @keyframes pulseGold { 0% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(255, 215, 0, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0); } }
 		
@@ -1077,50 +1062,6 @@ input:focus, select:focus, textarea:focus {
 		}
         @keyframes cardAppear { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes pulseBadge { 0% { transform: scale(1); } 50% { transform: scale(1.2); } 100% { transform: scale(1); } }
-
-		/* --- NAPRAWA ROZJECHANEGO UKŁADU (PANCERNA) --- */
-
-/* 1. Ograniczenie szerokości całej strony (nawet jak container jest zepsuty) */
-body > div, main, .offers-grid, .filters-container, .advanced-filters, header {
-    max-width: 1200px !important;
-    margin-left: auto !important;
-    margin-right: auto !important;
-}
-
-/* 2. Naprawa rozciągniętych list wyboru (Wszyscy sprzedawcy / Profesje) */
-.advanced-filters {
-    display: flex !important;
-    justify-content: center !important; /* Środek */
-    flex-wrap: wrap !important;
-    gap: 15px !important;
-    width: fit-content !important; /* Szerokość tylko taka jak potrzeba */
-    min-width: 50% !important;
-}
-
-.advanced-filters select, 
-.advanced-filters input {
-    width: auto !important; /* Nie rozciągaj na siłę */
-    min-width: 200px !important; /* Ale zachowaj czytelność */
-    max-width: 300px !important; /* Nie szersze niż to */
-    flex: 0 1 auto !important;
-}
-
-/* 3. Naprawa siatki ofert (żeby wróciło 4 w rzędzie) */
-.offers-grid {
-    display: grid !important;
-    /* To magiczne ustawienie trzyma karty w ryzach */
-    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)) !important;
-    gap: 25px !important;
-    width: 100% !important;
-    box-sizing: border-box !important;
-}
-
-/* Wyjątek: Panel boczny, Modale i Tło nie mogą mieć marginesów auto */
-#rightSidebar, .modal-overlay, #embers-container, #preloader, .game-clock-wrapper, .jackpot-btn-toggle, .quotes-btn-toggle, .extract-btn-toggle, .upgrade-btn-toggle, .essence-btn-toggle, .encyclo-btn-toggle, .calc-btn-toggle, .sidebar-toggle-main, #toast-container {
-    max-width: none !important;
-    margin: 0 !important;
-}
-		
     </style>
 </head>
 <body>
@@ -1195,9 +1136,8 @@ body > div, main, .offers-grid, .filters-container, .advanced-filters, header {
     <span class="group-label">Handel:</span>
     <button class="filter-btn active" id="f-all" onclick="setFilter('type', 'all')">Wszystkie</button>
     <button class="filter-btn" id="f-sprzedam" onclick="setFilter('type', 'sprzedam')">Sprzedam</button>
-    <button class="filter-btn" id="f-kupie" onclick="setFilter('type', 'kupie')">Kupię</button>
+    <button class="filter-btn" id="f-event" onclick="setFilter('type', 'event')">🎉 Eventowe</button> <button class="filter-btn" id="f-kupie" onclick="setFilter('type', 'kupie')">Kupię</button>
     <button class="filter-btn" id="f-zamienie" onclick="setFilter('type', 'zamienie')">Zamienię</button>
-    <button class="filter-btn" id="f-event" onclick="setFilter('type', 'event')">🎉 Eventowe</button> </div>
 		</div>
 
         <div class="filter-group">
@@ -3829,17 +3769,13 @@ window.renderOffers = () => {
 
         let mailBtn = (!isOwner && currentUser && !isSold) ? `<button class="small-btn msg-btn" onclick="openCompose('${data.userId}', '${window.escapeHtml(data.nick)}', '${window.escapeHtml(data.name)}')" title="Wyślij wiadomość">✉️</button>` : "";
         
-        // Wewnątrz renderOffers, sekcja ownerBtns:
-            
-            let ownerBtns = "";
-            if (isOwner && !isSold) {
-                ownerBtns += `<button class="small-btn edit-added" onclick="openFullEdit('${data.id}','${window.escapeHtml(data.name)}','${window.escapeHtml(data.price)}','${window.escapeHtml(data.desc)}','${window.escapeHtml(data.img)}','${data.bonding || 'bound'}', '${data.type}')">✏️</button>`;
-                
-                // TU DODAJ 'event':
-                if (['sprzedam', 'gold', 'chest', 'exp', 'other', 'event'].includes(data.type)) {
-                    ownerBtns += `<button class="small-btn" onclick="markAsSold('${data.id}')" title="Oznacz jako sprzedane" style="border-color:var(--gold); color:var(--gold);">💰</button>`;
-                }
+        let ownerBtns = "";
+        if (isOwner && !isSold) {
+            ownerBtns += `<button class="small-btn edit-added" onclick="openFullEdit('${data.id}','${window.escapeHtml(data.name)}','${window.escapeHtml(data.price)}','${window.escapeHtml(data.desc)}','${window.escapeHtml(data.img)}','${data.bonding || 'bound'}', '${data.type}')">✏️</button>`;
+            if (['sprzedam', 'gold', 'chest', 'exp', 'other'].includes(data.type)) {
+                ownerBtns += `<button class="small-btn" onclick="markAsSold('${data.id}')" title="Oznacz jako sprzedane" style="border-color:var(--gold); color:var(--gold);">💰</button>`;
             }
+        }
         
         let deleteBtn = (isOwner || isAdmin) ? `<button class="small-btn delete-btn" onclick="deleteOffer('${data.id}')" title="Usuń całkowicie">🗑️</button>` : "";
 
@@ -5909,3 +5845,17 @@ function renderJackpotUI(data) {
 <div id="toast-container"></div>
 </body>
 </html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
