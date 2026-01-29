@@ -5960,8 +5960,15 @@ function renderJackpotUI(data) {
 
     window.goToDiscord = (id) => {
         if(!id) return alert("Ten użytkownik nie podał Discord ID.");
-        // Otwiera bezpośredni link do profilu/czatu
-        window.open(`https://discord.com/users/${id}`, '_blank');
+
+        // 1. Próba otwarcia aplikacji na komputerze
+        window.location.href = `discord://-/users/${id}`;
+        
+        // 2. Zabezpieczenie: Jeśli ktoś nie ma aplikacji, po chwili otworzy się przeglądarka
+        // (Możesz usunąć ten fragment od setTimeout, jeśli chcesz wymusić tylko aplikację)
+        setTimeout(() => {
+            window.open(`https://discord.com/users/${id}`, '_blank');
+        }, 1000);
     };
 	
 </script>
@@ -5969,4 +5976,5 @@ function renderJackpotUI(data) {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
