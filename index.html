@@ -1102,17 +1102,25 @@ input:focus, select:focus, textarea:focus {
     <button class="icon-btn" onclick="toggleDebts()" title="Zeszyt Dłużników">📜</button>
     <button class="icon-btn" onclick="openSplitModal()" title="Podziały Łupów" style="color: #00ffff; position: relative;">⚖️ <span id="splitBadge" class="badge" style="display:none;">0</span></button>
 
-    <div class="avatar-wrapper">
-        <img id="userAvatar" class="user-avatar" src="" alt="">
+<div class="avatar-wrapper">
+        <img id="userAvatar" class="user-avatar" src="https://lh3.googleusercontent.com/a/ACg8ocIs9QRrQA8tDVm_SrwPcThbHPO8gWxRZRnoWpBeunlFky4ge8PK=s96-c" alt="">
     </div>
-    <div>
-        <div id="userNickDisplay" style="font-weight:bold; color:var(--gold); font-size:0.9em;">...</div>
-        <div style="display:flex; gap:10px; font-size:0.75em;">
-            <span onclick="openSettings()" style="cursor:pointer; color:#5865F2;" title="Ustaw swoje ID Discorda">⚙️ Discord</span>
-            <span class="logout-link" onclick="logout()">Wyloguj</span>
+    
+    <div style="display: flex; flex-direction: column; justify-content: center;">
+        <div id="userNickDisplay" style="font-weight:bold; color:var(--gold); font-size:0.9em; margin-bottom: 2px;">Stachu Drzymała</div>
+        
+        <div style="display:flex; gap:12px; align-items: center;">
+            
+            <span onclick="openSettings()" style="cursor:pointer; color:#5865F2; font-size:0.75em; font-weight:bold; text-transform: uppercase;" title="Ustaw swoje ID Discorda">
+                ⚙️ Discord
+            </span>
+            
+            <span class="logout-link" onclick="logout()" style="font-size:0.75em; line-height: 1;">
+                WYLOGUJ
+            </span>
+            
         </div>
     </div>
-</div>
 
 		
     </header>
@@ -5976,5 +5984,6 @@ function renderJackpotUI(data) {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
