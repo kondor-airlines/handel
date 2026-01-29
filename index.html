@@ -3789,22 +3789,7 @@ window.renderOffers = () => {
             imgHtml = `<img src="${data.img}" class="item-img">`;
         }
 
-        // --- 1. DEFINICJA PRZYCISKU DISCORD (Teraz widoczny też dla Ciebie do testów) ---
-        let discordBtn = "";
-        // Usunąłem "!isOwner", żebyś widział przycisk u siebie.
-        if (data.discordId) {
-            discordBtn = `<button class="small-btn" onclick="goToDiscord('${data.discordId}')" title="Discord: Kliknij, by napisać" style="border-color:#5865F2; color:#5865F2; font-weight:bold;">💬</button>`;
-        }
-
-        // --- 2. DEFINICJA KLIKALNEGO AWATARA ---
-        // Jeśli użytkownik ma Discorda, awatar będzie miał niebieską ramkę i link
-        let avatarAction = "";
-        let avatarStyle = "";
-        if (data.discordId) {
-            avatarAction = `onclick="goToDiscord('${data.discordId}')" style="cursor:pointer; border-color:#5865F2;" title="Kliknij, aby otworzyć Discorda"`;
-        }
-
-        // --- 3. RESZTA PRZYCISKÓW ---
+        // Przyciski
         let btnRes = "";
         if (!data.reservedBy && !isSold) {
             btnRes = `<button class="small-btn reserve-btn" onclick="reserveOffer('${data.id}')" title="Zarezerwuj">🛡️</button>`;
@@ -3813,19 +3798,40 @@ window.renderOffers = () => {
         }
 
         let mailBtn = (!isOwner && currentUser && !isSold) ? `<button class="small-btn msg-btn" onclick="openCompose('${data.userId}', '${window.escapeHtml(data.nick)}', '${window.escapeHtml(data.name)}')" title="Wyślij wiadomość">✉️</button>` : "";
-        
+
+		// --- PRZYCISK DISCORD ---
+       // --- 1. DEFINICJA PRZYCISKU DISCORD (Teraz widoczny też dla Ciebie do testów) ---
+        let discordBtn = "";
+        // Usunąłem "!isOwner", żebyś widział przycisk u siebie.
+        if (data.discordId) {
+            discordBtn = `<button class="small-btn" onclick="goToDiscord('${data.discordId}')" title="Discord: Kliknij, by napisać" style="border-color:#5865F2; color:#5865F2; font-weight:bold;">💬</button>`;
+        }
+
+		// --- 2. DEFINICJA KLIKALNEGO AWATARA ---
+        // Jeśli użytkownik ma Discorda, awatar będzie miał niebieską ramkę i link
+        let avatarAction = "";
+        let avatarStyle = "";
+        if (data.discordId) {
+            avatarAction = `onclick="goToDiscord('${data.discordId}')" style="cursor:pointer; border-color:#5865F2;" title="Kliknij, aby otworzyć Discorda"`;
+        }
+		
         let ownerBtns = "";
         if (isOwner && !isSold) {
             ownerBtns += `<button class="small-btn edit-added" onclick="openFullEdit('${data.id}','${window.escapeHtml(data.name)}','${window.escapeHtml(data.price)}','${window.escapeHtml(data.desc)}','${window.escapeHtml(data.img)}','${data.bonding || 'bound'}', '${data.type}')">✏️</button>`;
-            if (['sprzedam', 'gold', 'chest', 'exp', 'other', 'event'].includes(data.type)) {
+            if (['sprzedam', 'gold', 'chest', 'exp', 'other'].includes(data.type)) {
                 ownerBtns += `<button class="small-btn" onclick="markAsSold('${data.id}')" title="Oznacz jako sprzedane" style="border-color:var(--gold); color:var(--gold);">💰</button>`;
             }
         }
         
         let deleteBtn = (isOwner || isAdmin) ? `<button class="small-btn delete-btn" onclick="deleteOffer('${data.id}')" title="Usuń całkowicie">🗑️</button>` : "";
 
+		// Dodaliśmy 'event' do listy dozwolonych typów
+		let tooltipHtml = (['sprzedam', 'kupie', 'zamienie', 'event'].includes(data.type) && !isSkrytka) ? getTooltipHtml(data.name, data.img) : "";
+		const displayName = data.name.replace(/\s*\([^)]*\)$/, "");
+        const isOnline = isUserOnline(data.userId);
+        const onlineHtml = isOnline ? '<span class="online-dot" title="Online"></span>' : '';
 
-        // --- 4. RENDEROWANIE KARTY ---
+        // --- 5. RENDEROWANIE KARTY ---
         count++;
         list.innerHTML += `
             <div class="offer-card ${typeClass} ${soldClass}">
@@ -3841,21 +3847,21 @@ window.renderOffers = () => {
                 <div class="price-tag">${window.escapeHtml(data.price)}</div>
                 ${data.reservedBy ? `<div style="font-size:0.7em; color:var(--green); margin:5px 0;">🔒 Rez: ${data.reservedBy}</div>` : ""}
                 ${data.desc ? `<div style="font-size:0.8em; color:#888; font-style:italic; margin-bottom:10px; text-align:center;">"${window.escapeHtml(data.desc)}"</div>` : ""}
-                
-                <div class="seller-info">
-                    <div class="seller-left">
-                        <div class="avatar-wrapper">
-                            <img src="${data.avatar}" class="tiny-avatar" ${avatarAction}>
-                            ${onlineHtml}
-                        </div>
-                        <b>${window.escapeHtml(data.nick)}</b>
+
+            <div class="seller-info">
+                <div class="seller-left">
+                    <div class="avatar-wrapper">
+                        <img src="${data.avatar}" class="tiny-avatar" ${avatarAction}>
+                        ${onlineHtml}
                     </div>
-                    
-                    <div class="btn-group">
-                        ${discordBtn} ${mailBtn} ${btnRes} ${ownerBtns} ${deleteBtn}
-                    </div>
+                    <b>${window.escapeHtml(data.nick)}</b>
                 </div>
-            </div>`;
+
+                <div class="btn-group">
+                    ${discordBtn} ${mailBtn} ${btnRes} ${ownerBtns} ${deleteBtn}
+                </div>
+            </div>
+        </div>`; // To jest koniec karty
 });
     document.getElementById('offerStats').innerText = `Widocznych ofert: ${count}`;
 };
@@ -5963,22 +5969,4 @@ function renderJackpotUI(data) {
 <div id="toast-container"></div>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
