@@ -5984,23 +5984,23 @@ function renderJackpotUI(data) {
 		window.goToDiscord = (id) => {
         if(!id) return alert("Ten użytkownik nie podał Discord ID.");
 
-        // Sprawdzamy czy użytkownik jest na urządzeniu mobilnym
-        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+        // 1. Próbujemy wywołać protokół aplikacji (zadziała na PC i większości telefonów z apką)
+        window.location.href = `discord://-/users/${id}`;
+        
+        // 2. Tworzymy zmienną pomocniczą, żeby sprawdzić czy strona straciła fokus
+        let pageHidden = false;
+        const checkHidden = () => { pageHidden = true; };
+        window.addEventListener('blur', checkHidden, { once: true });
 
-        if (isMobile) {
-            // Na telefonie standardowy link najlepiej wywołuje zapytanie o aplikację
-            window.location.href = `https://discord.com/users/${id}`;
-        } else {
-            // Na komputerze używamy protokołu aplikacji
-            window.location.href = `discord://-/users/${id}`;
-            
-            // Zabezpieczenie dla komputerów (jeśli brak aplikacji, otwórz www po 1s)
-            setTimeout(() => {
-                if (document.hasFocus()) {
-                    window.open(`https://discord.com/users/${id}`, '_blank');
-                }
-            }, 1000);
-        }
+        // 3. Po krótkiej chwili sprawdzamy: jeśli nadal tu jesteśmy, otwieramy przeglądarkę
+        setTimeout(() => {
+            window.removeEventListener('blur', checkHidden);
+            if (!pageHidden) {
+                // Jeśli focus nie uciekł (aplikacja się nie otworzyła), używamy linku www
+                // Na telefonie ten link i tak zostanie przechwycony przez system jako "Otwórz w aplikacji"
+                window.open(`https://discord.com/users/${id}`, '_blank');
+            }
+        }, 1200);
     };
 	
 </script>
@@ -6008,6 +6008,7 @@ function renderJackpotUI(data) {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
