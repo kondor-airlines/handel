@@ -5994,16 +5994,32 @@ function renderJackpotUI(data) {
         document.getElementById('settingsModal').style.display = 'flex';
     };
 
-    window.saveSettings = async () => {
+   	window.saveSettings = async () => {
         const did = document.getElementById('settingsDiscordId').value.trim();
         if(!currentUser) return;
         
+        // 1. Zapisz nowe ID w profilu użytkownika
         await updateDoc(doc(db, "users", currentUser.uid), {
             discordId: did
         });
         
+        // 2. ZNAJDŹ I NADPISZ WSZYSTKIE OFERTY TEGO UŻYTKOWNIKA
+        // To naprawi błąd kolegi – system weźmie wszystkie jego oferty i wstawi tam nowe ID
+        const q = query(collection(db, "oferty"), where("userId", "==", currentUser.uid));
+        const querySnapshot = await getDocs(q);
+        
+        const updates = [];
+        querySnapshot.forEach((document) => {
+            // Dodajemy zadanie aktualizacji do kolejki
+            updates.push(updateDoc(document.ref, { discordId: did }));
+        });
+
+        // Czekamy, aż wszystkie oferty się zaktualizują
+        await Promise.all(updates);
+        
         document.getElementById('settingsModal').style.display = 'none';
-        alert("Zapisano Discord ID! Nowe oferty będą miały przycisk.");
+        window.playSound('coin');
+        alert("Zapisano! Zaktualizowano ID w profilu i we wszystkich Twoich ofertach.");
     };
 
 		window.goToDiscord = (id) => {
@@ -6033,6 +6049,7 @@ function renderJackpotUI(data) {
 <div id="toast-container"></div>
 </body>
 </html>
+
 
 
 
